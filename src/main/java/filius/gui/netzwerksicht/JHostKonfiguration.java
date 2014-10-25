@@ -52,346 +52,359 @@ import filius.rahmenprogramm.EingabenUeberpruefung;
 import filius.rahmenprogramm.I18n;
 import filius.software.system.Betriebssystem;
 
+@SuppressWarnings("serial")
 public class JHostKonfiguration extends JKonfiguration implements I18n {
 
-	private static final long serialVersionUID = 1L;
+    private JTextField name; 
+    private JTextField macAdresse; 
+    private JTextField ipAdresse; 
+    private JTextField netzmaske; 
+    private JTextField gateway; 
+    private JTextField dns; 
+    private JCheckBox dhcp; 
+    private JButton btDhcp;
+    private JCheckBox useIpAsName;
 
-	private JTextField name; // Name,Name,20,String,editable,Neuer
-	                         // Rechner,null
+    protected JHostKonfiguration(Hardware hardware) {
+        super(hardware);
+    }
 
-	private JTextField macAdresse; // MAC-Adresse,15,String,not editable
+    private void aendereAnzeigeName() {
+        if (holeHardware() != null) {
+            Host host = (Host) holeHardware();
+            host.setUseIPAsName(useIpAsName.isSelected());
+        }
 
-	private JTextField ipAdresse; // IP-Adresse,IpAdresse,15,String,editable,192.168.0.0,IpAdresse
+        GUIContainer.getGUIContainer().updateViewport();
+        updateAttribute();
+    }
 
-	private JTextField netzmaske; // Subnetzmaske,Subnetzmaske,15,String,editable,255.255.255.0,subnetz
+    /** Diese Methode wird vom JAendernButton aufgerufen */
+    @Override
+    public void aenderungenAnnehmen() {
+        Host host;
+        Betriebssystem bs;
 
-	private JTextField gateway; // Gateway,Gateway,15,String,editable,192.168.0.99,IpAdresse
+        if (holeHardware() != null) {
+            host = (Host) holeHardware();
+            if (!useIpAsName.isSelected()) {
+                host.setName(name.getText());
+            }
 
-	private JTextField dns; // DNS,Dns,15,String,editable,192.168.0.1,IpAdresse
+            bs = (Betriebssystem) host.getSystemSoftware();
+            bs.setzeIPAdresse(ipAdresse.getText());
+            bs.setzeNetzmaske(netzmaske.getText());
+            bs.setStandardGateway(gateway.getText());
+            bs.setDNSServer(dns.getText());
+            bs.setDHCPKonfiguration(dhcp.isSelected());
 
-	// Anzahl der Anschlüsse,AnzahlAnschluesse,1,int,neditable,1,null
-	private JCheckBox dhcp; // Adresse per DHCP
-	                        // beziehen,Dhcp,1,boolean,editable,false,null
-	private JButton btDhcp;
+            if (dhcp.isSelected()) {
+                bs.getDHCPServer().setAktiv(false);
+            }
+            
+        } else {
+            Main.debug.println("GUIRechnerKonfiguration: Aenderungen konnten nicht uebernommen werden.");
+        }
 
-	private JCheckBox useIpAsName;
+        GUIContainer.getGUIContainer().updateViewport();
+        updateAttribute();
+    }
 
-	protected JHostKonfiguration(Hardware hardware) {
-		super(hardware);
-	}
+    protected void initAttributEingabeBox(Box box, Box rightBox) {
+        JLabel tempLabel;
+        Box tempBox;
+        FocusListener focusListener;
+        ActionListener actionListener;
 
-	public void aendereAnzeigeName() {
-		if (holeHardware() != null) {
-			Host host = (Host) holeHardware();
-			host.setUseIPAsName(useIpAsName.isSelected());
-		}
+        actionListener = new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                aenderungenAnnehmen();
+            }
+        };
+        focusListener = new FocusListener() {
+            public void focusGained(FocusEvent arg0) {}
 
-		GUIContainer.getGUIContainer().updateViewport();
-		updateAttribute();
-	}
+            public void focusLost(FocusEvent arg0) {
+                aenderungenAnnehmen();
+            }
 
-	/** Diese Methode wird vom JAendernButton aufgerufen */
-	public void aenderungenAnnehmen() {
-		Host host;
-		Betriebssystem bs;
+        };
 
-		if (holeHardware() != null) {
-			host = (Host) holeHardware();
-			if (!useIpAsName.isSelected()) {
-				host.setName(name.getText());
-			}
+        // =======================================================
+        // Attribut Name
+        tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg1"));
+        tempLabel.setPreferredSize(new Dimension(140, 10));
+        tempLabel.setVisible(true);
+        tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
-			bs = (Betriebssystem) host.getSystemSoftware();
-			bs.setzeIPAdresse(ipAdresse.getText());
-			bs.setzeNetzmaske(netzmaske.getText());
-			bs.setStandardGateway(gateway.getText());
-			bs.setDNSServer(dns.getText());
-			bs.setDHCPKonfiguration(dhcp.isSelected());
+        name = new JTextField(messages.getString("jhostkonfiguration_msg2"));
+        name.addActionListener(actionListener);
+        name.addFocusListener(focusListener);
 
-			if (dhcp.isSelected())
-				bs.getDHCPServer().setAktiv(false);
-		} else {
-			Main.debug.println("GUIRechnerKonfiguration: Aenderungen konnten nicht uebernommen werden.");
-		}
+        tempBox = Box.createHorizontalBox();
+        tempBox = Box.createHorizontalBox();
+        tempBox.setOpaque(false);
+        tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        tempBox.setMaximumSize(new Dimension(400, 40));
+        tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        tempBox.add(tempLabel);
+        tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
+        tempBox.add(name);
+        box.add(tempBox, BorderLayout.NORTH);
 
-		GUIContainer.getGUIContainer().updateViewport();
-		updateAttribute();
-	}
+        // =======================================================
+        // Attribut MAC-Adresse
+        tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg9"));
+        tempLabel.setPreferredSize(new Dimension(140, 10));
+        tempLabel.setVisible(true);
+        tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
-	protected void initAttributEingabeBox(Box box, Box rightBox) {
-		JLabel tempLabel;
-		Box tempBox;
-		FocusListener focusListener;
-		ActionListener actionListener;
+        macAdresse = new JTextField("");
+        macAdresse.setEnabled(false);
 
-		actionListener = new ActionListener() {
-			public void actionPerformed(ActionEvent evt) {
-				aenderungenAnnehmen();
-			}
-		};
-		focusListener = new FocusListener() {
+        tempBox = Box.createHorizontalBox();
+        tempBox.setOpaque(false);
+        tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        tempBox.setMaximumSize(new Dimension(400, 40));
+        tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        tempBox.add(tempLabel);
+        tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
+        tempBox.add(macAdresse);
+        box.add(tempBox, BorderLayout.NORTH);
 
-			public void focusGained(FocusEvent arg0) {
-			}
+        // =======================================================
+        // Attribut IP-Adresse
+        tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg3"));
+        tempLabel.setPreferredSize(new Dimension(140, 10));
+        tempLabel.setVisible(true);
+        tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
-			public void focusLost(FocusEvent arg0) {
-				aenderungenAnnehmen();
-			}
+        ipAdresse = new JTextField("192.168.0.1");
+        ipAdresse.addKeyListener(new KeyAdapter() {
+            public void keyReleased(KeyEvent e) {
+                checkIpAddress();
+            }
+        });
+        ipAdresse.addActionListener(actionListener);
+        ipAdresse.addFocusListener(focusListener);
 
-		};
+        tempBox = Box.createHorizontalBox();
+        tempBox.setOpaque(false);
+        tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        tempBox.setMaximumSize(new Dimension(400, 40));
+        tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        tempBox.add(tempLabel);
+        tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
+        tempBox.add(ipAdresse);
+        box.add(tempBox, BorderLayout.NORTH);
 
-		// =======================================================
-		// Attribut Name
-		tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg1"));
-		tempLabel.setPreferredSize(new Dimension(140, 10));
-		tempLabel.setVisible(true);
-		tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        // =======================================================
+        // Attribut Netzmaske
+        tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg4"));
+        tempLabel.setPreferredSize(new Dimension(140, 10));
+        tempLabel.setVisible(true);
+        tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
-		name = new JTextField(messages.getString("jhostkonfiguration_msg2"));
-		name.addActionListener(actionListener);
-		name.addFocusListener(focusListener);
+        netzmaske = new JTextField("255.255.255.0");
+        netzmaske.addKeyListener(new KeyAdapter() {
+            public void keyReleased(KeyEvent e) {
+                checkNetmask();
+            }
+        });
+        netzmaske.addActionListener(actionListener);
+        netzmaske.addFocusListener(focusListener);
 
-		tempBox = Box.createHorizontalBox();
-		tempBox = Box.createHorizontalBox();
-		tempBox.setOpaque(false);
-		tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
-		tempBox.setMaximumSize(new Dimension(400, 40));
-		tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-		tempBox.add(tempLabel);
-		tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
-		tempBox.add(name);
-		box.add(tempBox, BorderLayout.NORTH);
+        tempBox = Box.createHorizontalBox();
+        tempBox.setOpaque(false);
+        tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        tempBox.setMaximumSize(new Dimension(400, 40));
+        tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        tempBox.add(tempLabel);
+        tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
+        tempBox.add(netzmaske);
+        box.add(tempBox, BorderLayout.NORTH);
 
-		// =======================================================
-		// Attribut MAC-Adresse
-		tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg9"));
-		tempLabel.setPreferredSize(new Dimension(140, 10));
-		tempLabel.setVisible(true);
-		tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        // =======================================================
+        // Attribut Gateway-Adresse
+        tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg5"));
+        tempLabel.setPreferredSize(new Dimension(140, 10));
+        tempLabel.setVisible(true);
+        tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
-		macAdresse = new JTextField("");
-		macAdresse.setEnabled(false);
+        gateway = new JTextField("192.168.0.1");
+        gateway.addKeyListener(new KeyAdapter() {
+            public void keyReleased(KeyEvent e) {
+                checkGatewayAddress();
+            }
+        });
+        gateway.addActionListener(actionListener);
+        gateway.addFocusListener(focusListener);
 
-		tempBox = Box.createHorizontalBox();
-		tempBox.setOpaque(false);
-		tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
-		tempBox.setMaximumSize(new Dimension(400, 40));
-		tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-		tempBox.add(tempLabel);
-		tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
-		tempBox.add(macAdresse);
-		box.add(tempBox, BorderLayout.NORTH);
+        tempBox = Box.createHorizontalBox();
+        tempBox.setOpaque(false);
+        tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        tempBox.setMaximumSize(new Dimension(400, 40));
+        tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        tempBox.add(tempLabel);
+        tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
+        tempBox.add(gateway);
+        box.add(tempBox, BorderLayout.NORTH);
 
-		// =======================================================
-		// Attribut IP-Adresse
-		tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg3"));
-		tempLabel.setPreferredSize(new Dimension(140, 10));
-		tempLabel.setVisible(true);
-		tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        // =======================================================
+        // Attribut Adresse des Domain Name Server
+        tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg6"));
+        tempLabel.setPreferredSize(new Dimension(140, 10));
+        tempLabel.setVisible(true);
+        tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
-		ipAdresse = new JTextField("192.168.0.1");
-		ipAdresse.addKeyListener(new KeyAdapter() {
-			public void keyReleased(KeyEvent e) {
-				ueberpruefen(EingabenUeberpruefung.musterIpAdresse, ipAdresse);
-			}
-		});
-		ipAdresse.addActionListener(actionListener);
-		ipAdresse.addFocusListener(focusListener);
+        dns = new JTextField("192.168.0.1");
+        dns.addKeyListener(new KeyAdapter() {
+            public void keyReleased(KeyEvent e) {
+                checkDnsAddress();
+            }
+        });
+        dns.addActionListener(actionListener);
+        dns.addFocusListener(focusListener);
 
-		tempBox = Box.createHorizontalBox();
-		tempBox.setOpaque(false);
-		tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
-		tempBox.setMaximumSize(new Dimension(400, 40));
-		tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-		tempBox.add(tempLabel);
-		tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
-		tempBox.add(ipAdresse);
-		box.add(tempBox, BorderLayout.NORTH);
+        tempBox = Box.createHorizontalBox();
+        tempBox.setOpaque(false);
+        tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        tempBox.setMaximumSize(new Dimension(400, 40));
+        tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        tempBox.add(tempLabel);
+        tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
+        tempBox.add(dns);
+        box.add(tempBox, BorderLayout.NORTH);
 
-		// =======================================================
-		// Attribut Netzmaske
-		tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg4"));
-		tempLabel.setPreferredSize(new Dimension(140, 10));
-		tempLabel.setVisible(true);
-		tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg10"));
+        tempLabel.setPreferredSize(new Dimension(140, 10));
+        tempLabel.setVisible(true);
+        tempLabel.setOpaque(false);
+        tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
-		netzmaske = new JTextField("255.255.255.0");
-		netzmaske.addKeyListener(new KeyAdapter() {
-			public void keyReleased(KeyEvent e) {
-				ueberpruefen(EingabenUeberpruefung.musterSubNetz, netzmaske);
-				// setMessage("\u00C4nderungen werden erst durch die Schaltflaeche \u00C4ndern \u00FCbernommen!");
-			}
-		});
-		netzmaske.addActionListener(actionListener);
-		netzmaske.addFocusListener(focusListener);
+        useIpAsName = new JCheckBox();
+        useIpAsName.setOpaque(false);
+        useIpAsName.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                aendereAnzeigeName();
+            }
+        });
 
-		tempBox = Box.createHorizontalBox();
-		tempBox.setOpaque(false);
-		tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
-		tempBox.setMaximumSize(new Dimension(400, 40));
-		tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-		tempBox.add(tempLabel);
-		tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
-		tempBox.add(netzmaske);
-		box.add(tempBox, BorderLayout.NORTH);
+        tempBox = Box.createHorizontalBox();
+        tempBox.setOpaque(false);
+        tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        tempBox.setPreferredSize(new Dimension(400, 35));
+        tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        tempBox.add(useIpAsName);
+        tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
+        tempBox.add(tempLabel);
+        rightBox.add(tempBox, BorderLayout.NORTH);
 
-		// =======================================================
-		// Attribut Gateway-Adresse
-		tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg5"));
-		tempLabel.setPreferredSize(new Dimension(140, 10));
-		tempLabel.setVisible(true);
-		tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        // =======================================================
+        // Attribut Verwendung von DHCP
+        tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg7"));
+        tempLabel.setPreferredSize(new Dimension(140, 10));
+        tempLabel.setVisible(true);
+        tempLabel.setOpaque(false);
+        tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
-		gateway = new JTextField("192.168.0.1");
-		gateway.addKeyListener(new KeyAdapter() {
-			public void keyReleased(KeyEvent e) {
-				ueberpruefen(EingabenUeberpruefung.musterIpAdresseAuchLeer, gateway);
-			}
-		});
-		gateway.addActionListener(actionListener);
-		gateway.addFocusListener(focusListener);
+        dhcp = new JCheckBox();
+        dhcp.setSelected(false);
+        dhcp.setOpaque(false);
+        dhcp.addActionListener(actionListener);
 
-		tempBox = Box.createHorizontalBox();
-		tempBox.setOpaque(false);
-		tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
-		tempBox.setMaximumSize(new Dimension(400, 40));
-		tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-		tempBox.add(tempLabel);
-		tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
-		tempBox.add(gateway);
-		box.add(tempBox, BorderLayout.NORTH);
+        tempBox = Box.createHorizontalBox();
+        tempBox.setOpaque(false);
+        tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        tempBox.setPreferredSize(new Dimension(400, 35));
+        tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        tempBox.add(dhcp);
+        tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
+        tempBox.add(tempLabel);
+        rightBox.add(tempBox, BorderLayout.NORTH);
 
-		// =======================================================
-		// Attribut Adresse des Domain Name Server
-		tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg6"));
-		tempLabel.setPreferredSize(new Dimension(140, 10));
-		tempLabel.setVisible(true);
-		tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        rightBox.add(Box.createVerticalStrut(10));
 
-		dns = new JTextField("192.168.0.1");
-		dns.addKeyListener(new KeyAdapter() {
-			public void keyReleased(KeyEvent e) {
-				ueberpruefen(EingabenUeberpruefung.musterIpAdresseAuchLeer, dns);
-			}
-		});
-		dns.addActionListener(actionListener);
-		dns.addFocusListener(focusListener);
+        // ===================================================
+        // DHCP-Server einrichten
+        tempBox = Box.createHorizontalBox();
+        tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        tempBox.setOpaque(false);
 
-		tempBox = Box.createHorizontalBox();
-		tempBox.setOpaque(false);
-		tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
-		tempBox.setMaximumSize(new Dimension(400, 40));
-		tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-		tempBox.add(tempLabel);
-		tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
-		tempBox.add(dns);
-		box.add(tempBox, BorderLayout.NORTH);
+        btDhcp = new JButton(messages.getString("jhostkonfiguration_msg8"));
+        btDhcp.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                showDhcpConfiguration();
+            }
+        });
+        tempBox.add(btDhcp);
 
-		tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg10"));
-		tempLabel.setPreferredSize(new Dimension(140, 10));
-		tempLabel.setVisible(true);
-		tempLabel.setOpaque(false);
-		tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        rightBox.add(tempBox);
 
-		useIpAsName = new JCheckBox();
-		useIpAsName.setOpaque(false);
-		useIpAsName.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent evt) {
-				aendereAnzeigeName();
-			}
-		});
+        tempBox = Box.createVerticalBox();
+        tempBox.setOpaque(false);
+        tempBox.setPreferredSize(new Dimension(400, 120));
+        rightBox.add(tempBox);
 
-		tempBox = Box.createHorizontalBox();
-		tempBox.setOpaque(false);
-		tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
-		tempBox.setPreferredSize(new Dimension(400, 35));
-		tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-		tempBox.add(useIpAsName);
-		tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
-		tempBox.add(tempLabel);
-		rightBox.add(tempBox, BorderLayout.NORTH);
+        updateAttribute();
+    }
 
-		// =======================================================
-		// Attribut Verwendung von DHCP
-		tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg7"));
-		tempLabel.setPreferredSize(new Dimension(140, 10));
-		tempLabel.setVisible(true);
-		tempLabel.setOpaque(false);
-		tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+    private void showDhcpConfiguration() {
+        JDHCPKonfiguration dhcpKonfig = new JDHCPKonfiguration(JMainFrame.getJMainFrame(),
+                messages.getString("jhostkonfiguration_msg8"),
+                (Betriebssystem) ((Host) holeHardware()).getSystemSoftware());
+        dhcpKonfig.setVisible(true);
+    }
 
-		dhcp = new JCheckBox();
-		dhcp.setSelected(false);
-		dhcp.setOpaque(false);
-		dhcp.addActionListener(actionListener);
+    private void checkIpAddress() {
+        ueberpruefen(EingabenUeberpruefung.musterIpAdresse, ipAdresse);
+    }
 
-		tempBox = Box.createHorizontalBox();
-		tempBox.setOpaque(false);
-		tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
-		tempBox.setPreferredSize(new Dimension(400, 35));
-		tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-		tempBox.add(dhcp);
-		tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
-		tempBox.add(tempLabel);
-		rightBox.add(tempBox, BorderLayout.NORTH);
+    private void checkDnsAddress() {
+        ueberpruefen(EingabenUeberpruefung.musterIpAdresseAuchLeer, dns);
+    }
 
-		rightBox.add(Box.createVerticalStrut(10));
+    private void checkGatewayAddress() {
+        ueberpruefen(EingabenUeberpruefung.musterIpAdresseAuchLeer, gateway);
+    }
 
-		// ===================================================
-		// DHCP-Server einrichten
-		tempBox = Box.createHorizontalBox();
-		tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
-		tempBox.setOpaque(false);
+    private void checkNetmask() {
+        ueberpruefen(EingabenUeberpruefung.musterSubNetz, netzmaske);
+    }
 
-		btDhcp = new JButton(messages.getString("jhostkonfiguration_msg8"));
-		btDhcp.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+    public void updateAttribute() {
+        Betriebssystem bs;
+        Host host;
 
-				JDHCPKonfiguration dhcpKonfig = new JDHCPKonfiguration(JMainFrame.getJMainFrame(), messages
-				        .getString("jhostkonfiguration_msg8"), (Betriebssystem) ((Host) holeHardware())
-				        .getSystemSoftware());
-				dhcpKonfig.setVisible(true);
-			}
-		});
-		tempBox.add(btDhcp);
+        if (holeHardware() != null) {
+            host = (Host) holeHardware();
+            name.setText(host.holeAnzeigeName());
+            useIpAsName.setSelected(host.isUseIPAsName());
+            name.setEnabled(!host.isUseIPAsName());
 
-		rightBox.add(tempBox);
+            bs = (Betriebssystem) host.getSystemSoftware();
 
-		tempBox = Box.createVerticalBox();
-		tempBox.setOpaque(false);
-		tempBox.setPreferredSize(new Dimension(400, 120));
-		rightBox.add(tempBox);
+            macAdresse.setText(bs.holeMACAdresse());
+            ipAdresse.setText(bs.holeIPAdresse());
+            netzmaske.setText(bs.holeNetzmaske());
+            gateway.setText(bs.getStandardGateway());
+            dns.setText(bs.getDNSServer());
 
-		updateAttribute();
-	}
+            dhcp.setSelected(bs.isDHCPKonfiguration());
+            btDhcp.setEnabled(!dhcp.isSelected());
 
-	public void updateAttribute() {
-		Betriebssystem bs;
-		Host host;
+            ipAdresse.setEnabled(!bs.isDHCPKonfiguration());
+            netzmaske.setEnabled(!bs.isDHCPKonfiguration());
+            gateway.setEnabled(!bs.isDHCPKonfiguration());
+            dns.setEnabled(!bs.isDHCPKonfiguration());
 
-		if (holeHardware() != null) {
-			host = (Host) holeHardware();
-			name.setText(host.holeAnzeigeName());
-			useIpAsName.setSelected(host.isUseIPAsName());
-			name.setEnabled(!host.isUseIPAsName());
-
-			bs = (Betriebssystem) host.getSystemSoftware();
-
-			macAdresse.setText(bs.holeMACAdresse());
-			ipAdresse.setText(bs.holeIPAdresse());
-			netzmaske.setText(bs.holeNetzmaske());
-			gateway.setText(bs.getStandardGateway());
-			dns.setText(bs.getDNSServer());
-
-			dhcp.setSelected(bs.isDHCPKonfiguration());
-			btDhcp.setEnabled(!dhcp.isSelected());
-
-			ipAdresse.setEnabled(!bs.isDHCPKonfiguration());
-			netzmaske.setEnabled(!bs.isDHCPKonfiguration());
-			gateway.setEnabled(!bs.isDHCPKonfiguration());
-			dns.setEnabled(!bs.isDHCPKonfiguration());
-		} else {
-			Main.debug.println("GUIRechnerKonfiguration: keine Hardware-Komponente vorhanden");
-		}
-	}
+            checkIpAddress();
+            checkDnsAddress();
+            checkGatewayAddress();
+            checkNetmask();
+        } else {
+            Main.debug.println("GUIRechnerKonfiguration: keine Hardware-Komponente vorhanden");
+        }
+    }
 
 }

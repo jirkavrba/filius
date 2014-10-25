@@ -255,14 +255,9 @@ public class JKonfiguration extends JBackgroundPanel {
 	public boolean ueberpruefen(Pattern pruefRegel, JTextField feld) {
 		if (EingabenUeberpruefung.isGueltig(feld.getText(), pruefRegel)) {
 			feld.setForeground(EingabenUeberpruefung.farbeRichtig);
-			JTextField test = new JTextField();
-			feld.setBorder(test.getBorder());
 			return true;
 		} else {
 			feld.setForeground(EingabenUeberpruefung.farbeFalsch);
-
-			feld.setForeground(EingabenUeberpruefung.farbeFalsch);
-			feld.setBorder(BorderFactory.createLineBorder(EingabenUeberpruefung.farbeFalsch, 1));
 			return false;
 		}
 	}
