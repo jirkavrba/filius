@@ -50,230 +50,210 @@ import filius.hardware.knoten.Modem;
 import filius.rahmenprogramm.I18n;
 import filius.software.system.ModemFirmware;
 
+@SuppressWarnings("serial")
 public class JModemKonfiguration extends JKonfiguration implements I18n, Observer {
 
-	private static final long serialVersionUID = 1L;
+    private static final String CMD_DISCONNECT = "Trennen";
+    private static final String CMD_START_SERVER = "ServerStarten";
+    private static final String CMD_START_CLIENT = "ClientStarten";
+    private JTextField name;
+    private JCheckBox cbServerModus;
+    private JTextField tfIpAdresse;
+    private JTextField tfPort;
 
-	private JTextField name; // Name,Name,20,String,editable,Neuer
+    private JButton btStartStop;
 
-	private JCheckBox cbServerModus;
+    protected JModemKonfiguration(Hardware hardware) {
+        super(hardware);
 
-	private JTextField tfIpAdresse;
-	private JTextField tfPort;
+        ((Modem) holeHardware()).getSystemSoftware().addObserver(this);
+    }
 
-	private JButton btStartStop;
+    @Override
+    public void aenderungenAnnehmen() {
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
+                + " (JModemKonfiguration), aenderungenAnnehmen()");
+        Modem modem;
+        ModemFirmware firmware;
 
-	protected JModemKonfiguration(Hardware hardware) {
-		super(hardware);
+        modem = (Modem) holeHardware();
+        firmware = (ModemFirmware) modem.getSystemSoftware();
 
-		((Modem) holeHardware()).getSystemSoftware().addObserver(this);
-	}
+        modem.setName(name.getText());
+        firmware.setIpAdresse(tfIpAdresse.getText());
+        try {
+            firmware.setPort(Integer.parseInt(tfPort.getText()));
+        } catch (Exception e) {}
 
-	public void aenderungenAnnehmen() {
-		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
-		        + " (JModemKonfiguration), aenderungenAnnehmen()");
-		Modem modem;
-		ModemFirmware firmware;
+        if (cbServerModus.isSelected()) {
+            ((ModemFirmware) modem.getSystemSoftware()).setMode(ModemFirmware.SERVER);
+        } else {
+            ((ModemFirmware) modem.getSystemSoftware()).setMode(ModemFirmware.CLIENT);
+        }
+    }
 
-		modem = (Modem) holeHardware();
-		firmware = (ModemFirmware) modem.getSystemSoftware();
+    protected void initAttributEingabeBox(Box box, Box rightBox) {
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
+                + " (JModemKonfiguration), initAttributEingabeBox(" + box + ")");
+        
+        FocusListener configFocusListener = new FocusListener() {
+            public void focusGained(FocusEvent arg0) {}
 
-		modem.setName(name.getText());
-		firmware.setIpAdresse(tfIpAdresse.getText());
-		try {
-			firmware.setPort(Integer.parseInt(tfPort.getText()));
-		} catch (Exception e) {
-		}
+            public void focusLost(FocusEvent arg0) {
+                aenderungenAnnehmen();
+                updateAttribute();
+            }
+        };
+        ActionListener configActionListener = new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                aenderungenAnnehmen();
+                updateAttribute();
+            }
+        };
 
-		if (cbServerModus.isSelected()) {
-			((ModemFirmware) modem.getSystemSoftware()).setMode(ModemFirmware.SERVER);
-		} else {
-			((ModemFirmware) modem.getSystemSoftware()).setMode(ModemFirmware.CLIENT);
-		}
+        JLabel tempLabel = new JLabel(messages.getString("jmodemkonfiguration_msg1"));
+        tempLabel.setPreferredSize(new Dimension(140, 10));
+        tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
-	}
+        name = new JTextField("");
+        name.addActionListener(configActionListener);
+        name.addFocusListener(configFocusListener);
+        
+        Box tempBox = Box.createHorizontalBox();
+        tempBox.setOpaque(false);
+        tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        tempBox.setMaximumSize(new Dimension(400, 40));
+        tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        tempBox.add(tempLabel);
+        tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
+        tempBox.add(name);
+        box.add(tempBox, BorderLayout.NORTH);
 
-	protected void initAttributEingabeBox(Box box, Box rightBox) {
-		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
-		        + " (JModemKonfiguration), initAttributEingabeBox(" + box + ")");
-		JLabel tempLabel;
-		Box tempBox;
-		FocusListener focusListener;
-		ActionListener actionListener;
+        tempBox = Box.createHorizontalBox();
+        tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        tempBox.setMaximumSize(new Dimension(400, 40));
+        tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
-		actionListener = new ActionListener() {
-			public void actionPerformed(ActionEvent evt) {
-				aenderungenAnnehmen();
-			}
-		};
-		focusListener = new FocusListener() {
+        cbServerModus = new JCheckBox();
+        cbServerModus.setText(messages.getString("jmodemkonfiguration_msg2"));
+        cbServerModus.setOpaque(false);
+        cbServerModus.addActionListener(configActionListener);
+        tempBox.add(cbServerModus);
+        box.add(tempBox);
 
-			public void focusGained(FocusEvent arg0) {
-			}
+        tempBox = Box.createHorizontalBox();
+        tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        tempBox.setMaximumSize(new Dimension(400, 40));
+        tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
-			public void focusLost(FocusEvent arg0) {
-				aenderungenAnnehmen();
-			}
+        tempLabel = new JLabel(messages.getString("jmodemkonfiguration_msg3"));
+        tempLabel.setPreferredSize(new Dimension(140, 10));
+        tempBox.add(tempLabel);
 
-		};
+        tfIpAdresse = new JTextField("192.168.0.21");
+        tfIpAdresse.setEnabled(false);
+        tfIpAdresse.setPreferredSize(new Dimension(100, 18));
+        tfIpAdresse.setText(((ModemFirmware) ((Modem) holeHardware()).getSystemSoftware()).getIpAdresse());
+        tfIpAdresse.addActionListener(configActionListener);
+        tfIpAdresse.addFocusListener(configFocusListener);
+        tempBox.add(tfIpAdresse);
+        box.add(tempBox);
 
-		tempLabel = new JLabel(messages.getString("jmodemkonfiguration_msg1"));
-		tempLabel.setPreferredSize(new Dimension(140, 10));
-		tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        tempBox = Box.createHorizontalBox();
+        tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        tempBox.setMaximumSize(new Dimension(400, 40));
+        tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
-		name = new JTextField("");
-		name.addActionListener(actionListener);
-		name.addFocusListener(focusListener);
+        tempLabel = new JLabel(messages.getString("jmodemkonfiguration_msg4"));
+        tempLabel.setPreferredSize(new Dimension(140, 10));
+        tempBox.add(tempLabel);
 
-		tempBox = Box.createHorizontalBox();
-		tempBox.setOpaque(false);
-		tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
-		tempBox.setMaximumSize(new Dimension(400, 40));
-		tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-		tempBox.add(tempLabel);
-		tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
-		tempBox.add(name);
-		box.add(tempBox, BorderLayout.NORTH);
+        tfPort = new JTextField("1234");
+        tfPort.setPreferredSize(new Dimension(100, 18));
+        tfPort.setText("" + ((ModemFirmware) ((Modem) holeHardware()).getSystemSoftware()).getPort());
+        tfPort.addActionListener(configActionListener);
+        tfPort.addFocusListener(configFocusListener);
+        tempBox.add(tfPort);
+        box.add(tempBox);
 
-		tempBox = Box.createHorizontalBox();
-		tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
-		tempBox.setMaximumSize(new Dimension(400, 40));
-		tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        tempBox = Box.createHorizontalBox();
+        tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        tempBox.setMaximumSize(new Dimension(400, 40));
+        tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
-		cbServerModus = new JCheckBox();
-		cbServerModus.setText(messages.getString("jmodemkonfiguration_msg2"));
-		cbServerModus.setOpaque(false);
-		tempBox.add(cbServerModus);
+        btStartStop = new JButton(messages.getString("jmodemkonfiguration_msg2"));
+        btStartStop.setPreferredSize(new Dimension(300, 30));
+        btStartStop.setActionCommand(CMD_START_SERVER);
+        btStartStop.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                ModemFirmware firmware = (ModemFirmware) ((Modem) holeHardware()).getSystemSoftware();
 
-		box.add(tempBox);
+                aenderungenAnnehmen();
 
-		tempBox = Box.createHorizontalBox();
-		tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
-		tempBox.setMaximumSize(new Dimension(400, 40));
-		tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+                if (e.getActionCommand().equals(CMD_START_CLIENT)) {
+                    firmware.starteClient();
+                } else if (e.getActionCommand().equals(CMD_START_SERVER)) {
+                    firmware.starteServer();
+                } else if (e.getActionCommand().equals(CMD_DISCONNECT)) {
+                    firmware.trennen();
+                }
 
-		tempLabel = new JLabel(messages.getString("jmodemkonfiguration_msg3"));
-		tempLabel.setPreferredSize(new Dimension(140, 10));
-		tempBox.add(tempLabel);
+                updateAttribute();
+            }
+        });
+        tempBox.add(btStartStop);
+        box.add(tempBox);
 
-		tfIpAdresse = new JTextField("192.168.0.21");
-		tfIpAdresse.setEnabled(false);
-		tfIpAdresse.setPreferredSize(new Dimension(100, 18));
-		tfIpAdresse.setText(((ModemFirmware) ((Modem) holeHardware()).getSystemSoftware()).getIpAdresse());
-		tempBox.add(tfIpAdresse);
+        updateAttribute();
+    }
 
-		box.add(tempBox);
+    @Override
+    public synchronized void updateAttribute() {
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
+                + " (JModemKonfiguration), updateAttribute()");
+        Modem modem;
+        ModemFirmware firmware;
+        boolean aktiv;
 
-		tempBox = Box.createHorizontalBox();
-		tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
-		tempBox.setMaximumSize(new Dimension(400, 40));
-		tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        modem = (Modem) holeHardware();
+        firmware = (ModemFirmware) modem.getSystemSoftware();
+        name.setText(modem.holeAnzeigeName());
 
-		tempLabel = new JLabel(messages.getString("jmodemkonfiguration_msg4"));
-		tempLabel.setPreferredSize(new Dimension(140, 10));
-		tempBox.add(tempLabel);
+        tfIpAdresse.setText(firmware.getIpAdresse());
+        tfPort.setText("" + firmware.getPort());
 
-		tfPort = new JTextField("1234");
-		tfPort.setPreferredSize(new Dimension(100, 18));
-		tfPort.setText("" + ((ModemFirmware) ((Modem) holeHardware()).getSystemSoftware()).getPort());
-		tempBox.add(tfPort);
+        if (firmware.getMode() == ModemFirmware.CLIENT) {
+            cbServerModus.setSelected(false);
+            tfIpAdresse.setEnabled(true);
+            btStartStop.setText(messages.getString("jmodemkonfiguration_msg5"));
+            btStartStop.setPreferredSize(new Dimension(300, 30));
+            btStartStop.setActionCommand(CMD_START_CLIENT);
+            aktiv = modem.istVerbindungAktiv();
+        } else {
+            cbServerModus.setSelected(true);
+            tfIpAdresse.setEnabled(false);
+            btStartStop.setText(messages.getString("jmodemkonfiguration_msg2"));
+            btStartStop.setPreferredSize(new Dimension(300, 30));
+            btStartStop.setActionCommand(CMD_START_SERVER);
+            aktiv = firmware.istServerBereit();
+        }
 
-		box.add(tempBox);
+        if (aktiv) {
+            btStartStop.setText(messages.getString("jmodemkonfiguration_msg6"));
+            btStartStop.setActionCommand(CMD_DISCONNECT);
+            tfIpAdresse.setEnabled(false);
+            tfPort.setEnabled(false);
+            cbServerModus.setEnabled(false);
+        } else {
+            tfPort.setEnabled(true);
+            cbServerModus.setEnabled(true);
+        }
+        GUIContainer.getGUIContainer().updateViewport();
+    }
 
-		tempBox = Box.createHorizontalBox();
-		tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
-		tempBox.setMaximumSize(new Dimension(400, 40));
-		tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-
-		btStartStop = new JButton(messages.getString("jmodemkonfiguration_msg2"));
-		btStartStop.setPreferredSize(new Dimension(300, 30));
-		btStartStop.setActionCommand("ServerStarten");
-		btStartStop.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				ModemFirmware firmware = (ModemFirmware) ((Modem) holeHardware()).getSystemSoftware();
-
-				aenderungenAnnehmen();
-
-				if (e.getActionCommand().equals("ClientStarten")) {
-					firmware.starteClient();
-				} else if (e.getActionCommand().equals("ServerStarten")) {
-					firmware.starteServer();
-				} else if (e.getActionCommand().equals("Trennen")) {
-					firmware.trennen();
-				}
-
-				updateAttribute();
-			}
-		});
-		tempBox.add(btStartStop);
-
-		box.add(tempBox);
-
-		ActionListener al = new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				aenderungenAnnehmen();
-				updateAttribute();
-			}
-		};
-
-		cbServerModus.addActionListener(al);
-		name.addActionListener(al);
-		tfIpAdresse.addActionListener(al);
-		tfPort.addActionListener(al);
-
-		updateAttribute();
-	}
-
-	public void updateAttribute() {
-		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
-		        + " (JModemKonfiguration), updateAttribute()");
-		Modem modem;
-		ModemFirmware firmware;
-		boolean aktiv;
-
-		modem = (Modem) holeHardware();
-		firmware = (ModemFirmware) modem.getSystemSoftware();
-		name.setText(modem.holeAnzeigeName());
-
-		tfIpAdresse.setText(firmware.getIpAdresse());
-		tfPort.setText("" + firmware.getPort());
-
-		if (firmware.getMode() == ModemFirmware.CLIENT) {
-			cbServerModus.setSelected(false);
-			tfIpAdresse.setEnabled(true);
-			btStartStop.setText(messages.getString("jmodemkonfiguration_msg5"));
-			btStartStop.setPreferredSize(new Dimension(300, 30));
-			btStartStop.setActionCommand("ClientStarten");
-			aktiv = modem.istVerbindungAktiv();
-		} else {
-			cbServerModus.setSelected(true);
-			tfIpAdresse.setEnabled(false);
-			btStartStop.setText(messages.getString("jmodemkonfiguration_msg2"));
-			btStartStop.setPreferredSize(new Dimension(300, 30));
-			btStartStop.setActionCommand("ServerStarten");
-			aktiv = firmware.istServerBereit();
-		}
-
-		if (aktiv) {
-			btStartStop.setText(messages.getString("jmodemkonfiguration_msg6"));
-			btStartStop.setActionCommand("Trennen");
-			tfIpAdresse.setEnabled(false);
-			tfPort.setEnabled(false);
-			cbServerModus.setEnabled(false);
-		} else {
-			tfPort.setEnabled(true);
-			cbServerModus.setEnabled(true);
-		}
-		GUIContainer.getGUIContainer().updateViewport();
-	}
-
-	public void update(Observable arg0, Object arg1) {
-		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (JModemKonfiguration), update(" + arg0
-		        + "," + arg1 + ")");
-		updateAttribute();
-
-		// if (arg1 != null) {
-		// JOptionPane.showMessageDialog(this, arg1);
-		// }
-	}
+    public void update(Observable arg0, Object arg1) {
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (JModemKonfiguration), update(" + arg0
+                + "," + arg1 + ")");
+        updateAttribute();
+    }
 }

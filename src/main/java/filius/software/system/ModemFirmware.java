@@ -193,6 +193,7 @@ public class ModemFirmware extends SystemSoftware implements Runnable, I18n {
 	 * In dieser Methode werden die Portbeobachter gegebenenfalls gestartet. Der
 	 * Verbindungsaufbau erfolgt im Entwurfsmodus durch Benutzerinteraktion.
 	 */
+	@Override
 	public void starten() {
 		gestartet = true;
 
@@ -203,6 +204,7 @@ public class ModemFirmware extends SystemSoftware implements Runnable, I18n {
 	 * In dieser Methode wird nichts ausgefuehrt. Der Verbindungsabbau wird in
 	 * beiden Modi erst durch Benutzerinteraktion initiiert.
 	 */
+	@Override
 	public void beenden() {
 		gestartet = false;
 	}
@@ -296,10 +298,6 @@ public class ModemFirmware extends SystemSoftware implements Runnable, I18n {
 			extern.starten();
 			intern.starten();
 		}
-
-		// Main.debug.println(getClass() + " run():" + "\n\tSocket im "
-		// + ((mode == SERVER) ? "Server" : "Client")
-		// + "-Modus wird ueberwacht.");
 	}
 
 	public String getIpAdresse() {
