@@ -55,16 +55,10 @@ import filius.software.system.Dateisystem;
  * @author Johannes Bade & Thomas Gerding
  * 
  */
+@SuppressWarnings("serial")
 public class GUIApplicationTerminalWindow extends GUIApplicationWindow {
 
-	/**
-     * 
-     */
 	private static final String MENU_LINE = "==========================================================================\n";
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = 1L;
 	private JTextArea terminalField;
 	private JPanel backPanel;
 	private JTextField inputField;
@@ -77,9 +71,8 @@ public class GUIApplicationTerminalWindow extends GUIApplicationWindow {
 
 	private boolean multipleObserverEvents;
 
-	ArrayList<String> terminalCommandList = new ArrayList<String>(); // für
-	                                                                 // pfeil-nach-oben-holt-letzten-befehl-wieder
-	int terminalCommandListStep = -1;
+	private ArrayList<String> commandHistory = new ArrayList<String>(); 
+	private int commandHistoryPointer = -1;
 
 	public GUIApplicationTerminalWindow(GUIDesktopPanel desktop, String appName) {
 		super(desktop, appName);
@@ -93,7 +86,7 @@ public class GUIApplicationTerminalWindow extends GUIApplicationWindow {
 		terminalField.setCaretColor(new Color(222, 222, 222));
 		terminalField.setForeground(new Color(222, 222, 222));
 		terminalField.setBackground(new Color(0, 0, 0));
-		terminalField.setFont(new Font("Courier New", Font.PLAIN, 11));
+		terminalField.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 11));
 		terminalField.setFocusable(false);
 		terminalField.setBorder(null);
 
@@ -123,7 +116,7 @@ public class GUIApplicationTerminalWindow extends GUIApplicationWindow {
 		inputField.addKeyListener(new KeyListener() {
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					terminalCommandListStep = -1; // lass uns doch besser wieder
+					commandHistoryPointer = -1; // lass uns doch besser wieder
 					                              // von unten/vorne beginnen
 					if (!(inputField.getText().isEmpty() || inputField.getText().replaceAll(" ", "").isEmpty())) { // only
 						                                                                                           // process
@@ -164,7 +157,7 @@ public class GUIApplicationTerminalWindow extends GUIApplicationWindow {
 						} else {
 							inputLabel.setVisible(false);
 							jobRunning = true;
-							terminalCommandList.add(inputField.getText());
+							commandHistory.add(inputField.getText());
 							((Terminal) holeAnwendung()).terminalEingabeAuswerten(enteredCommand, enteredParameters);
 						}
 					} else {
@@ -180,22 +173,22 @@ public class GUIApplicationTerminalWindow extends GUIApplicationWindow {
 				// 38 arrow-up / 40 arrow-down
 				if (e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_DOWN) {
 					if (e.getKeyCode() == KeyEvent.VK_UP) {
-						terminalCommandListStep++;
+						commandHistoryPointer++;
 					}
 					if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-						terminalCommandListStep--;
+						commandHistoryPointer--;
 					}
-					if (terminalCommandListStep < -1) {
-						terminalCommandListStep = -1;
+					if (commandHistoryPointer < -1) {
+						commandHistoryPointer = -1;
 					}
-					if (terminalCommandListStep >= terminalCommandList.size()) {
-						terminalCommandListStep = terminalCommandList.size() - 1;
+					if (commandHistoryPointer >= commandHistory.size()) {
+						commandHistoryPointer = commandHistory.size() - 1;
 					}
 					try {
-						if (terminalCommandListStep != -1) {
-							inputField.setText(terminalCommandList.get(terminalCommandList.size() - 1
-							        - terminalCommandListStep));
-						} else if (terminalCommandListStep == -1) {
+						if (commandHistoryPointer != -1) {
+							inputField.setText(commandHistory.get(commandHistory.size() - 1
+							        - commandHistoryPointer));
+						} else if (commandHistoryPointer == -1) {
 							inputField.setText("");
 						}
 					} catch (IndexOutOfBoundsException eis) {
