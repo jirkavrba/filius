@@ -51,6 +51,8 @@ import filius.software.transportschicht.UDP;
 import filius.software.vermittlungsschicht.ARP;
 import filius.software.vermittlungsschicht.ICMP;
 import filius.software.vermittlungsschicht.IP;
+import filius.software.vermittlungsschicht.Route;
+import filius.software.vermittlungsschicht.RouteNotFoundException;
 import filius.software.vermittlungsschicht.Weiterleitungstabelle;
 
 /**
@@ -518,6 +520,10 @@ public abstract class InternetKnotenBetriebssystem extends SystemSoftware {
      */
     public Weiterleitungstabelle getWeiterleitungstabelle() {
         return weiterleitungstabelle;
+    }
+    
+    public Route determineRoute(String ipAddress) throws RouteNotFoundException {
+        return weiterleitungstabelle.holeWeiterleitungsEintrag(ipAddress);
     }
 
     /**

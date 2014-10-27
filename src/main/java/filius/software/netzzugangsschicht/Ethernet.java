@@ -40,6 +40,8 @@ import filius.software.vermittlungsschicht.IpPaket;
 
 /** Diese Klasse implementiert die Netzzugangsschicht */
 public class Ethernet extends Protokoll {
+    
+    public static final String ETHERNET_BROADCAST = "FF:FF:FF:FF:FF:FF";
 
 	/**
 	 * Liste der Threads fuer die Ueberwachung der Netzwerkkarten

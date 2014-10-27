@@ -25,6 +25,7 @@
  */
 package filius.software.vermittlungsschicht;
 
+import java.util.List;
 import java.util.StringTokenizer;
 
 import filius.Main;
@@ -65,34 +66,26 @@ public abstract class VermittlungsProtokoll extends Protokoll {
 		Main.debug
 		        .println("INVOKED (static) filius.software.vermittlungsschicht.VermittlungsProtokoll, gleichesRechnernetz("
 		                + adresseEins + "," + adresseZwei + "," + netzmaske + ")");
-		int[] a1, a2, m;
-		StringTokenizer tokenizer;
-		boolean gleichesRechnernetz = true;
-
-		tokenizer = new StringTokenizer(adresseEins, ".");
-		a1 = new int[4];
-		for (int i = 0; i < a1.length && tokenizer.hasMoreTokens(); i++) {
-			a1[i] = Integer.parseInt(tokenizer.nextToken());
-		}
-		tokenizer = new StringTokenizer(adresseZwei, ".");
-		a2 = new int[4];
-		for (int i = 0; i < a2.length && tokenizer.hasMoreTokens(); i++) {
-			a2[i] = Integer.parseInt(tokenizer.nextToken());
-		}
-		tokenizer = new StringTokenizer(netzmaske, ".");
-		m = new int[4];
-		for (int i = 0; i < m.length && tokenizer.hasMoreTokens(); i++) {
-			m[i] = Integer.parseInt(tokenizer.nextToken());
-		}
-
-		for (int i = 0; i < 4 && gleichesRechnernetz; i++) {
-			if ((a1[i] & m[i]) == (a2[i] & m[i]))
-				gleichesRechnernetz = true;
-			else
-				gleichesRechnernetz = false;
-		}
-
-		return gleichesRechnernetz;
+		int addressOneAsInt = ipAddressToInt(adresseEins);
+		int addressTwoAsInt = ipAddressToInt(adresseZwei);
+		int netmaskAsInt = ipAddressToInt(netzmaske);
+		
+		return (addressOneAsInt & netmaskAsInt) == (addressTwoAsInt & netmaskAsInt);
+	}
+	
+	static int ipAddressToInt(String address) {
+	    int addressAsInt = 0;
+	    StringTokenizer tokenizer = new StringTokenizer(address, ".");
+	    while (tokenizer.hasMoreTokens()) {
+            addressAsInt = (addressAsInt << 8) + Integer.parseInt(tokenizer.nextToken());
+        }
+	    return addressAsInt;
+	}
+	
+	public static boolean isBroadcast(String ipAdresse, String netzmaske) {
+	    int addressAsInt = ipAddressToInt(ipAdresse);
+        int netmaskAsInt = ipAddressToInt(netzmaske);
+        return (addressAsInt & ~netmaskAsInt) == (0xffffffff & ~netmaskAsInt) || (addressAsInt & ~netmaskAsInt) == 0;
 	}
 
 	/*
@@ -104,7 +97,7 @@ public abstract class VermittlungsProtokoll extends Protokoll {
 		int[] a1, m;
 		int[] res = new int[4];
 		StringTokenizer tokenizer;
-
+		
 		tokenizer = new StringTokenizer(ip, ".");
 		a1 = new int[4];
 		for (int i = 0; i < a1.length && tokenizer.hasMoreTokens(); i++) {
@@ -136,4 +129,14 @@ public abstract class VermittlungsProtokoll extends Protokoll {
 		}
 		return false;
 	}
+
+    public boolean isApplicableBroadcast(String zielIp) {
+        List<NetzwerkInterface> nics = ((InternetKnoten)this.holeSystemSoftware().getKnoten()).getNetzwerkInterfaces();
+        for (NetzwerkInterface nic : nics) {
+            if ( gleichesRechnernetz(zielIp, nic.getIp(), nic.getSubnetzMaske()) && isBroadcast(zielIp, nic.getSubnetzMaske())) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

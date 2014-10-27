@@ -60,7 +60,7 @@ public class ICMPThread extends ProtokollThread {
 		// TTL dekrementieren
 		icmpPaket.setTtl(icmpPaket.getTtl() - 1);
 
-		if (vermittlung.isLocalAddress(icmpPaket.getZielIp())) {
+		if (vermittlung.isLocalAddress(icmpPaket.getZielIp()) || vermittlung.isApplicableBroadcast(icmpPaket.getZielIp())) {
 			// Paket wurde an diesen Rechner gesendet
 			if (icmpPaket.getIcmpType() == ICMP.ECHO_REQUEST && icmpPaket.getIcmpCode() == ICMP.CODE_ECHO_REQUEST) {
 				vermittlung.sendEchoReply(icmpPaket);
@@ -91,17 +91,11 @@ public class ICMPThread extends ProtokollThread {
 		synchronized (rcvdPackets) {
 			try {
 				rcvdPackets.wait(Verbindung.holeRTT());
-			} catch (InterruptedException e) {
-			}
+			} catch (InterruptedException e) {			}
 			if (rcvdPackets.size() == 0) {
 				Main.debug.println("DEBUG (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
 				        + " (ICMPThread), startSinglePing, NO reply in queue");
-				throw new java.util.concurrent.TimeoutException("Destination Host Unreachable"); // not
-				                                                                                 // absolutely
-				                                                                                 // correct,
-				                                                                                 // but
-				                                                                                 // who
-				                                                                                 // cares...
+				throw new java.util.concurrent.TimeoutException("Destination Host Unreachable"); 
 			} else {
 				Main.debug.println("DEBUG (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
 				        + " (ICMPThread), startSinglePing, reply in queue");

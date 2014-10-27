@@ -25,7 +25,6 @@
  */
 package filius.software.lokal;
 
-import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -52,7 +51,7 @@ import filius.software.vermittlungsschicht.IP;
 import filius.software.vermittlungsschicht.IcmpPaket;
 import filius.software.vermittlungsschicht.Route;
 import filius.software.vermittlungsschicht.RouteNotFoundException;
-import filius.software.vermittlungsschicht.Weiterleitungstabelle;
+import filius.software.vermittlungsschicht.VermittlungsProtokoll;
 
 /**
  * Diese Klasse soll eine Art Eingabeaufforderung oder Unix-Shell darstellen, in der zumindest rudimentaere Befehle wie
@@ -577,9 +576,8 @@ public class Terminal extends ClientAnwendung implements I18n {
         if (socket instanceof Socket) {
             remoteAddress = ((Socket) socket).holeZielIPAdresse();
             try {
-                Weiterleitungstabelle weiterleitungstabelle = ((InternetKnotenBetriebssystem) this.getSystemSoftware())
-                        .getWeiterleitungstabelle();
-                Route routingEntry = weiterleitungstabelle.holeWeiterleitungsEintrag(remoteAddress);
+                Route routingEntry = ((InternetKnotenBetriebssystem) this.getSystemSoftware())
+                        .determineRoute(remoteAddress);
                 localAddress = routingEntry.getInterfaceIpAddress();
             } catch (RouteNotFoundException e) {
                 localAddress = "<unknown>";
@@ -744,6 +742,16 @@ public class Terminal extends ClientAnwendung implements I18n {
             benachrichtigeBeobachter(messages.getString("sw_terminal_msg29"));
             return messages.getString("sw_terminal_msg29");
         }
+        try {
+            Route route = ((InternetKnotenBetriebssystem) getSystemSoftware()).determineRoute(destIp);
+            if (VermittlungsProtokoll.isBroadcast(destIp, route.getNetMask())) {
+                benachrichtigeBeobachter(messages.getString("sw_terminal_msg53"));
+                return messages.getString("sw_terminal_msg53");
+            }
+        } catch (RouteNotFoundException e1) {
+            benachrichtigeBeobachter(messages.getString("sw_terminal_msg52"));
+            return messages.getString("sw_terminal_msg52");
+        }
 
         // second: send several ICMP echo requests
         long timeStart, timeDiff;
@@ -756,17 +764,17 @@ public class Terminal extends ClientAnwendung implements I18n {
         int loopNumber = Information.isPosixCommandLineToolBehaviour() ? 10 : 4;
         for (num = 0; !interrupted && num < loopNumber; num++) {
             try {
-                timeStart = Calendar.getInstance().getTimeInMillis();
+                timeStart = System.currentTimeMillis();
                 // / CAVE: wahrscheinlich hier Queue nötig und blockieren, bis
                 // Ergebnis da ist!!!
                 int resTTL = getSystemSoftware().holeICMP().startSinglePing(destIp, num + 1);
                 // wait 1s between single ping executions subtract needed time
                 // for former ping
-                timeDiff = 1000 - (Calendar.getInstance().getTimeInMillis() - timeStart);
+                timeDiff = 1000 - (System.currentTimeMillis() - timeStart);
                 // Main.debug.println("DEBUG: Terminal, ping (num="+(num+1)+"), resTTL="+resTTL+", delay="+(1000-timeDiff)+", timeDiff="+timeDiff);
                 if (resTTL >= 0) {
                     benachrichtigeBeobachter("\nFrom " + args[0] + " (" + destIp + "): icmp_seq=" + (num + 1) + " ttl="
-                            + resTTL + " time=" + (Calendar.getInstance().getTimeInMillis() - timeStart) + "ms");
+                            + resTTL + " time=" + (System.currentTimeMillis() - timeStart) + "ms");
                     receivedReplies++;
                 }
                 if (timeDiff > 0) {
