@@ -94,10 +94,6 @@ public class SwitchPortBeobachter extends ProtokollThread {
 
 			zielAnschluss = switchFirmware.holeAnschlussFuerMAC(etp.getZielMacAdresse());
 			if (zielAnschluss != null) {
-				// Main.debug.println("SwitchPortBeobachter: Frame fuer "
-				// + etp.getZielMacAdresse() + " an Port "
-				// + zielAnschluss.toString());
-
 				synchronized (zielAnschluss.holeAusgangsPuffer()) {
 					zielAnschluss.holeAusgangsPuffer().add(etp);
 					zielAnschluss.holeAusgangsPuffer().notify();

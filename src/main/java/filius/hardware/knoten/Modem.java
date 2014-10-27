@@ -32,7 +32,7 @@ public class Modem extends LokalerKnoten {
 
 	public static final String TYPE = "Modem";
 	private static final long serialVersionUID = 1L;
-	private boolean verbindungAktiv = false;
+	private boolean modemVerbindungAktiv = false;
 
 	@Override
 	public String holeHardwareTyp() {
@@ -49,15 +49,15 @@ public class Modem extends LokalerKnoten {
 		this.setName(TYPE);
 	}
 
-	public void setzeVerbindungAktiv(boolean verbindungAktiv) {
+	public void setzeModemVerbindungAktiv(boolean verbindungAktiv) {
 		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (Modem), setzeVerbindungAktiv("
 		        + verbindungAktiv + ")");
-		this.verbindungAktiv = verbindungAktiv;
+		this.modemVerbindungAktiv = verbindungAktiv;
 		this.setChanged();
 		this.notifyObservers(verbindungAktiv);
 	}
 
-	public boolean istVerbindungAktiv() {
-		return verbindungAktiv;
+	public boolean istModemVerbindungAktiv() {
+		return modemVerbindungAktiv;
 	}
 }

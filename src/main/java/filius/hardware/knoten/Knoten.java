@@ -29,13 +29,11 @@ import filius.hardware.Hardware;
 import filius.hardware.Port;
 import filius.software.system.SystemSoftware;
 
+@SuppressWarnings("serial")
 public abstract class Knoten extends Hardware {
 
-	private String name; // name der Hardware
-
-	private SystemSoftware systemAnwendung; // je nach Art der Hardware ist dies
-	                                        // ein Betriebssystem oder eine
-	                                        // Firmware
+	private String name; 
+	private SystemSoftware systemAnwendung; 
 
 	public abstract Port holeFreienPort();
 

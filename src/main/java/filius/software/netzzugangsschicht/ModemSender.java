@@ -39,13 +39,7 @@ import filius.software.system.ModemFirmware;
  * ueber eine TCP/IP-Verbindung herzustellen. Hiermit wird die Verbindung zu dem
  * virtuellen Rechnernetz ueberwacht.
  */
-public class ModemAnschlussBeobachterIntern extends ProtokollThread {
-
-	/**
-	 * Die Modem-Firmware zur Verbindung von Rechnernetzen ueber eine
-	 * TCP/IP-Verbindung
-	 */
-	private ModemFirmware firmware;
+public class ModemSender extends ProtokollThread {
 
 	/**
 	 * Der Stream zur Uebertragung der Frames ueber den TCP/IP-Socket
@@ -56,13 +50,11 @@ public class ModemAnschlussBeobachterIntern extends ProtokollThread {
 	 * Der Konstruktor, in dem der zu beobachtendende Puffer an den Konstruktor
 	 * der Oberklasse weitergibt und die Firmware und Socket initialisiert.
 	 */
-	public ModemAnschlussBeobachterIntern(ModemFirmware firmware, OutputStream out) {
+	public ModemSender(ModemFirmware firmware, OutputStream out) {
 		super(((Modem) firmware.getKnoten()).getErstenAnschluss().holeEingangsPuffer());
 		Main.debug.println("INVOKED-2 (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
 		        + " (ModemAnschlussBeobachterIntern), constr: ModemAnschlussBeobachterIntern(" + firmware + "," + out
 		        + ")");
-
-		this.firmware = firmware;
 
 		try {
 			this.out = new ObjectOutputStream(out);
@@ -79,11 +71,6 @@ public class ModemAnschlussBeobachterIntern extends ProtokollThread {
 	protected void verarbeiteDatenEinheit(Object datenEinheit) {
 		Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
 		        + " (ModemAnschlussBeobachterIntern), verarbeiteDatenEinheit(" + datenEinheit.toString() + ")");
-		EthernetFrame frame;
-
-		if (datenEinheit instanceof EthernetFrame) {
-			frame = (EthernetFrame) datenEinheit;
-		}
 
 		try {
 			out.writeObject(datenEinheit);

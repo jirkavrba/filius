@@ -55,6 +55,7 @@ import filius.software.system.Betriebssystem;
 @SuppressWarnings("serial")
 public class JHostKonfiguration extends JKonfiguration implements I18n {
 
+    private static final int LABEL_WIDTH = 160;
     private JTextField name; 
     private JTextField macAdresse; 
     private JTextField ipAdresse; 
@@ -133,7 +134,7 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
         // =======================================================
         // Attribut Name
         tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg1"));
-        tempLabel.setPreferredSize(new Dimension(140, 10));
+        tempLabel.setPreferredSize(new Dimension(LABEL_WIDTH, 10));
         tempLabel.setVisible(true);
         tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
@@ -155,7 +156,7 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
         // =======================================================
         // Attribut MAC-Adresse
         tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg9"));
-        tempLabel.setPreferredSize(new Dimension(140, 10));
+        tempLabel.setPreferredSize(new Dimension(LABEL_WIDTH, 10));
         tempLabel.setVisible(true);
         tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
@@ -175,7 +176,7 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
         // =======================================================
         // Attribut IP-Adresse
         tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg3"));
-        tempLabel.setPreferredSize(new Dimension(140, 10));
+        tempLabel.setPreferredSize(new Dimension(LABEL_WIDTH, 10));
         tempLabel.setVisible(true);
         tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
@@ -201,7 +202,7 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
         // =======================================================
         // Attribut Netzmaske
         tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg4"));
-        tempLabel.setPreferredSize(new Dimension(140, 10));
+        tempLabel.setPreferredSize(new Dimension(LABEL_WIDTH, 10));
         tempLabel.setVisible(true);
         tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
@@ -227,7 +228,7 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
         // =======================================================
         // Attribut Gateway-Adresse
         tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg5"));
-        tempLabel.setPreferredSize(new Dimension(140, 10));
+        tempLabel.setPreferredSize(new Dimension(LABEL_WIDTH, 10));
         tempLabel.setVisible(true);
         tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
@@ -253,7 +254,7 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
         // =======================================================
         // Attribut Adresse des Domain Name Server
         tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg6"));
-        tempLabel.setPreferredSize(new Dimension(140, 10));
+        tempLabel.setPreferredSize(new Dimension(LABEL_WIDTH, 10));
         tempLabel.setVisible(true);
         tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
@@ -277,7 +278,7 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
         box.add(tempBox, BorderLayout.NORTH);
 
         tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg10"));
-        tempLabel.setPreferredSize(new Dimension(140, 10));
+        tempLabel.setPreferredSize(new Dimension(LABEL_WIDTH, 10));
         tempLabel.setVisible(true);
         tempLabel.setOpaque(false);
         tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
@@ -303,7 +304,7 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
         // =======================================================
         // Attribut Verwendung von DHCP
         tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg7"));
-        tempLabel.setPreferredSize(new Dimension(140, 10));
+        tempLabel.setPreferredSize(new Dimension(LABEL_WIDTH, 10));
         tempLabel.setVisible(true);
         tempLabel.setOpaque(false);
         tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);

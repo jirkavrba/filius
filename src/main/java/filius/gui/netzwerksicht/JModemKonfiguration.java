@@ -225,21 +225,20 @@ public class JModemKonfiguration extends JKonfiguration implements I18n, Observe
         if (firmware.getMode() == ModemFirmware.CLIENT) {
             cbServerModus.setSelected(false);
             tfIpAdresse.setEnabled(true);
-            btStartStop.setText(messages.getString("jmodemkonfiguration_msg5"));
             btStartStop.setPreferredSize(new Dimension(300, 30));
             btStartStop.setActionCommand(CMD_START_CLIENT);
-            aktiv = modem.istVerbindungAktiv();
+            aktiv = modem.istModemVerbindungAktiv();
+            btStartStop.setText(aktiv ? messages.getString("jmodemkonfiguration_msg6") : messages.getString("jmodemkonfiguration_msg5"));
         } else {
             cbServerModus.setSelected(true);
             tfIpAdresse.setEnabled(false);
-            btStartStop.setText(messages.getString("jmodemkonfiguration_msg2"));
             btStartStop.setPreferredSize(new Dimension(300, 30));
             btStartStop.setActionCommand(CMD_START_SERVER);
             aktiv = firmware.istServerBereit();
+            btStartStop.setText(aktiv ? messages.getString("jmodemkonfiguration_msg8") : messages.getString("jmodemkonfiguration_msg7"));
         }
 
         if (aktiv) {
-            btStartStop.setText(messages.getString("jmodemkonfiguration_msg6"));
             btStartStop.setActionCommand(CMD_DISCONNECT);
             tfIpAdresse.setEnabled(false);
             tfPort.setEnabled(false);
@@ -248,7 +247,6 @@ public class JModemKonfiguration extends JKonfiguration implements I18n, Observe
             tfPort.setEnabled(true);
             cbServerModus.setEnabled(true);
         }
-        GUIContainer.getGUIContainer().updateViewport();
     }
 
     public void update(Observable arg0, Object arg1) {
