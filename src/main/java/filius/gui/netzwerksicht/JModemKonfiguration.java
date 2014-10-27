@@ -44,7 +44,6 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 import filius.Main;
-import filius.gui.GUIContainer;
 import filius.hardware.Hardware;
 import filius.hardware.knoten.Modem;
 import filius.rahmenprogramm.I18n;
