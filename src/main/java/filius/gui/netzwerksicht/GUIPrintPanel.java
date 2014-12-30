@@ -30,45 +30,53 @@ import java.awt.Dimension;
 import java.util.List;
 
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import filius.gui.GUIContainer;
 
-public class GUIPrintPanel extends GUIMainArea {
+public class GUIPrintPanel extends JPanel {
     private static final int EMPTY_BORDER = 10;
 
     private static final long serialVersionUID = 1L;
 
-    private GUIMainArea mainArea = new GUIMainArea();
+    private GUINetworkPanel mainArea = new GUINetworkPanel();
+    private GUIDocumentationPanel docuPanel = new GUIDocumentationPanel();
 
     public GUIPrintPanel() {
         this.setSize(GUIContainer.FLAECHE_BREITE + 2 * EMPTY_BORDER, GUIContainer.FLAECHE_HOEHE + 2 * EMPTY_BORDER);
+        setOpaque(false);
+
         add(mainArea);
         mainArea.setBounds(EMPTY_BORDER, EMPTY_BORDER, GUIContainer.FLAECHE_BREITE, GUIContainer.FLAECHE_HOEHE);
-        mainArea.setOpaque(false);
-        setOpaque(false);
+        
+        add(docuPanel);
+        docuPanel.setBounds(EMPTY_BORDER, EMPTY_BORDER, GUIContainer.FLAECHE_BREITE, GUIContainer.FLAECHE_HOEHE);
+        
         // setBackgroundImage("gfx/allgemein/simulationshg.png");
     }
 
-    @Override
     public void updateViewport(List<GUIKnotenItem> knoten, List<GUIKabelItem> kabel, List<GUIDocuItem> docuItems,
             boolean docuItemsEnabled) {
-        mainArea.updateViewport(knoten, kabel, docuItems, false);
+        mainArea.updateViewport(knoten, kabel);
+        docuPanel.updateViewport(docuItems, false);
     }
 
     public void updateViewport(List<GUIKnotenItem> knoten, List<GUIKabelItem> kabel, List<GUIDocuItem> docuItems,
             String footerText) {
-        mainArea.updateViewport(knoten, kabel, docuItems, false);
+        mainArea.updateViewport(knoten, kabel);
+        docuPanel.updateViewport(docuItems, false);
 
         JLabel footer = new JLabel(footerText);
         footer.setForeground(Color.lightGray);
         int footerWidth = footer.getFontMetrics(footer.getFont()).stringWidth(footerText) + 20;
         int footerHeight = footer.getFontMetrics(footer.getFont()).getHeight();
-        int footerY = (int) mainArea.maxY + 30;
-        int footerX = (int) mainArea.minX;
+        int footerY = (int) Math.max(mainArea.maxY, docuPanel.maxY) + 30;
+        int footerX = (int) Math.min(mainArea.minX, docuPanel.minX);
         footer.setBounds(footerX, footerY, footerWidth, footerHeight);
-        mainArea.maxX = Math.max(footerX + footerWidth, mainArea.maxX);
-        mainArea.maxY = footerY + footerHeight;
-        mainArea.add(footer);
+        this.add(footer);
+        
+        docuPanel.maxX = Math.max(footerX + footerWidth, Math.max(mainArea.maxX, docuPanel.maxX));
+        docuPanel.maxY = footerY + footerHeight;
     }
 
     @Override
@@ -77,19 +85,21 @@ public class GUIPrintPanel extends GUIMainArea {
     }
 
     public int getClipY() {
-        return (int) mainArea.minY;
+        return (int) Math.min(mainArea.minY, docuPanel.minY);
     }
 
     public int getClipHeight() {
-        return (int) (mainArea.maxY - mainArea.minY) + 2 * EMPTY_BORDER;
+        int totalMaxY = (int) Math.max(mainArea.maxY,  docuPanel.maxY);
+        return totalMaxY - getClipY() + 2 * EMPTY_BORDER;
     }
 
     public int getClipWidth() {
-        return (int) (mainArea.maxX - mainArea.minX) + 2 * EMPTY_BORDER;
+        int totalMaxX = (int) Math.max(mainArea.maxX,  docuPanel.maxX);
+        return totalMaxX - getClipX() + 2 * EMPTY_BORDER;
     }
 
     public int getClipX() {
-        return (int) mainArea.minX;
+        return (int) Math.min(mainArea.minX, docuPanel.minX);
     }
 
     @Override

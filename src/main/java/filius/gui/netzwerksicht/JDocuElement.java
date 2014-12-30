@@ -69,8 +69,10 @@ public class JDocuElement extends JPanel implements I18n {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+        this.setFocusable(enabled);
         if (textArea != null) {
             textArea.setEditable(enabled);
+            textArea.setFocusable(enabled);
             if (enabled) {
                 textArea.setBackground(new Color(0.9f, 0.9f, 0.9f, 0.5f));
             } else {
@@ -89,17 +91,21 @@ public class JDocuElement extends JPanel implements I18n {
         if (!text) {
             initRectangle();
         } else {
-            setSize(100, 50);
-            this.setLayout(new BorderLayout());
-            textArea = new JTextArea();
-            textArea.setBorder(BorderFactory.createEmptyBorder(TEXT_BORDER_WIDTH, TEXT_BORDER_WIDTH, TEXT_BORDER_WIDTH,
-                    TEXT_BORDER_WIDTH));
-            textArea.setLineWrap(true);
-            textArea.setWrapStyleWord(true);
-            textArea.setEditable(enabled);
-            this.add(textArea, BorderLayout.CENTER);
+            initTextfield();
         }
         initListener();
+    }
+
+    private void initTextfield() {
+        setSize(100, 50);
+        this.setLayout(new BorderLayout());
+        textArea = new JTextArea();
+        textArea.setBorder(BorderFactory.createEmptyBorder(TEXT_BORDER_WIDTH, TEXT_BORDER_WIDTH, TEXT_BORDER_WIDTH,
+                TEXT_BORDER_WIDTH));
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        textArea.setEnabled(enabled);
+        this.add(textArea, BorderLayout.CENTER);
     }
 
     private void initListener() {
@@ -142,7 +148,9 @@ public class JDocuElement extends JPanel implements I18n {
 
             @Override
             public void mouseExited(MouseEvent e) {
-                JMainFrame.getJMainFrame().setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+                if (JDocuElement.this.enabled) {
+                    JMainFrame.getJMainFrame().setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+                }
             }
         });
         comp.addMouseMotionListener(new MouseInputAdapter() {
@@ -172,41 +180,43 @@ public class JDocuElement extends JPanel implements I18n {
 
             @Override
             public void mouseMoved(MouseEvent e) {
-                int x = e.getX();
-                int y = e.getY();
-                if (x <= TEXT_BORDER_WIDTH) {
-                    updateType = GUIContainer.LEFT_SIZING;
-                } else if (x >= JDocuElement.this.getWidth() - TEXT_BORDER_WIDTH) {
-                    updateType = GUIContainer.RIGHT_SIZING;
-                } else if (y <= TEXT_BORDER_WIDTH) {
-                    updateType = GUIContainer.UPPER_SIZING;
-                } else if (y >= JDocuElement.this.getHeight() - TEXT_BORDER_WIDTH) {
-                    updateType = GUIContainer.LOWER_SIZING;
-                } else if (JDocuElement.this.textArea != null) {
-                    try {
-                        Rectangle charPos = JDocuElement.this.textArea.modelToView(JDocuElement.this.textArea
-                                .viewToModel(e.getPoint()));
-                        if (e.getY() >= charPos.getY() && e.getY() <= charPos.getY() + charPos.getHeight()) {
-                            updateType = GUIContainer.NONE;
-                        } else {
-                            updateType = GUIContainer.MOVE;
-                        }
-                    } catch (BadLocationException e1) {}
-                } else {
-                    updateType = GUIContainer.MOVE;
-                }
-                if (updateType == GUIContainer.MOVE) {
-                    JMainFrame.getJMainFrame().setCursor(new Cursor(Cursor.MOVE_CURSOR));
-                } else if (updateType == GUIContainer.RIGHT_SIZING) {
-                    JMainFrame.getJMainFrame().setCursor(new Cursor(Cursor.E_RESIZE_CURSOR));
-                } else if (updateType == GUIContainer.LEFT_SIZING) {
-                    JMainFrame.getJMainFrame().setCursor(new Cursor(Cursor.W_RESIZE_CURSOR));
-                } else if (updateType == GUIContainer.UPPER_SIZING) {
-                    JMainFrame.getJMainFrame().setCursor(new Cursor(Cursor.N_RESIZE_CURSOR));
-                } else if (updateType == GUIContainer.LOWER_SIZING) {
-                    JMainFrame.getJMainFrame().setCursor(new Cursor(Cursor.S_RESIZE_CURSOR));
-                } else {
-                    JMainFrame.getJMainFrame().setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+                if (JDocuElement.this.enabled) {
+                    int x = e.getX();
+                    int y = e.getY();
+                    if (x <= TEXT_BORDER_WIDTH) {
+                        updateType = GUIContainer.LEFT_SIZING;
+                    } else if (x >= JDocuElement.this.getWidth() - TEXT_BORDER_WIDTH) {
+                        updateType = GUIContainer.RIGHT_SIZING;
+                    } else if (y <= TEXT_BORDER_WIDTH) {
+                        updateType = GUIContainer.UPPER_SIZING;
+                    } else if (y >= JDocuElement.this.getHeight() - TEXT_BORDER_WIDTH) {
+                        updateType = GUIContainer.LOWER_SIZING;
+                    } else if (JDocuElement.this.textArea != null) {
+                        try {
+                            Rectangle charPos = JDocuElement.this.textArea.modelToView(JDocuElement.this.textArea
+                                    .viewToModel(e.getPoint()));
+                            if (e.getY() >= charPos.getY() && e.getY() <= charPos.getY() + charPos.getHeight()) {
+                                updateType = GUIContainer.NONE;
+                            } else {
+                                updateType = GUIContainer.MOVE;
+                            }
+                        } catch (BadLocationException e1) {}
+                    } else {
+                        updateType = GUIContainer.MOVE;
+                    }
+                    if (updateType == GUIContainer.MOVE) {
+                        JMainFrame.getJMainFrame().setCursor(new Cursor(Cursor.MOVE_CURSOR));
+                    } else if (updateType == GUIContainer.RIGHT_SIZING) {
+                        JMainFrame.getJMainFrame().setCursor(new Cursor(Cursor.E_RESIZE_CURSOR));
+                    } else if (updateType == GUIContainer.LEFT_SIZING) {
+                        JMainFrame.getJMainFrame().setCursor(new Cursor(Cursor.W_RESIZE_CURSOR));
+                    } else if (updateType == GUIContainer.UPPER_SIZING) {
+                        JMainFrame.getJMainFrame().setCursor(new Cursor(Cursor.N_RESIZE_CURSOR));
+                    } else if (updateType == GUIContainer.LOWER_SIZING) {
+                        JMainFrame.getJMainFrame().setCursor(new Cursor(Cursor.S_RESIZE_CURSOR));
+                    } else {
+                        JMainFrame.getJMainFrame().setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+                    }
                 }
             }
         });
