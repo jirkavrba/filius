@@ -87,7 +87,7 @@ public class JMainFrame extends javax.swing.JFrame implements WindowListener, Ob
 							// are
 							// selected
 							List<GUIKnotenItem> itemlist = GUIContainer.getGUIContainer().getKnotenItems();
-							JMarkerPanel auswahl = GUIContainer.getAuswahl();
+							JMarkerPanel auswahl = GUIContainer.getGUIContainer().getAuswahl();
 							JScrollPane scrollPane = GUIContainer.getGUIContainer().getScrollPane();
 							GUIKnotenItem tempitem;
 							int tx, ty, twidth, theight;
