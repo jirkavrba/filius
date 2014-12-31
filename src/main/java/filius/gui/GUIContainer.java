@@ -452,6 +452,7 @@ public class GUIContainer implements Serializable, I18n {
                         } catch (IOException e) {}
                     }
                 }
+                updateViewport();
             }
         }
     }
