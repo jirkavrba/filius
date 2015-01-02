@@ -26,6 +26,7 @@
 		<izpack.url>http://www.lernsoftware-filius.de</izpack.url>
 		<izpack.installDir>Filius</izpack.installDir>
 		<izpack.appVersion>${project.version}</izpack.appVersion>
+		<commons-lang3.version>3.3.2</commons-lang3.version>
 	</properties>
 	<packaging>jar</packaging>
 
@@ -63,6 +64,12 @@
 			<groupId>com.sun.jna</groupId>
 			<artifactId>jna</artifactId>
 			<version>${jna.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>${commons-lang3.version}</version>
 		</dependency>
 
 	</dependencies>

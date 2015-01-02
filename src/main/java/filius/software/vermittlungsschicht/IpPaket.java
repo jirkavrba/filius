@@ -30,148 +30,178 @@ import java.io.Serializable;
 /**
  * Diese Klasse umfasst die Attribute bzw. Felder eines IP-Pakets
  */
-public class IpPaket implements Serializable {
+public class IpPaket implements Serializable, Cloneable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
+    public static final int UDP = 17, TCP = 6;
 
-	public static final int UDP = 17, TCP = 6;
+    private int version;
+    private int ihl;
+    private int tos;
+    private int totalLength;
+    private int identification;
+    private int offset;
+    private boolean ff;
+    private boolean df;
+    private boolean mf;
+    private int ttl;
+    private int protocol;
+    private int checksum;
+    private String empfaenger;
+    private String sender;
+    private Object data;
 
-	private int version, ihl, tos, totalLength;
+    public IpPaket() {}
 
-	private int identification, offset;
+    @Override
+    public IpPaket clone() {
+        IpPaket clone = new IpPaket();
+        clone.version = version;
+        clone.ihl = ihl;
+        clone.tos = tos;
+        clone.totalLength = totalLength;
+        clone.identification = identification;
+        clone.offset = offset;
+        clone.ff = ff;
+        clone.df = df;
+        clone.mf = mf;
+        clone.ttl = ttl;
+        clone.protocol = protocol;
+        clone.checksum = checksum;
+        clone.empfaenger = empfaenger;
+        clone.sender = sender;
+        clone.data = data;
+        return clone;
+    }
 
-	private boolean ff, df, mf;
+    public int getChecksum() {
+        return checksum;
+    }
 
-	private int ttl, protocol, checksum;
+    public void setChecksum(int checksum) {
+        this.checksum = checksum;
+    }
 
-	private String empfaenger, sender;
+    public String getEmpfaenger() {
+        return empfaenger;
+    }
 
-	private Object paket;
+    public void setEmpfaenger(String empfaenger) {
+        this.empfaenger = empfaenger;
+    }
 
-	public int getChecksum() {
-		return checksum;
-	}
+    public String getSender() {
+        return sender;
+    }
 
-	public void setChecksum(int checksum) {
-		this.checksum = checksum;
-	}
+    public void setSender(String sender) {
+        this.sender = sender;
+    }
 
-	public String getEmpfaenger() {
-		return empfaenger;
-	}
+    public boolean isDf() {
+        return df;
+    }
 
-	public void setEmpfaenger(String empfaenger) {
-		this.empfaenger = empfaenger;
-	}
+    public void setDf(boolean df) {
+        this.df = df;
+    }
 
-	public String getSender() {
-		return sender;
-	}
+    public boolean isFf() {
+        return ff;
+    }
 
-	public void setSender(String sender) {
-		this.sender = sender;
-	}
+    public void setFf(boolean ff) {
+        this.ff = ff;
+    }
 
-	public boolean isDf() {
-		return df;
-	}
+    public int getIdentification() {
+        return identification;
+    }
 
-	public void setDf(boolean df) {
-		this.df = df;
-	}
+    public void setIdentification(int identification) {
+        this.identification = identification;
+    }
 
-	public boolean isFf() {
-		return ff;
-	}
+    public int getIhl() {
+        return ihl;
+    }
 
-	public void setFf(boolean ff) {
-		this.ff = ff;
-	}
+    public void setIhl(int ihl) {
+        this.ihl = ihl;
+    }
 
-	public int getIdentification() {
-		return identification;
-	}
+    public boolean isMf() {
+        return mf;
+    }
 
-	public void setIdentification(int identification) {
-		this.identification = identification;
-	}
+    public void setMf(boolean mf) {
+        this.mf = mf;
+    }
 
-	public int getIhl() {
-		return ihl;
-	}
+    public int getOffset() {
+        return offset;
+    }
 
-	public void setIhl(int ihl) {
-		this.ihl = ihl;
-	}
+    public void setOffset(int offset) {
+        this.offset = offset;
+    }
 
-	public boolean isMf() {
-		return mf;
-	}
+    public int getProtocol() {
+        return protocol;
+    }
 
-	public void setMf(boolean mf) {
-		this.mf = mf;
-	}
+    public void setProtocol(int protocol) {
+        this.protocol = protocol;
+    }
 
-	public int getOffset() {
-		return offset;
-	}
+    public int getTos() {
+        return tos;
+    }
 
-	public void setOffset(int offset) {
-		this.offset = offset;
-	}
+    public void setTos(int tos) {
+        this.tos = tos;
+    }
 
-	public int getProtocol() {
-		return protocol;
-	}
+    public int getTotalLength() {
+        return totalLength;
+    }
 
-	public void setProtocol(int protocol) {
-		this.protocol = protocol;
-	}
+    public void setTotalLength(int totalLength) {
+        this.totalLength = totalLength;
+    }
 
-	public int getTos() {
-		return tos;
-	}
+    public int getTtl() {
+        return ttl;
+    }
 
-	public void setTos(int tos) {
-		this.tos = tos;
-	}
+    public void setTtl(int ttl) {
+        this.ttl = ttl;
+    }
 
-	public int getTotalLength() {
-		return totalLength;
-	}
+    public int getVersion() {
+        return version;
+    }
 
-	public void setTotalLength(int totalLength) {
-		this.totalLength = totalLength;
-	}
+    public void setVersion(int version) {
+        this.version = version;
+    }
 
-	public int getTtl() {
-		return ttl;
-	}
+    public Object getSegment() {
+        return data;
+    }
 
-	public void setTtl(int ttl) {
-		this.ttl = ttl;
-	}
+    public void setSegment(Object data) {
+        this.data = data;
+    }
 
-	public int getVersion() {
-		return version;
-	}
+    public String toString() {
+        return "[" + "version=" + version + ", " + "ihl=" + ihl + ", " + "tos=" + tos + ", " + "totalLength="
+                + totalLength + ", " + "identification=" + identification + ", " + "offset=" + offset + ", " + "ff="
+                + ff + ", " + "df=" + df + ", " + "mf=" + mf + ", " + "ttl=" + ttl + ", " + "protocol=" + protocol
+                + ", " + "checksum=" + checksum + ", " + "empfaenger=" + empfaenger + ", " + "sender=" + sender + "]";
+    }
 
-	public void setVersion(int version) {
-		this.version = version;
-	}
-
-	public Object getSegment() {
-		return paket;
-	}
-
-	public void setSegment(Object paket) {
-		this.paket = paket;
-	}
-
-	public String toString() {
-		return "[" + "version=" + version + ", " + "ihl=" + ihl + ", " + "tos=" + tos + ", " + "totalLength="
-		        + totalLength + ", " + "identification=" + identification + ", " + "offset=" + offset + ", " + "ff="
-		        + ff + ", " + "df=" + df + ", " + "mf=" + mf + ", " + "ttl=" + ttl + ", " + "protocol=" + protocol
-		        + ", " + "checksum=" + checksum + ", " + "empfaenger=" + empfaenger + ", " + "sender=" + sender + "]";
-	}
+    public void decrementTtl() {
+        ttl--;
+    }
 }

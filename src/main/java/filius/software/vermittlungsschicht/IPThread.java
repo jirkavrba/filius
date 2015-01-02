@@ -58,9 +58,9 @@ public class IPThread extends ProtokollThread {
 	 * Pakete an andere Rechner weitergeleitet.
 	 */
 	protected void verarbeiteDatenEinheit(Object datenEinheit) {
-		IpPaket ipPaket = (IpPaket) datenEinheit;
+		IpPaket ipPaket = ((IpPaket) datenEinheit).clone();
 
-		ipPaket.setTtl(ipPaket.getTtl() - 1);
+		ipPaket.decrementTtl();
 
 		vermittlung.weiterleitenPaket(ipPaket);
 	}

@@ -28,6 +28,7 @@ package filius.software.vermittlungsschicht;
 import static filius.software.netzzugangsschicht.Ethernet.ETHERNET_BROADCAST;
 
 import java.util.LinkedList;
+import java.util.concurrent.TimeoutException;
 
 import filius.Main;
 import filius.exception.VerbindungsException;
@@ -43,20 +44,16 @@ import filius.software.system.SystemSoftware;
  */
 public class ICMP extends VermittlungsProtokoll implements I18n {
 
-    public static final int ECHO_REPLY = 0;
-    public static final int ECHO_REQUEST = 8;
-    public static final int DESTINATION_UNREACHABLE = 3;
-    public static final int TIME_EXCEEDED = 11;
+    public static final int TYPE_ECHO_REPLY = 0;
+    public static final int TYPE_ECHO_REQUEST = 8;
+    public static final int TYPE_DESTINATION_UNREACHABLE = 3;
+    public static final int TYPE_TIME_EXCEEDED = 11;
 
-    public static final int CODE_ECHO_REPLY = 0;
+    public static final int CODE_ECHO = 0;
     public static final int CODE_DEST_NETWORK_UNREACHABLE = 0;
     public static final int CODE_DEST_HOST_UNREACHABLE = 1;
-    public static final int CODE_ECHO_REQUEST = 0;
     public static final int CODE_TTL_EXPIRED = 0;
 
-    /**
-	 * 
-	 */
     private ICMPThread thread;
 
     /**
@@ -95,12 +92,12 @@ public class ICMP extends VermittlungsProtokoll implements I18n {
 
     /** Hilfsmethode zum Versenden eines ICMP Echo Requests */
     public void sendEchoRequest(String destIp, int seqNr) {
-        sendeICMP(ECHO_REQUEST, CODE_ECHO_REQUEST, seqNr, null, destIp);
+        sendeICMP(TYPE_ECHO_REQUEST, CODE_ECHO, seqNr, null, destIp);
     }
 
     /** Hilfsmethode zum Versenden eines ICMP Echo Reply */
     public void sendEchoReply(IcmpPaket rcvPacket) {
-        sendeICMP(ECHO_REPLY, CODE_ECHO_REPLY, rcvPacket.getSeqNr(), null, rcvPacket.getQuellIp());
+        sendeICMP(TYPE_ECHO_REPLY, CODE_ECHO, rcvPacket.getSeqNr(), rcvPacket.getZielIp(), rcvPacket.getQuellIp());
     }
 
     public void sendeICMP(int typ, int code, String zielIP) {
@@ -136,8 +133,8 @@ public class ICMP extends VermittlungsProtokoll implements I18n {
             // muss ein ICMP Destination Unreachable: Network Unreachable (3/0)
             // zurueckgesendet werden. Andere ICMP-Paket muessen verworfen
             // werden.
-            if (typ == ECHO_REQUEST && code == CODE_ECHO_REQUEST) {
-                sendeICMP(DESTINATION_UNREACHABLE, CODE_DEST_NETWORK_UNREACHABLE, seqNr, null, quellIP);
+            if (icmpPaket.isEchoRequest()) {
+                sendeICMP(TYPE_DESTINATION_UNREACHABLE, CODE_DEST_NETWORK_UNREACHABLE, seqNr, null, quellIP);
             }
         }
     }
@@ -203,8 +200,8 @@ public class ICMP extends VermittlungsProtokoll implements I18n {
             // muss ein ICMP Destination Unreachable: Host Unreachable (3/1)
             // zurueckgesendet werden. Andere ICMP-Paket muessen verworfen
             // werden.
-            if (paket.getIcmpType() == ECHO_REQUEST && paket.getIcmpCode() == CODE_ECHO_REQUEST) {
-                sendeICMP(DESTINATION_UNREACHABLE, CODE_DEST_HOST_UNREACHABLE, paket.getSeqNr(), null,
+            if (paket.isEchoRequest()) {
+                sendeICMP(TYPE_DESTINATION_UNREACHABLE, CODE_DEST_HOST_UNREACHABLE, paket.getSeqNr(), null,
                         paket.getQuellIp());
             }
         }
@@ -234,21 +231,39 @@ public class ICMP extends VermittlungsProtokoll implements I18n {
             // dekrementiert, bevor diese Funktion aufgerufen
             // wird)
             // ICMP Timeout Expired In Transit (11/0) zuruecksenden:
-            sendeICMP(TIME_EXCEEDED, CODE_TTL_EXPIRED, icmpPaket.getSeqNr(), null, icmpPaket.getQuellIp());
+            sendeICMP(TYPE_TIME_EXCEEDED, CODE_TTL_EXPIRED, icmpPaket.getSeqNr(), null, icmpPaket.getQuellIp());
         } else {
             // TTL ist nicht abgelaufen.
             // Paket weiterleiten:
-            sendeICMP(icmpPaket.getIcmpType(), icmpPaket.getIcmpCode(), icmpPaket.getSeqNr(), icmpPaket.getQuellIp(),
-                    icmpPaket.getZielIp());
+            sendeICMP(icmpPaket.getIcmpType(), icmpPaket.getIcmpCode(), icmpPaket.getTtl(), icmpPaket.getSeqNr(),
+                    icmpPaket.getQuellIp(), icmpPaket.getZielIp());
         }
     }
 
-    public int startSinglePing(String destIp, int seqNr) throws java.util.concurrent.TimeoutException {
-        return thread.startSinglePing(destIp, seqNr);
+    /** method to actually send a ping and compute the pong event */
+    public int startSinglePing(String destIp, int seqNr) throws TimeoutException {
+        int resultTTL = -1; // return ttl field of received echo reply packet
+
+        thread.resetIcmpResponseQueue();
+        sendEchoRequest(destIp, seqNr);
+        IcmpPaket response = thread.waitForIcmpResponse();
+
+        if (response == null) {
+            throw new TimeoutException("Destination Host Unreachable");
+        } else {
+            if (!(destIp.equals(response.getQuellIp()) && seqNr == response.getSeqNr() && response.isEchoResponse())) {
+                throw new TimeoutException("Destination Host Unreachable");
+            }
+            resultTTL = response.getTtl();
+        }
+        return resultTTL;
     }
 
+    /** method to send a traceroute probe (realized as ping) */
     public IcmpPaket sendProbe(String destIp, int ttl, int seqNr) {
-        return thread.sendProbe(destIp, ttl, seqNr);
+        thread.resetIcmpResponseQueue();
+        sendeICMP(ICMP.TYPE_ECHO_REQUEST, ICMP.CODE_ECHO, ttl, seqNr, null, destIp);
+        return thread.waitForIcmpResponse();
     }
 
     public ICMPThread getICMPThread() {

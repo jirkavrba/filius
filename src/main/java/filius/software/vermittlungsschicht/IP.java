@@ -227,7 +227,7 @@ public class IP extends VermittlungsProtokoll implements I18n {
             // Es konnte keine MAC-Adresse bestimmt werden.
             // Es muss ein ICMP Destination Unreachable: Host Unreachable
             // (3/1) zurueckgesendet werden:
-            bs.holeICMP().sendeICMP(ICMP.DESTINATION_UNREACHABLE, ICMP.CODE_DEST_HOST_UNREACHABLE, paket.getSender());
+            bs.holeICMP().sendeICMP(ICMP.TYPE_DESTINATION_UNREACHABLE, ICMP.CODE_DEST_HOST_UNREACHABLE, paket.getSender());
         }
     }
 
@@ -290,7 +290,7 @@ public class IP extends VermittlungsProtokoll implements I18n {
             // dekrementiert, bevor diese Funktion aufgerufen
             // wird)
             // ICMP Timeout Expired In Transit (11/0) zuruecksenden:
-            bs.holeICMP().sendeICMP(ICMP.TIME_EXCEEDED, ICMP.CODE_TTL_EXPIRED, paket.getSender());
+            bs.holeICMP().sendeICMP(ICMP.TYPE_TIME_EXCEEDED, ICMP.CODE_TTL_EXPIRED, paket.getSender());
         } else {
             // TTL ist nicht abgelaufen.
             // Paket weiterleiten:
@@ -301,7 +301,7 @@ public class IP extends VermittlungsProtokoll implements I18n {
                 // werden koennte.
                 // Es muss ein ICMP Destination Unreachable: Network Unreachable
                 // (3/0) zurueckgesendet werden:
-                bs.holeICMP().sendeICMP(ICMP.DESTINATION_UNREACHABLE, ICMP.CODE_DEST_NETWORK_UNREACHABLE,
+                bs.holeICMP().sendeICMP(ICMP.TYPE_DESTINATION_UNREACHABLE, ICMP.CODE_DEST_NETWORK_UNREACHABLE,
                         paket.getSender());
 
                 bs.benachrichtigeBeobacher(messages.getString("sw_ip_msg4") + " \"" + bs.getKnoten().getName()

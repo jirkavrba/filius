@@ -28,92 +28,108 @@ package filius.software.vermittlungsschicht;
 import java.io.Serializable;
 
 /** Diese Klasse umfasst die Attribute eines ARP-Pakets */
-public class IcmpPaket implements Serializable {
+public class IcmpPaket implements Serializable, Cloneable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	/** Protokoll-Typ der Vermittlungsschicht */
-	private String protokollTyp;
+    /** Protokoll-Typ der Vermittlungsschicht */
+    private String protokollTyp;
+    /** IP-Adresse des sendenden Knotens */
+    private String quellIp;
+    private String zielIp;
+    private int ttl; // Time-to-Live
+    private int seqNr; // sequence number of Echo Request packet
+    // ICMP Echo Request: type 8, code 0
+    // ICMP Echo Reply: type 0, code 0
+    private int icmpType;
+    private int icmpCode;
 
-	/** IP-Adresse des sendenden Knotens */
-	private String quellIp;
+    @Override
+    public IcmpPaket clone() {
+        IcmpPaket clone = new IcmpPaket();
+        clone.protokollTyp = protokollTyp;
+        clone.quellIp = quellIp;
+        clone.zielIp = zielIp;
+        clone.ttl = ttl;
+        clone.seqNr = seqNr;
+        clone.icmpType = icmpType;
+        clone.icmpCode = icmpCode;
+        return clone;
+    }
 
-	private String zielIp;
+    public void setIcmpType(int type) {
+        this.icmpType = type;
+    }
 
-	private int ttl; // Time-to-Live
+    public void setIcmpCode(int code) {
+        this.icmpCode = code;
+    }
 
-	private int seqNr; // sequence number of Echo Request packet
+    public int getIcmpType() {
+        return icmpType;
+    }
 
-	// ICMP Echo Request: type 8, code 0
-	// ICMP Echo Reply: type 0, code 0
-	private int icmpType;
-	private int icmpCode;
+    public int getIcmpCode() {
+        return icmpCode;
+    }
 
-	public IcmpPaket() {
-		super();
-	}
+    // manage Time-to-Live header field
+    public int getTtl() {
+        return this.ttl;
+    }
 
-	public void setIcmpType(int type) {
-		this.icmpType = type;
-	}
+    public void setTtl(int ttl) {
+        this.ttl = ttl;
+    }
 
-	public void setIcmpCode(int code) {
-		this.icmpCode = code;
-	}
+    public boolean isEchoResponse() {
+        return icmpType == ICMP.TYPE_ECHO_REPLY && icmpCode == ICMP.CODE_ECHO;
+    }
+    
+    public boolean isEchoRequest() {
+        return icmpType == ICMP.TYPE_ECHO_REQUEST && icmpCode == ICMP.CODE_ECHO;
+    }
 
-	public int getIcmpType() {
-		return icmpType;
-	}
+    // manage sequence number field
+    public int getSeqNr() {
+        return this.seqNr;
+    }
 
-	public int getIcmpCode() {
-		return icmpCode;
-	}
+    public void setSeqNr(int seqNr) {
+        this.seqNr = seqNr;
+    }
 
-	// manage Time-to-Live header field
-	public int getTtl() {
-		return this.ttl;
-	}
+    public String getProtokollTyp() {
+        return protokollTyp;
+    }
 
-	public void setTtl(int ttl) {
-		this.ttl = ttl;
-	}
+    public void setProtokollTyp(String protokollTyp) {
+        this.protokollTyp = protokollTyp;
+    }
 
-	// manage sequence number field
-	public int getSeqNr() {
-		return this.seqNr;
-	}
+    public String getQuellIp() {
+        return quellIp;
+    }
 
-	public void setSeqNr(int seqNr) {
-		this.seqNr = seqNr;
-	}
+    public void setQuellIp(String quellIp) {
+        this.quellIp = quellIp;
+    }
 
-	public String getProtokollTyp() {
-		return protokollTyp;
-	}
+    public String getZielIp() {
+        return zielIp;
+    }
 
-	public void setProtokollTyp(String protokollTyp) {
-		this.protokollTyp = protokollTyp;
-	}
+    public void setZielIp(String zielIp) {
+        this.zielIp = zielIp;
+    }
 
-	public String getQuellIp() {
-		return quellIp;
-	}
+    public String toString() {
+        return "[" + "protokollTyp=" + protokollTyp + "; " + "quellIp=" + quellIp + "; " + "quellMacAdresse="
+                + "zielIp=" + zielIp + "; " + "ttl=" + ttl + "; " + "seqNr=" + seqNr + "; " + "icmpType=" + icmpType
+                + "; " + "icmpCode=" + icmpCode + "]";
+    }
 
-	public void setQuellIp(String quellIp) {
-		this.quellIp = quellIp;
-	}
-
-	public String getZielIp() {
-		return zielIp;
-	}
-
-	public void setZielIp(String zielIp) {
-		this.zielIp = zielIp;
-	}
-
-	public String toString() {
-		return "[" + "protokollTyp=" + protokollTyp + "; " + "quellIp=" + quellIp + "; " + "quellMacAdresse="
-		        + "zielIp=" + zielIp + "; " + "ttl=" + ttl + "; " + "seqNr=" + seqNr + "; " + "icmpType=" + icmpType
-		        + "; " + "icmpCode=" + icmpCode + "]";
-	}
+    public void decrementTtl() {
+        ttl--;
+    }
 }

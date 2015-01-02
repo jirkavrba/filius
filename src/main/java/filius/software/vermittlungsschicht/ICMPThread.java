@@ -38,95 +38,68 @@ import filius.software.system.InternetKnotenBetriebssystem;
  */
 public class ICMPThread extends ProtokollThread {
 
-	private ICMP vermittlung;
+    private ICMP vermittlung;
 
-	/** der von dem Thread zu ueberwachende Puffer */
-	private LinkedList<IcmpPaket> rcvdPackets;
+    /** der von dem Thread zu ueberwachende Puffer */
+    private LinkedList<IcmpPaket> rcvdPackets;
 
-	public ICMPThread(ICMP vermittlung) {
-		super(((InternetKnotenBetriebssystem) vermittlung.holeSystemSoftware()).holeEthernet().holeICMPPuffer());
-		Main.debug.println("INVOKED-2 (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
-		        + " (ICMPThread), constr: ICMPThread(" + vermittlung + ")");
-		this.rcvdPackets = new LinkedList<IcmpPaket>();
-		this.vermittlung = vermittlung;
-	}
+    public ICMPThread(ICMP vermittlung) {
+        super(((InternetKnotenBetriebssystem) vermittlung.holeSystemSoftware()).holeEthernet().holeICMPPuffer());
+        Main.debug.println("INVOKED-2 (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
+                + " (ICMPThread), constr: ICMPThread(" + vermittlung + ")");
+        this.rcvdPackets = new LinkedList<IcmpPaket>();
+        this.vermittlung = vermittlung;
+    }
 
-	/**
-	 * Methode zur Verarbeitung eingehender ICMP-Pakete <br />
-	 */
-	protected void verarbeiteDatenEinheit(Object datenEinheit) {
-		IcmpPaket icmpPaket = (IcmpPaket) datenEinheit;
+    /**
+     * Methode zur Verarbeitung eingehender ICMP-Pakete <br />
+     */
+    protected void verarbeiteDatenEinheit(Object datenEinheit) {
+        IcmpPaket icmpPaket = ((IcmpPaket) datenEinheit).clone();
 
-		// TTL dekrementieren
-		icmpPaket.setTtl(icmpPaket.getTtl() - 1);
+        // TTL dekrementieren
+        icmpPaket.decrementTtl();
 
-		if (vermittlung.isLocalAddress(icmpPaket.getZielIp()) || vermittlung.isApplicableBroadcast(icmpPaket.getZielIp())) {
-			// Paket wurde an diesen Rechner gesendet
-			if (icmpPaket.getIcmpType() == ICMP.ECHO_REQUEST && icmpPaket.getIcmpCode() == ICMP.CODE_ECHO_REQUEST) {
-				vermittlung.sendEchoReply(icmpPaket);
-			} else {
-				synchronized (rcvdPackets) {
-					rcvdPackets.add(icmpPaket);
-					rcvdPackets.notify();
-				}
-			}
-		} else {
-			// Paket wurde an anderen Rechner gesendet und
-			// muss weitergeleitet werden
-			vermittlung.weiterleitenPaket(icmpPaket);
-		}
-	}
+        if (vermittlung.isLocalAddress(icmpPaket.getZielIp())
+                || vermittlung.isApplicableBroadcast(icmpPaket.getZielIp())) {
+            // Paket wurde an diesen Rechner gesendet
+            if (icmpPaket.isEchoRequest()) {
+                vermittlung.sendEchoReply(icmpPaket);
+            } else {
+                addIcmpResponse(icmpPaket);
+            }
+        } else {
+            // Paket wurde an anderen Rechner gesendet und
+            // muss weitergeleitet werden
+            vermittlung.weiterleitenPaket(icmpPaket);
+        }
+    }
 
-	/**
-	 * method to actually send a ping and compute the pong event
-	 * 
-	 * @return true if successful
-	 */
-	public int startSinglePing(String destIp, int seqNr) throws java.util.concurrent.TimeoutException {
-		Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
-		        + " (ICMPThread), startSinglePing(" + destIp + "," + seqNr + ")");
-		int resultTTL = -20; // return ttl field of received echo reply packet
+    private void addIcmpResponse(IcmpPaket icmpPaket) {
+        synchronized (rcvdPackets) {
+            rcvdPackets.add(icmpPaket);
+            rcvdPackets.notifyAll();
+        }
+    }
 
-		vermittlung.sendEchoRequest(destIp, seqNr);
-		synchronized (rcvdPackets) {
-			try {
-				rcvdPackets.wait(Verbindung.holeRTT());
-			} catch (InterruptedException e) {			}
-			if (rcvdPackets.size() == 0) {
-				Main.debug.println("DEBUG (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
-				        + " (ICMPThread), startSinglePing, NO reply in queue");
-				throw new java.util.concurrent.TimeoutException("Destination Host Unreachable"); 
-			} else {
-				Main.debug.println("DEBUG (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
-				        + " (ICMPThread), startSinglePing, reply in queue");
-				IcmpPaket rcvdIcmpPaket = rcvdPackets.removeFirst();
-				if (rcvdIcmpPaket != null
-				        && !(destIp.equals(rcvdIcmpPaket.getQuellIp()) && seqNr == rcvdIcmpPaket.getSeqNr() && rcvdIcmpPaket
-				                .getIcmpType() == 0)) {
-					throw new java.util.concurrent.TimeoutException("Destination Host Unreachable");
-				}
-				resultTTL = rcvdIcmpPaket.getTtl();
-			}
-		}
-		Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
-		        + " (ICMPThread), startSinglePing, return " + resultTTL);
-		return resultTTL;
-	}
+    public void resetIcmpResponseQueue() {
+        synchronized (rcvdPackets) {
+            rcvdPackets.clear();
+            rcvdPackets.notifyAll();
+        }
+    }
 
-	/** method to send a traceroute probe (realized as ping) */
-	public IcmpPaket sendProbe(String destIp, int ttl, int seqNr) {
-		vermittlung.sendeICMP(ICMP.ECHO_REQUEST, ICMP.CODE_ECHO_REQUEST, ttl, seqNr, null, destIp);
+    public IcmpPaket waitForIcmpResponse() {
+        IcmpPaket response = null;
+        synchronized (rcvdPackets) {
+            try {
+                rcvdPackets.wait(Verbindung.holeRTT());
+            } catch (InterruptedException e) {}
 
-		synchronized (rcvdPackets) {
-			try {
-				rcvdPackets.wait(Verbindung.holeRTT());
-			} catch (InterruptedException e) {
-			}
-
-			if (rcvdPackets.size() > 0) {
-				return rcvdPackets.removeFirst();
-			}
-		}
-		return null;
-	}
+            if (rcvdPackets.size() > 0) {
+                response = rcvdPackets.removeFirst();
+            }
+        }
+        return response;
+    }
 }

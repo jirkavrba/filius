@@ -26,7 +26,6 @@
 package filius.software.netzzugangsschicht;
 
 import java.util.LinkedList;
-import java.util.ListIterator;
 
 import filius.Main;
 import filius.hardware.NetzwerkInterface;
@@ -40,146 +39,123 @@ import filius.software.vermittlungsschicht.IpPaket;
 
 /** Diese Klasse implementiert die Netzzugangsschicht */
 public class Ethernet extends Protokoll {
-    
+
     public static final String ETHERNET_BROADCAST = "FF:FF:FF:FF:FF:FF";
 
-	/**
-	 * Liste der Threads fuer die Ueberwachung der Netzwerkkarten
-	 */
-	private LinkedList<EthernetThread> threads = new LinkedList<EthernetThread>();
+    /**
+     * Liste der Threads fuer die Ueberwachung der Netzwerkkarten
+     */
+    private LinkedList<EthernetThread> threads = new LinkedList<EthernetThread>();
 
-	/** Puffer fuer eingehende ARP-Pakete */
-	private LinkedList<ArpPaket> arpPakete = new LinkedList<ArpPaket>();
+    /** Puffer fuer eingehende ARP-Pakete */
+    private LinkedList<ArpPaket> arpPakete = new LinkedList<ArpPaket>();
 
-	/** Puffer fuer eingehende IP-Pakete */
-	private LinkedList<IpPaket> ipPakete = new LinkedList<IpPaket>();
+    /** Puffer fuer eingehende IP-Pakete */
+    private LinkedList<IpPaket> ipPakete = new LinkedList<IpPaket>();
 
-	/** Puffer fuer eingehende ICMP-Pakete */
-	private LinkedList<IcmpPaket> icmpPakete = new LinkedList<IcmpPaket>();
+    /** Puffer fuer eingehende ICMP-Pakete */
+    private LinkedList<IcmpPaket> icmpPakete = new LinkedList<IcmpPaket>();
 
-	/** Konstruktor zur Initialisierung der Systemsoftware */
-	public Ethernet(SystemSoftware systemSoftware) {
-		super(systemSoftware);
-		Main.debug.println("INVOKED-2 (" + this.hashCode() + ") " + getClass() + " (Ethernet), constr: Ethernet("
-		        + systemSoftware + ")");
-	}
+    /** Konstruktor zur Initialisierung der Systemsoftware */
+    public Ethernet(SystemSoftware systemSoftware) {
+        super(systemSoftware);
+        Main.debug.println("INVOKED-2 (" + this.hashCode() + ") " + getClass() + " (Ethernet), constr: Ethernet("
+                + systemSoftware + ")");
+    }
 
-	/** Methode fuer den Zugriff auf den Puffer mit ARP-Paketen */
-	public LinkedList<ArpPaket> holeARPPuffer() {
-		return arpPakete;
-	}
+    /** Methode fuer den Zugriff auf den Puffer mit ARP-Paketen */
+    public LinkedList<ArpPaket> holeARPPuffer() {
+        return arpPakete;
+    }
 
-	/** Methode fuer den Zugriff auf den Puffer mit IP-Paketen */
-	public LinkedList<IpPaket> holeIPPuffer() {
-		return ipPakete;
-	}
+    /** Methode fuer den Zugriff auf den Puffer mit IP-Paketen */
+    public LinkedList<IpPaket> holeIPPuffer() {
+        return ipPakete;
+    }
 
-	/** Methode fuer den Zugriff auf den Puffer mit ICMP-Paketen */
-	public LinkedList<IcmpPaket> holeICMPPuffer() {
-		return icmpPakete;
-	}
+    /** Methode fuer den Zugriff auf den Puffer mit ICMP-Paketen */
+    public LinkedList<IcmpPaket> holeICMPPuffer() {
+        return icmpPakete;
+    }
 
-	/** Methode fuer den Zugriff auf den Puffer mit IP-Paketen */
-	public void setzeIPPuffer(LinkedList<IpPaket> puffer) {
-		ipPakete = puffer;
-	}
+    /** Methode fuer den Zugriff auf den Puffer mit IP-Paketen */
+    public void setzeIPPuffer(LinkedList<IpPaket> puffer) {
+        ipPakete = puffer;
+    }
 
-	/**
-	 * sendet Pakete ueber als Ethernet-Frame weiter. Zuerst wird dazu
-	 * ueberprueft, ob die Ziel-MAC-Adresse eine eigene Netzwerkkarte
-	 * adressiert. Wenn dies nicht der Fall ist, wird der Frame ueber die
-	 * Netzwerkkarte verschickt, die durch die Quell-MAC-Adresse spezifiziert
-	 * wird.
-	 */
-	public void senden(Object daten, String startMAC, String zielMAC, String typ) {
-		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (Ethernet), senden(" + daten + ","
-		        + startMAC + "," + zielMAC + "," + typ + ")");
-		EthernetFrame ethernetFrame;
-		ListIterator it;
-		NetzwerkInterface nic;
-		boolean gesendet = false;
+    /**
+     * sendet Pakete ueber als Ethernet-Frame weiter. Zuerst wird dazu ueberprueft, ob die Ziel-MAC-Adresse eine eigene
+     * Netzwerkkarte adressiert. Wenn dies nicht der Fall ist, wird der Frame ueber die Netzwerkkarte verschickt, die
+     * durch die Quell-MAC-Adresse spezifiziert wird.
+     */
+    public void senden(Object daten, String startMAC, String zielMAC, String typ) {
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (Ethernet), senden(" + daten + ","
+                + startMAC + "," + zielMAC + "," + typ + ")");
+        EthernetFrame ethernetFrame;
+        boolean gesendet = false;
 
-		if (daten instanceof IcmpPaket) {
-			ethernetFrame = new EthernetFrame(daten, startMAC, zielMAC, typ, true);
-		} else {
-			ethernetFrame = new EthernetFrame(daten, startMAC, zielMAC, typ);
-		}
+        ethernetFrame = new EthernetFrame(daten, startMAC, zielMAC, typ, daten instanceof IcmpPaket);
 
-		it = ((InternetKnoten) holeSystemSoftware().getKnoten()).getNetzwerkInterfaces().listIterator();
-		while (it.hasNext()) {
-			nic = (NetzwerkInterface) it.next();
+        for (NetzwerkInterface nic : ((InternetKnoten) holeSystemSoftware().getKnoten()).getNetzwerkInterfaces()) {
+            if (nic.getMac().equalsIgnoreCase(zielMAC)) {
+                synchronized (nic.getPort().holeEingangsPuffer()) {
+                    nic.getPort().holeEingangsPuffer().add(ethernetFrame);
+                    nic.getPort().holeEingangsPuffer().notify();
+                }
+                gesendet = true;
+            }
+        }
 
-			if (nic.getMac().equalsIgnoreCase(zielMAC)) {
-				synchronized (nic.getPort().holeEingangsPuffer()) {
-					nic.getPort().holeEingangsPuffer().add(ethernetFrame);
-					nic.getPort().holeEingangsPuffer().notify();
-				}
-				gesendet = true;
-			}
-		}
+        if (!gesendet) {
+            for (NetzwerkInterface nic : ((InternetKnoten) holeSystemSoftware().getKnoten()).getNetzwerkInterfaces()) {
+                if (nic.getMac().equalsIgnoreCase(startMAC)) {
+                    synchronized (nic.getPort().holeAusgangsPuffer()) {
+                        nic.getPort().holeAusgangsPuffer().add(ethernetFrame);
+                        nic.getPort().holeAusgangsPuffer().notify();
+                    }
+                    Lauscher.getLauscher().addDatenEinheit(nic.getMac(), ethernetFrame);
+                }
+            }
+        }
+    }
 
-		if (!gesendet) {
-			it = ((InternetKnoten) holeSystemSoftware().getKnoten()).getNetzwerkInterfaces().listIterator();
-			while (it.hasNext()) {
-				nic = (NetzwerkInterface) it.next();
+    public LinkedList<EthernetThread> getEthernetThreads() {
+        return threads;
+    }
 
-				if (nic.getMac().equalsIgnoreCase(startMAC)) {
-					synchronized (nic.getPort().holeAusgangsPuffer()) {
-						// Main.debug
-						// .println("EthernetThread: Paket wird in Ausgangspuffer geschrieben "
-						// + nic.getPort());
-						nic.getPort().holeAusgangsPuffer().add(ethernetFrame);
-						nic.getPort().holeAusgangsPuffer().notify();
-					}
-					Lauscher.getLauscher().addDatenEinheit(nic.getMac(), ethernetFrame);
-				}
-			}
-		}
-	}
+    /**
+     * Hier wird zu jeder Netzwerkkarte ein Thread zur Ueberwachung des Eingangspuffers gestartet.
+     */
+    public void starten() {
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (Ethernet), starten()");
+        InternetKnoten knoten;
+        EthernetThread interfaceBeobachter;
 
-	public LinkedList<EthernetThread> getEthernetThreads() {
-		return threads;
-	}
+        if (holeSystemSoftware().getKnoten() instanceof InternetKnoten) {
+            knoten = (InternetKnoten) holeSystemSoftware().getKnoten();
 
-	/**
-	 * Hier wird zu jeder Netzwerkkarte ein Thread zur Ueberwachung des
-	 * Eingangspuffers gestartet.
-	 */
-	public void starten() {
-		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (Ethernet), starten()");
-		InternetKnoten knoten;
-		EthernetThread interfaceBeobachter;
+            for (NetzwerkInterface nic : knoten.getNetzwerkInterfaces()) {
+                interfaceBeobachter = new EthernetThread(this, nic);
+                interfaceBeobachter.starten();
+                try {
+                    threads.add(interfaceBeobachter);
+                } catch (Exception e) {
+                    e.printStackTrace(Main.debug);
+                }
+            }
+        }
+    }
 
-		if (holeSystemSoftware().getKnoten() instanceof InternetKnoten) {
-			knoten = (InternetKnoten) holeSystemSoftware().getKnoten();
+    /**
+     * beendet alle laufenden EthernetThreads zur Ueberwachung der Eingangspuffer der Netzwerkkarten
+     */
+    public void beenden() {
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (Ethernet), beenden()");
+        EthernetThread interfaceBeobachter;
 
-			ListIterator iter = knoten.getNetzwerkInterfaces().listIterator();
-			while (iter.hasNext()) {
-				NetzwerkInterface netzwerkInterface = (NetzwerkInterface) iter.next();
-
-				interfaceBeobachter = new EthernetThread(this, netzwerkInterface);
-
-				interfaceBeobachter.starten();
-				try {
-					threads.add(interfaceBeobachter);
-				} catch (Exception e) {
-					e.printStackTrace(Main.debug);
-				}
-			}
-		}
-	}
-
-	/**
-	 * beendet alle laufenden EthernetThreads zur Ueberwachung der
-	 * Eingangspuffer der Netzwerkkarten
-	 */
-	public void beenden() {
-		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (Ethernet), beenden()");
-		EthernetThread interfaceBeobachter;
-
-		for (int x = 0; x < threads.size(); x++) {
-			interfaceBeobachter = (EthernetThread) threads.get(x);
-			interfaceBeobachter.beenden();
-		}
-	}
+        for (int x = 0; x < threads.size(); x++) {
+            interfaceBeobachter = (EthernetThread) threads.get(x);
+            interfaceBeobachter.beenden();
+        }
+    }
 }
