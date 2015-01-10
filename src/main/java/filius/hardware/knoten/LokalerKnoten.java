@@ -26,56 +26,53 @@
 package filius.hardware.knoten;
 
 import java.util.LinkedList;
-import java.util.ListIterator;
 
 import filius.Main;
 import filius.hardware.Port;
 
+@SuppressWarnings("serial")
 public abstract class LokalerKnoten extends Knoten {
 
-	private LinkedList<Port> anschluesse = new LinkedList<Port>();
+    private LinkedList<Port> anschluesse = new LinkedList<Port>();
 
-	public Port holeFreienPort() {
-		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (LokalerKnoten), holeFreienPort()");
-		ListIterator iter = anschluesse.listIterator();
-		while (iter.hasNext()) {
-			Port anschluss = (Port) iter.next();
-			if (anschluss.isPortFrei()) {
-				// Main.debug.println("LokalerKnoten: Port "+iter.nextIndex()+" ist noch frei.");
-				return anschluss;
-			}
-		}
-		return null;
-	}
+    public Port holeFreienPort() {
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (LokalerKnoten), holeFreienPort()");
+        for (Port anschluss : anschluesse) {
+            if (anschluss.isPortFrei()) {
+                return anschluss;
+            }
+        }
+        return null;
+    }
 
-	public Port getErstenAnschluss() {
-		if (anschluesse != null && anschluesse.size() > 0) {
-			return (Port) anschluesse.getFirst();
-		}
-		return null;
-	}
+    public Port getErstenAnschluss() {
+        if (anschluesse != null && anschluesse.size() > 0) {
+            return (Port) anschluesse.getFirst();
+        }
+        return null;
+    }
 
-	public LinkedList<Port> getAnschluesse() {
-		return anschluesse;
-	}
+    public LinkedList<Port> getAnschluesse() {
+        return anschluesse;
+    }
 
-	public void setAnschluesse(LinkedList<Port> anschluesse) {
-		this.anschluesse = anschluesse;
-	}
+    public void setAnschluesse(LinkedList<Port> anschluesse) {
+        this.anschluesse = anschluesse;
+    }
 
-	public int holeAnzahlAnschluesse() {
-		return anschluesse.size();
-	}
+    public int holeAnzahlAnschluesse() {
+        return anschluesse.size();
+    }
 
-	public void setzeAnzahlAnschluesse(int anzahlAnschluesse) {
-		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
-		        + " (LokalerKnoten), setzeAnzahlAnschluesse(" + anzahlAnschluesse + ")");
-		LinkedList<Port> anschluesse;
+    public void setzeAnzahlAnschluesse(int anzahlAnschluesse) {
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
+                + " (LokalerKnoten), setzeAnzahlAnschluesse(" + anzahlAnschluesse + ")");
+        LinkedList<Port> anschluesse;
 
-		anschluesse = new LinkedList<Port>();
-		for (int i = 0; i < anzahlAnschluesse; i++) {
-			anschluesse.add(new Port());
-		}
-		setAnschluesse(anschluesse);
-	}
+        anschluesse = new LinkedList<Port>();
+        for (int i = 0; i < anzahlAnschluesse; i++) {
+            anschluesse.add(new Port());
+        }
+        setAnschluesse(anschluesse);
+    }
 }

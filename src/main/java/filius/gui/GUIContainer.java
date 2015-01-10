@@ -492,7 +492,6 @@ public class GUIContainer implements Serializable, I18n {
         if (label.getTyp().equals(Switch.TYPE)) {
             neuerKnoten = new Switch();
             tempIcon = new ImageIcon(getClass().getResource("/" + GUIDesignSidebar.SWITCH));
-
         } else if (label.getTyp().equals(Rechner.TYPE)) {
             neuerKnoten = new Rechner();
             tempIcon = new ImageIcon(getClass().getResource("/" + GUIDesignSidebar.RECHNER));

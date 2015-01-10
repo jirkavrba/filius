@@ -27,7 +27,6 @@ package filius.software.system;
 
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.ListIterator;
 import java.util.Vector;
 
 import filius.Main;
@@ -77,9 +76,7 @@ public class SwitchFirmware extends SystemSoftware implements I18n {
 		sat = new HashMap<String, Port>();
 		switchBeobachter = new LinkedList<SwitchPortBeobachter>();
 
-		ListIterator it = ((Switch) getKnoten()).getAnschluesse().listIterator();
-		while (it.hasNext()) {
-			Port anschluss = (Port) it.next();
+		for (Port anschluss : ((Switch) getKnoten()).getAnschluesse()) {
 			anschlussBeobachter = new SwitchPortBeobachter(this, anschluss);
 			anschlussBeobachter.starten();
 			switchBeobachter.add(anschlussBeobachter);
@@ -89,17 +86,15 @@ public class SwitchFirmware extends SystemSoftware implements I18n {
 	/** Hier wird die Netzzugangsschicht des Switch gestoppt. */
 	public void beenden() {
 		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (SwitchFirmware), beenden()");
-		ListIterator it = switchBeobachter.listIterator();
-		while (it.hasNext()) {
-			SwitchPortBeobachter anschlussBeobachter = (SwitchPortBeobachter) it.next();
+		for (SwitchPortBeobachter anschlussBeobachter : switchBeobachter) {
 			anschlussBeobachter.beenden();
 		}
 	}
 
 	/** Diese Methode wird genutzt, um die SAT abzurufen. */
-	public Vector holeSAT() {
+	public Vector<Vector<String>> holeSAT() {
 		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (SwitchFirmware), holeSAT()");
-		Vector<Vector> eintraege = new Vector<Vector>();
+		Vector<Vector<String>> eintraege = new Vector<Vector<String>>();
 		Vector<String> eintrag;
 		String ausgabe;
 

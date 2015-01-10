@@ -29,6 +29,7 @@ import filius.Main;
 import filius.rahmenprogramm.I18n;
 import filius.software.system.SwitchFirmware;
 
+@SuppressWarnings("serial")
 public class Switch extends LokalerKnoten implements I18n {
 
 	public static final String TYPE = messages.getString("hw_switch_msg1");
@@ -43,7 +44,7 @@ public class Switch extends LokalerKnoten implements I18n {
 		super();
 		Main.debug.println("INVOKED-2 (" + this.hashCode() + ") " + getClass() + " (Switch), constr: Switch()");
 
-		this.setzeAnzahlAnschluesse(8);
+		this.setzeAnzahlAnschluesse(24);
 		this.setSystemSoftware(new SwitchFirmware());
 		getSystemSoftware().setKnoten(this);
 		this.setName(TYPE);

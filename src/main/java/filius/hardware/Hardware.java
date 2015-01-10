@@ -30,6 +30,7 @@ import java.util.Observable;
 
 import filius.Main;
 
+@SuppressWarnings("serial")
 public abstract class Hardware extends Observable implements Serializable {
 
 	private boolean aktiv = false; // ist die Hardware gerade aktiv? vor allem
