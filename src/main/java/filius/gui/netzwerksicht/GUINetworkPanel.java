@@ -31,6 +31,7 @@ import java.util.List;
 import javax.swing.ImageIcon;
 
 import filius.gui.GUIContainer;
+import filius.hardware.knoten.InternetKnoten;
 import filius.hardware.knoten.Knoten;
 import filius.hardware.knoten.Modem;
 import filius.hardware.knoten.Notebook;
@@ -63,6 +64,9 @@ public class GUINetworkPanel extends GUIMainArea {
             templabel.setSelektiert(false);
             templabel.setText(tempKnoten.holeAnzeigeName());
             templabel.setTyp(tempKnoten.holeHardwareTyp());
+            if (tempitem.getKnoten() instanceof InternetKnoten) {
+                templabel.updateTooltip((InternetKnoten)tempitem.getKnoten());
+            }
             if (tempitem.getKnoten() instanceof Switch) {
                 if (((Switch) tempitem.getKnoten()).isCloud())
                     templabel.setIcon(new ImageIcon(getClass().getResource("/" + GUIDesignSidebar.SWITCH_CLOUD)));
