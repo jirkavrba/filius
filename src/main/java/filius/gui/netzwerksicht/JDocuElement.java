@@ -67,6 +67,7 @@ public class JDocuElement extends JPanel implements I18n {
 
     private static final int TEXT_BORDER_WIDTH = 5;
 
+    @Override
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
         this.setFocusable(enabled);
@@ -79,6 +80,17 @@ public class JDocuElement extends JPanel implements I18n {
                 textArea.setBackground(new Color(1f, 1f, 1f, 0f));
             }
         }
+    }
+
+    @Override
+    public boolean requestFocusInWindow() {
+        boolean result;
+        if (textArea != null) {
+            result = textArea.requestFocusInWindow();
+        } else {
+            result = super.requestFocusInWindow();
+        }
+        return result;
     }
 
     private void initRectangle() {

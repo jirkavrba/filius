@@ -25,26 +25,54 @@
  */
 package filius.gui.netzwerksicht;
 
+import java.awt.event.MouseEvent;
+
+import javax.swing.event.MouseInputAdapter;
+
+import filius.gui.GUIContainer;
+import filius.gui.GUIEvents;
 import filius.hardware.knoten.Knoten;
+import filius.hardware.knoten.Notebook;
+import filius.hardware.knoten.Rechner;
+import filius.hardware.knoten.Switch;
+import filius.rahmenprogramm.SzenarioVerwaltung;
 
 public class GUIKnotenItem {
 
-	private Knoten knoten;
-	private JSidebarButton imageLabel;
+    private Knoten knoten;
+    private JSidebarButton imageLabel;
 
-	public JSidebarButton getImageLabel() {
-		return imageLabel;
-	}
+    public JSidebarButton getImageLabel() {
+        return imageLabel;
+    }
 
-	public void setImageLabel(JSidebarButton label) {
-		this.imageLabel = label;
-	}
+    public void setImageLabel(JSidebarButton label) {
+        this.imageLabel = label;
+        label.addMouseListener(new MouseInputAdapter() {
 
-	public Knoten getKnoten() {
-		return knoten;
-	}
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                SzenarioVerwaltung.getInstance().setzeGeaendert();
 
-	public void setKnoten(Knoten knoten) {
-		this.knoten = knoten;
-	}
+                if (e.getButton() == 3) {
+                    GUIEvents.getGUIEvents().kontextMenueAktionsmodus(GUIKnotenItem.this, e.getX(), e.getY());
+                } else if (e.getButton() == 1) {
+                    if (GUIKnotenItem.this.getKnoten() instanceof Rechner
+                            || GUIKnotenItem.this.getKnoten() instanceof Notebook) {
+                        GUIContainer.getGUIContainer().showDesktop(GUIKnotenItem.this);
+                    } else if (GUIKnotenItem.this.getKnoten() instanceof Switch) {
+                        GUIEvents.getGUIEvents().satTabelleAnzeigen(GUIKnotenItem.this);
+                    }
+                }
+            }
+        });
+    }
+
+    public Knoten getKnoten() {
+        return knoten;
+    }
+
+    public void setKnoten(Knoten knoten) {
+        this.knoten = knoten;
+    }
 }

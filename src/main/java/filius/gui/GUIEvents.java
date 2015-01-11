@@ -28,7 +28,6 @@ package filius.gui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -46,9 +45,9 @@ import javax.swing.table.DefaultTableModel;
 
 import filius.Main;
 import filius.gui.nachrichtensicht.ExchangeDialog;
-import filius.gui.netzwerksicht.GUINetworkPanel;
 import filius.gui.netzwerksicht.GUIKabelItem;
 import filius.gui.netzwerksicht.GUIKnotenItem;
+import filius.gui.netzwerksicht.GUINetworkPanel;
 import filius.gui.netzwerksicht.JCablePanel;
 import filius.gui.netzwerksicht.JKonfiguration;
 import filius.gui.netzwerksicht.JSidebarButton;
@@ -66,7 +65,6 @@ import filius.rahmenprogramm.I18n;
 import filius.rahmenprogramm.SzenarioVerwaltung;
 import filius.software.system.InternetKnotenBetriebssystem;
 import filius.software.system.SwitchFirmware;
-import filius.software.system.VermittlungsrechnerBetriebssystem;
 
 public class GUIEvents implements I18n {
 
@@ -320,26 +318,6 @@ public class GUIEvents implements I18n {
         }
     }
 
-    public void mausPressedSimulationMode(MouseEvent e) {
-        SzenarioVerwaltung.getInstance().setzeGeaendert();
-        updateAktivesItem(e.getX(), e.getY());
-
-        // Wurde die rechte Maustaste betaetigt?
-        if (e.getButton() == 3) {
-            if (aktivesItem != null && aktiveslabel != null) {
-                kontextMenueAktionsmodus(aktiveslabel, e.getX(), e.getY());
-            }
-        }
-        // Wurde die linke Maustaste betaetigt?
-        else if (e.getButton() == 1 && aktivesItem != null && aktiveslabel != null) {
-            if (aktivesItem.getKnoten() instanceof Rechner || aktivesItem.getKnoten() instanceof Notebook) {
-                desktopAnzeigen(aktivesItem);
-            } else if (aktivesItem.getKnoten() instanceof Switch) {
-                satTabelleAnzeigen(aktivesItem);
-            }
-        }
-    }
-
     public void processCableConnection(int currentPosX, int currentPosY) {
         if (neuesKabel.getKabelpanel().getZiel1() == null) {
             connectCableToFirstComponent(currentPosX, currentPosY);
@@ -510,23 +488,21 @@ public class GUIEvents implements I18n {
      * @param e
      *            MouseEvent (Für Position d. Kontextmenü u.a.)
      */
-    private void kontextMenueAktionsmodus(JSidebarButton templabel, int posX, int posY) {
-        updateAktivesItem(posX, posY);
-
-        if (aktivesItem != null) {
-            if (aktivesItem.getKnoten() instanceof InternetKnoten) {
+    public void kontextMenueAktionsmodus(final GUIKnotenItem knotenItem, int posX, int posY) {
+        if (knotenItem != null) {
+            if (knotenItem.getKnoten() instanceof InternetKnoten) {
 
                 JPopupMenu popmen = new JPopupMenu();
 
                 ActionListener al = new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         if (e.getActionCommand().equals("desktopanzeigen")) {
-                            desktopAnzeigen(aktivesItem);
+                            desktopAnzeigen(knotenItem);
                         }
 
                         if (e.getActionCommand().startsWith("datenaustausch")) {
                             String macAddress = e.getActionCommand().substring(15);
-                            datenAustauschAnzeigen(aktivesItem, macAddress);
+                            datenAustauschAnzeigen(knotenItem, macAddress);
                         }
 
                     }
@@ -539,11 +515,11 @@ public class GUIEvents implements I18n {
                 JMenuItem pmDesktopAnzeigen = new JMenuItem(messages.getString("guievents_msg3"));
                 pmDesktopAnzeigen.setActionCommand("desktopanzeigen");
                 pmDesktopAnzeigen.addActionListener(al);
-                if (aktivesItem.getKnoten() instanceof Rechner || aktivesItem.getKnoten() instanceof Notebook) {
+                if (knotenItem.getKnoten() instanceof Rechner || knotenItem.getKnoten() instanceof Notebook) {
                     popmen.add(pmDesktopAnzeigen);
                 }
 
-                InternetKnoten node = (InternetKnoten) aktivesItem.getKnoten();
+                InternetKnoten node = (InternetKnoten) knotenItem.getKnoten();
                 for (NetzwerkInterface nic : node.getNetzwerkInterfaces()) {
                     JMenuItem pmDatenAustauschAnzeigen = new JMenuItem(messages.getString("guievents_msg4") + " ("
                             + nic.getIp() + ")");
@@ -553,18 +529,15 @@ public class GUIEvents implements I18n {
                     popmen.add(pmDatenAustauschAnzeigen);
                 }
 
-                GUIContainer.getGUIContainer().getSimpanel().add(popmen);
+                knotenItem.getImageLabel().add(popmen);
                 popmen.setVisible(true);
-                popmen.show(GUIContainer.getGUIContainer().getSimpanel(), posX
-                        - GUIContainer.getGUIContainer().getXOffset(), posY
-                        - GUIContainer.getGUIContainer().getYOffset());
+                popmen.show(knotenItem.getImageLabel(), posX, posY);
             }
         }
     }
 
     private void datenAustauschAnzeigen(GUIKnotenItem item, String macAddress) {
         InternetKnotenBetriebssystem bs;
-        VermittlungsrechnerBetriebssystem vbs;
         ExchangeDialog exchangeDialog = GUIContainer.getGUIContainer().getExchangeDialog();
 
         if (item.getKnoten() instanceof InternetKnoten) {
@@ -767,7 +740,7 @@ public class GUIEvents implements I18n {
 
     }
 
-    private void satTabelleAnzeigen(final GUIKnotenItem aktivesItem) {
+    public void satTabelleAnzeigen(final GUIKnotenItem aktivesItem) {
         Switch sw = (Switch) aktivesItem.getKnoten();
 
         JFrame jfSATTabelle = new JFrame(messages.getString("guievents_msg8") + " " + sw.holeAnzeigeName());
@@ -777,9 +750,7 @@ public class GUIEvents implements I18n {
         jfSATTabelle.setIconImage(icon.getImage());
 
         DefaultTableModel dtm = new DefaultTableModel(0, 2);
-        Iterator it = ((SwitchFirmware) sw.getSystemSoftware()).holeSAT().iterator();
-        while (it.hasNext()) {
-            Vector zeile = (Vector) it.next();
+        for (Vector<String> zeile : ((SwitchFirmware) sw.getSystemSoftware()).holeSAT()) {
             dtm.addRow(zeile);
         }
 

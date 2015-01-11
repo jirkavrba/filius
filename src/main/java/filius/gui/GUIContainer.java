@@ -89,7 +89,8 @@ import filius.software.system.Betriebssystem;
 
 public class GUIContainer implements Serializable, I18n {
 
-    private static final Integer ACTIVE_LISTENER_LAYER = Integer.valueOf(-1);
+    private static final int MIN_DESKTOP_SPACING = 10;
+    private static final Integer ACTIVE_LISTENER_LAYER = Integer.valueOf(1);
     private static final Integer INACTIVE_LISTENER_LAYER = Integer.valueOf(-2);
     private static final Integer BACKGROUND_LAYER = Integer.valueOf(-10);
     public static final int NONE = 0;
@@ -108,7 +109,7 @@ public class GUIContainer implements Serializable, I18n {
     private GUIMainMenu menu;
 
     private GUINetworkPanel networkPanel = new GUINetworkPanel();
-    private JPanel networkListenerPanel = new JPanel();
+    private JPanel designListenerPanel = new JPanel();
     private JLayeredPane layeredPane = new JLayeredPane();
 
     private GUIDocumentationSidebar docuSidebar;
@@ -177,11 +178,11 @@ public class GUIContainer implements Serializable, I18n {
         layeredPane.setMinimumSize(new Dimension(FLAECHE_BREITE, FLAECHE_HOEHE));
         layeredPane.setPreferredSize(new Dimension(FLAECHE_BREITE, FLAECHE_HOEHE));
         
-        networkListenerPanel.setSize(FLAECHE_BREITE, FLAECHE_HOEHE);
-        networkListenerPanel.setMinimumSize(new Dimension(FLAECHE_BREITE, FLAECHE_HOEHE));
-        networkListenerPanel.setPreferredSize(new Dimension(FLAECHE_BREITE, FLAECHE_HOEHE));
-        networkListenerPanel.setOpaque(false);
-        layeredPane.add(networkListenerPanel, ACTIVE_LISTENER_LAYER);
+        designListenerPanel.setSize(FLAECHE_BREITE, FLAECHE_HOEHE);
+        designListenerPanel.setMinimumSize(new Dimension(FLAECHE_BREITE, FLAECHE_HOEHE));
+        designListenerPanel.setPreferredSize(new Dimension(FLAECHE_BREITE, FLAECHE_HOEHE));
+        designListenerPanel.setOpaque(false);
+        layeredPane.add(designListenerPanel, ACTIVE_LISTENER_LAYER);
 
         /*
          * auswahl: area covered during mouse pressed, i.e., area with components to be selected
@@ -337,8 +338,8 @@ public class GUIContainer implements Serializable, I18n {
                     activeDocuElement.setSelected(false);
                     docuDragPanel.remove(activeDocuElement);
                     docuPanel.add(activeDocuElement);
-                    docuPanel.repaint();
-                    // GUIContainer.this.updateViewport();
+                    activeDocuElement.requestFocusInWindow();
+                    GUIContainer.this.updateViewport();
                 } else if (activeDocuElement != null) {
                     docuDragPanel.remove(activeDocuElement);
                     docuDragPanel.updateUI();
@@ -360,7 +361,7 @@ public class GUIContainer implements Serializable, I18n {
         /*
          * Erzeugen und transformieren des Auswahlrahmens, und der sich darin befindenden Objekte.
          */
-        networkListenerPanel.addMouseMotionListener(new MouseInputAdapter() {
+        designListenerPanel.addMouseMotionListener(new MouseInputAdapter() {
             public void mouseDragged(MouseEvent e) {
                 if (activeSite == GUIMainMenu.MODUS_ENTWURF) {
                     GUIEvents.getGUIEvents().mausDragged(e);
@@ -368,7 +369,7 @@ public class GUIContainer implements Serializable, I18n {
             }
         });
 
-        networkListenerPanel.addMouseListener(new MouseInputAdapter() {
+        designListenerPanel.addMouseListener(new MouseInputAdapter() {
             public void mouseReleased(MouseEvent e) {
                 if (activeSite == GUIMainMenu.MODUS_ENTWURF) {
                     GUIEvents.getGUIEvents().mausReleased();
@@ -378,13 +379,11 @@ public class GUIContainer implements Serializable, I18n {
             public void mousePressed(MouseEvent e) {
                 if (activeSite == GUIMainMenu.MODUS_ENTWURF) {
                     GUIEvents.getGUIEvents().mausPressedDesignMode(e);
-                } else if (activeSite == GUIMainMenu.MODUS_AKTION) {
-                    GUIEvents.getGUIEvents().mausPressedSimulationMode(e);
                 }
             }
         });
 
-        networkListenerPanel.addMouseMotionListener(new MouseInputAdapter() {
+        designListenerPanel.addMouseMotionListener(new MouseInputAdapter() {
             public void mouseMoved(MouseEvent e) {
                 if (designCablePreview.isVisible()) {
                     designCablePreview.setBounds(e.getX(), e.getY(), designCablePreview.getWidth(),
@@ -674,7 +673,7 @@ public class GUIContainer implements Serializable, I18n {
             JMainFrame.getJMainFrame().addToContentPane(this.designSidebarScrollpane, BorderLayout.WEST);
             JMainFrame.getJMainFrame().removeFromContentPane(this.simulationView);
             layeredPane.setLayer(docuPanel, INACTIVE_LISTENER_LAYER);
-            layeredPane.setLayer(networkListenerPanel, ACTIVE_LISTENER_LAYER);
+            layeredPane.setLayer(designListenerPanel, ACTIVE_LISTENER_LAYER);
             layeredPane.add(designBackgroundPanel, BACKGROUND_LAYER);
             designView.setViewportView(layeredPane);
             JMainFrame.getJMainFrame().addToContentPane(this.designView, BorderLayout.CENTER);
@@ -692,7 +691,7 @@ public class GUIContainer implements Serializable, I18n {
             JMainFrame.getJMainFrame().removeFromContentPane(this.simulationView);
             layeredPane.add(designBackgroundPanel, BACKGROUND_LAYER);
             layeredPane.setLayer(docuPanel, ACTIVE_LISTENER_LAYER);
-            layeredPane.setLayer(networkListenerPanel, INACTIVE_LISTENER_LAYER);
+            layeredPane.setLayer(designListenerPanel, INACTIVE_LISTENER_LAYER);
             designView.setViewportView(layeredPane);
             designSelection.setVisible(false);
             designSelectionArea.setVisible(false);
@@ -705,7 +704,7 @@ public class GUIContainer implements Serializable, I18n {
             simulationView.getVerticalScrollBar().setValue(designView.getVerticalScrollBar().getValue());
             simulationView.getHorizontalScrollBar().setValue(designView.getHorizontalScrollBar().getValue());
             layeredPane.setLayer(docuPanel, INACTIVE_LISTENER_LAYER);
-            layeredPane.setLayer(networkListenerPanel, ACTIVE_LISTENER_LAYER);
+            layeredPane.setLayer(designListenerPanel, INACTIVE_LISTENER_LAYER);
             layeredPane.add(simulationBackgroundPanel, BACKGROUND_LAYER);
             simulationView.setViewportView(layeredPane);
             JMainFrame.getJMainFrame().removeFromContentPane(this.docuSidebarScrollpane);
@@ -822,16 +821,16 @@ public class GUIContainer implements Serializable, I18n {
         int numberOfDesktopsPerRow = (int) (screenSize.getWidth() / desktopSize.getWidth());
         int numberOfDesktopsPerColumn = (int) (screenSize.getHeight() / desktopSize.getHeight());
         int totalNumberOfDesktops = numberOfDesktopsPerRow * numberOfDesktopsPerColumn;
-        int xPos = 0;
-        int yPos = 0;
+        int xPos = MIN_DESKTOP_SPACING;
+        int yPos = MIN_DESKTOP_SPACING;
         if (desktopWindowList.size() < totalNumberOfDesktops
                 && !Information.getDesktopWindowMode().equals(GUIDesktopWindow.Mode.STACK)) {
             if (Information.getDesktopWindowMode().equals(GUIDesktopWindow.Mode.COLUMN)) {
-                xPos = (desktopWindowList.size() / numberOfDesktopsPerColumn) * (int) desktopSize.getWidth();
-                yPos = (desktopWindowList.size() % numberOfDesktopsPerColumn) * (int) desktopSize.getHeight();
+                xPos = MIN_DESKTOP_SPACING + (desktopWindowList.size() / numberOfDesktopsPerColumn) * (int) desktopSize.getWidth();
+                yPos = MIN_DESKTOP_SPACING + (desktopWindowList.size() % numberOfDesktopsPerColumn) * (int) desktopSize.getHeight();
             } else {
-                xPos = (desktopWindowList.size() % numberOfDesktopsPerRow) * (int) desktopSize.getWidth();
-                yPos = (desktopWindowList.size() / numberOfDesktopsPerRow) * (int) desktopSize.getHeight();
+                xPos = MIN_DESKTOP_SPACING + (desktopWindowList.size() % numberOfDesktopsPerRow) * (int) desktopSize.getWidth();
+                yPos = MIN_DESKTOP_SPACING + (desktopWindowList.size() / numberOfDesktopsPerRow) * (int) desktopSize.getHeight();
             }
         } else {
             int overlappingDesktops = Information.getDesktopWindowMode().equals(GUIDesktopWindow.Mode.STACK) ? desktopWindowList
@@ -839,12 +838,13 @@ public class GUIContainer implements Serializable, I18n {
             xPos = (overlappingDesktops + 1) * 20;
             yPos = (overlappingDesktops + 1) * 20;
             if (xPos + desktopSize.getWidth() > screenSize.getWidth()) {
-                xPos = 0;
+                xPos = MIN_DESKTOP_SPACING;
             }
             if (yPos + desktopSize.getHeight() > screenSize.getHeight()) {
-                yPos = 0;
+                yPos = MIN_DESKTOP_SPACING;
             }
         }
+        System.out.println(xPos + " / " + yPos);
         tmpDesktop.setBounds(xPos, yPos, tmpDesktop.getWidth(), tmpDesktop.getHeight());
     }
 
