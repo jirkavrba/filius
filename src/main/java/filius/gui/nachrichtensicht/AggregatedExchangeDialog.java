@@ -70,342 +70,357 @@ import filius.software.system.InternetKnotenBetriebssystem;
 import filius.software.system.SystemSoftware;
 
 /**
- * This class is used to show exchanged messages between components. Its
- * functionality shall be akin to that of wireshark.
+ * This class is used to show exchanged messages between components. Its functionality shall be akin to that of
+ * wireshark.
  * 
  * @author stefan
  */
 public class AggregatedExchangeDialog extends JDialog implements ExchangeDialog, I18n {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private JTabbedPane tabbedPane;
+    private JTabbedPane tabbedPane;
 
-	private static AggregatedExchangeDialog instance = null;
+    private static AggregatedExchangeDialog instance = null;
 
-	private Hashtable<String, JPanel> openedTabs = new Hashtable<String, JPanel>();
+    private Hashtable<String, JPanel> openedTabs = new Hashtable<String, JPanel>();
 
-	private Hashtable<String, InternetKnotenBetriebssystem> systems = new Hashtable<String, InternetKnotenBetriebssystem>();
+    private Hashtable<String, InternetKnotenBetriebssystem> systems = new Hashtable<String, InternetKnotenBetriebssystem>();
 
-	private Hashtable<String, AggregatedMessageTable> tabellen = new Hashtable<String, AggregatedMessageTable>();
+    private Hashtable<String, AggregatedMessageTable> tabellen = new Hashtable<String, AggregatedMessageTable>();
 
-	public static AggregatedExchangeDialog getInstance(Frame owner) {
-		if (instance == null) {
-			instance = new AggregatedExchangeDialog(owner);
-		}
+    public static AggregatedExchangeDialog getInstance(Frame owner) {
+        if (instance == null) {
+            instance = new AggregatedExchangeDialog(owner);
+        }
 
-		return instance;
-	}
+        return instance;
+    }
 
-	@Override
-	public void reset() {
-		if (instance != null) {
-			instance.setVisible(false);
-		}
+    @Override
+    public void reset() {
+        if (instance != null) {
+            instance.setVisible(false);
+        }
 
-		instance = null;
-	}
+        instance = null;
+    }
 
-	private AggregatedExchangeDialog(Frame owner) {
-		super(owner);
-		((JFrame) owner).getLayeredPane().setLayer(this, JLayeredPane.PALETTE_LAYER);
+    /** Do not use this constructor. It is only used for testing! */
+    public AggregatedExchangeDialog() {}
 
-		Image image;
+    private AggregatedExchangeDialog(Frame owner) {
+        super(owner);
+        ((JFrame) owner).getLayeredPane().setLayer(this, JLayeredPane.PALETTE_LAYER);
 
-		setTitle(messages.getString("lauscherdialog_msg1"));
-		int screenHeight = (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight();
-		int screenWidth = (int) Toolkit.getDefaultToolkit().getScreenSize().getWidth();
-		setBounds(screenWidth / 2, screenHeight / 10, screenWidth / 2, 4 * screenHeight / 5);
-		image = Toolkit.getDefaultToolkit().getImage(
-		        getClass().getResource("/gfx/allgemein/nachrichtenfenster_icon.png"));
-		setIconImage(image);
+        Image image;
 
-		this.setModal(false);
+        setTitle(messages.getString("lauscherdialog_msg1"));
+        int screenHeight = (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight();
+        int screenWidth = (int) Toolkit.getDefaultToolkit().getScreenSize().getWidth();
+        setBounds(screenWidth / 2, screenHeight / 10, screenWidth / 2, 4 * screenHeight / 5);
+        image = Toolkit.getDefaultToolkit().getImage(
+                getClass().getResource("/gfx/allgemein/nachrichtenfenster_icon.png"));
+        setIconImage(image);
 
-		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        this.setModal(false);
 
-		tabbedPane = new JTabbedPane();
-		getContentPane().add(tabbedPane, BorderLayout.CENTER);
-		this.setVisible(false);
+        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 
-		this.addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowActivated(WindowEvent e) {
-				AggregatedExchangeDialog.this.updateTabTitle();
-			}
-		});
+        tabbedPane = new JTabbedPane();
+        getContentPane().add(tabbedPane, BorderLayout.CENTER);
+        this.setVisible(false);
 
-	}
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowActivated(WindowEvent e) {
+                AggregatedExchangeDialog.this.updateTabTitle();
+            }
+        });
 
-	/**
-	 * Diese Methode fuegt eine Tabelle hinzu
-	 */
-	@Override
-	public void addTable(SystemSoftware system, String identifier) {
-		final AggregatedMessageTable tabelle;
-		JPanel panel;
-		final MessageDetailsPanel detailsPanel = new MessageDetailsPanel(identifier);
+    }
 
-		if (openedTabs.get(identifier) == null) {
-			tabelle = new AggregatedMessageTable(this, identifier);
-			tabelle.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+    /**
+     * Diese Methode fuegt eine Tabelle hinzu
+     */
+    @Override
+    public void addTable(SystemSoftware system, String identifier) {
+        final AggregatedMessageTable tabelle;
+        JPanel panel;
+        final MessageDetailsPanel detailsPanel = new MessageDetailsPanel(identifier);
 
-				@Override
-				public void valueChanged(ListSelectionEvent e) {
-					if (tabelle.getSelectedRow() >= 0) {
-						detailsPanel.update(tabelle.getValueAt(tabelle.getSelectedRow(), 0));
-					}
-				}
-			});
-			panel = new JPanel(new BorderLayout());
+        if (openedTabs.get(identifier) == null) {
+            tabelle = new AggregatedMessageTable(this, identifier);
+            tabelle.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
-			JScrollPane scrollPane;
-			scrollPane = new JScrollPane(tabelle);
-			tabelle.setScrollPane(scrollPane);
+                @Override
+                public void valueChanged(ListSelectionEvent e) {
+                    if (tabelle.getSelectedRow() >= 0) {
+                        detailsPanel.update(tabelle.getValueAt(tabelle.getSelectedRow(), 0));
+                    }
+                }
+            });
+            panel = new JPanel(new BorderLayout());
 
-			JSplitPane splitPane = new JSplitPane();
-			splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
-			splitPane.setTopComponent(scrollPane);
-			splitPane.setBottomComponent(new JScrollPane(detailsPanel));
+            JScrollPane scrollPane;
+            scrollPane = new JScrollPane(tabelle);
+            tabelle.setScrollPane(scrollPane);
 
-			panel.add(splitPane, BorderLayout.CENTER);
+            JSplitPane splitPane = new JSplitPane();
+            splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+            splitPane.setTopComponent(scrollPane);
+            splitPane.setBottomComponent(new JScrollPane(detailsPanel));
 
-			tabbedPane.add(panel);
+            panel.add(splitPane, BorderLayout.CENTER);
 
-			tabbedPane.setSelectedComponent(panel);
+            tabbedPane.add(panel);
 
-			openedTabs.put(identifier, panel);
-			systems.put(identifier, (InternetKnotenBetriebssystem) system);
-			tabellen.put(identifier, tabelle);
+            tabbedPane.setSelectedComponent(panel);
 
-			updateTabTitle();
-		}
-		// if there is already a tab opened for this system set it to selected
-		else {
-			tabbedPane.setSelectedComponent(openedTabs.get(identifier));
-			tabellen.get(identifier).update();
-		}
-	}
+            openedTabs.put(identifier, panel);
+            systems.put(identifier, (InternetKnotenBetriebssystem) system);
+            tabellen.put(identifier, tabelle);
 
-	private void updateTabTitle() {
-		for (int i = 0; i < tabbedPane.getComponentCount(); i++) {
-			for (String identifier : openedTabs.keySet()) {
-				if (tabbedPane.getComponentAt(i).equals(openedTabs.get(identifier))) {
-					SystemSoftware system = systems.get(identifier);
-					String ipAddress = ((InternetKnoten) system.getKnoten()).getNetzwerkInterfaceByMac(identifier)
-					        .getIp();
-					String tabTitle;
-					if (system.getKnoten() instanceof Host && ((Host) system.getKnoten()).isUseIPAsName()) {
-						tabTitle = ipAddress;
-					} else {
-						tabTitle = system.getKnoten().holeAnzeigeName() + " - " + ipAddress;
-					}
-					tabbedPane.setTitleAt(i, tabTitle);
-					break;
-				}
-			}
-		}
-	}
+            updateTabTitle();
+        }
+        // if there is already a tab opened for this system set it to selected
+        else {
+            tabbedPane.setSelectedComponent(openedTabs.get(identifier));
+            tabellen.get(identifier).update();
+        }
+    }
 
-	@Override
-	public void removeTable(String mac, JPanel panel) {
-		if (mac != null) {
-			openedTabs.remove(mac);
-			tabellen.remove(mac);
-			tabbedPane.remove(panel);
-		}
-	}
+    private void updateTabTitle() {
+        for (int i = 0; i < tabbedPane.getComponentCount(); i++) {
+            for (String identifier : openedTabs.keySet()) {
+                if (tabbedPane.getComponentAt(i).equals(openedTabs.get(identifier))) {
+                    SystemSoftware system = systems.get(identifier);
+                    String ipAddress = ((InternetKnoten) system.getKnoten()).getNetzwerkInterfaceByMac(identifier)
+                            .getIp();
+                    String tabTitle;
+                    if (system.getKnoten() instanceof Host && ((Host) system.getKnoten()).isUseIPAsName()) {
+                        tabTitle = ipAddress;
+                    } else {
+                        tabTitle = system.getKnoten().holeAnzeigeName() + " - " + ipAddress;
+                    }
+                    tabbedPane.setTitleAt(i, tabTitle);
+                    break;
+                }
+            }
+        }
+    }
 
-	@SuppressWarnings("serial")
-	private class MessageDetailsPanel extends JPanel {
-		private String macAddress;
+    @Override
+    public void removeTable(String mac, JPanel panel) {
+        if (mac != null) {
+            openedTabs.remove(mac);
+            tabellen.remove(mac);
+            tabbedPane.remove(panel);
+        }
+    }
 
-		public MessageDetailsPanel(String macAddress) {
-			this.macAddress = macAddress;
-			this.setLayout(new BorderLayout());
-			this.setBackground(Color.WHITE);
-		}
+    @SuppressWarnings("serial")
+    private class MessageDetailsPanel extends JPanel {
+        private String macAddress;
 
-		public void update(Object messageNo) {
-			if (messageNo != null) {
-				Object[][] daten = Lauscher.getLauscher().getDaten(macAddress, false);
-				int number = Integer.parseInt(messageNo.toString());
-				int dataSetNo = 0;
-				int currNo = 0;
-				for (; dataSetNo < daten.length; dataSetNo++) {
-					currNo = Integer.parseInt(daten[dataSetNo][0].toString());
-					if (currNo == number)
-						break;
-				}
+        public MessageDetailsPanel(String macAddress) {
+            this.macAddress = macAddress;
+            this.setLayout(new BorderLayout());
+            this.setBackground(Color.WHITE);
+        }
 
-				Object[] dataSet = daten[dataSetNo];
-				DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(messages.getString("rp_lauscher_msg1")
-				        + ": " + dataSet[0] + " / " + messages.getString("rp_lauscher_msg2") + ": " + dataSet[1]);
-				for (; dataSetNo < daten.length && Integer.parseInt(daten[dataSetNo][0].toString()) == number; dataSetNo++) {
-					dataSet = daten[dataSetNo];
-					DefaultMutableTreeNode layerNode = new DefaultMutableTreeNode(dataSet[5], true);
-					DefaultMutableTreeNode dateNode;
-					DefaultMutableTreeNode labelNode;
-					if (dataSet[2] != null && !dataSet[2].toString().isEmpty()) {
-						String srcLabel = String.format("%-15s", messages.getString("rp_lauscher_msg3") + ": ");
-						dateNode = new DefaultMutableTreeNode(srcLabel + dataSet[2]);
-						layerNode.add(dateNode);
-					}
-					if (dataSet[3] != null && !dataSet[3].toString().isEmpty()) {
-						String destLabel = String.format("%-15s", messages.getString("rp_lauscher_msg4") + ": ");
-						dateNode = new DefaultMutableTreeNode(destLabel + dataSet[3]);
-						layerNode.add(dateNode);
-					}
-					if (dataSet[4] != null && !dataSet[4].toString().isEmpty()) {
-						String protocolLabel = String.format("%-15s", messages.getString("rp_lauscher_msg5") + ": ");
-						dateNode = new DefaultMutableTreeNode(protocolLabel + dataSet[4]);
-						layerNode.add(dateNode);
-					}
-					if (dataSet[6] != null && !dataSet[6].toString().isEmpty()) {
-						String contentLabel = String.format("%-15s", messages.getString("rp_lauscher_msg7") + ": ");
-						if (dataSet[6].toString().contains("\n")) {
-							labelNode = new DefaultMutableTreeNode(contentLabel);
-							dateNode = new DefaultMutableTreeNode(dataSet[6]);
-							labelNode.add(dateNode);
-							layerNode.add(labelNode);
-						} else {
-							dateNode = new DefaultMutableTreeNode(contentLabel + dataSet[6]);
-							layerNode.add(dateNode);
-						}
-					}
-					rootNode.add(layerNode);
-				}
-				JTree detailsTree = new JTree(rootNode);
-				for (int i = 0; i < detailsTree.getRowCount(); i++) {
-					detailsTree.expandRow(i);
-				}
-				detailsTree.setCellRenderer(new MultiLineCellRenderer());
-				this.removeAll();
-				this.add(detailsTree, BorderLayout.WEST);
-				this.updateUI();
-			}
-		}
-	}
+        public void update(Object messageNo) {
+            if (messageNo != null) {
+                Object[][] daten = Lauscher.getLauscher().getDaten(macAddress, false);
+                int number = Integer.parseInt(messageNo.toString());
+                int dataSetNo = 0;
+                int currNo = 0;
+                for (; dataSetNo < daten.length; dataSetNo++) {
+                    currNo = Integer.parseInt(daten[dataSetNo][0].toString());
+                    if (currNo == number)
+                        break;
+                }
 
-	// This code is based on an example published at
-	// http://www.java2s.com/Code/Java/Swing-Components/MultiLineTreeExample.htm
-	class MultiLineCellRenderer extends JPanel implements TreeCellRenderer {
-		protected JLabel icon;
+                Object[] dataSet = daten[dataSetNo];
+                DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(messages.getString("rp_lauscher_msg1")
+                        + ": " + dataSet[0] + " / " + messages.getString("rp_lauscher_msg2") + ": " + dataSet[1]);
+                for (; dataSetNo < daten.length && Integer.parseInt(daten[dataSetNo][0].toString()) == number; dataSetNo++) {
+                    dataSet = daten[dataSetNo];
+                    DefaultMutableTreeNode layerNode = new DefaultMutableTreeNode(dataSet[5], true);
+                    DefaultMutableTreeNode dateNode;
+                    DefaultMutableTreeNode labelNode;
+                    if (dataSet[2] != null && !dataSet[2].toString().isEmpty()) {
+                        String srcLabel = String.format("%-15s", messages.getString("rp_lauscher_msg3") + ": ");
+                        dateNode = new DefaultMutableTreeNode(srcLabel + dataSet[2]);
+                        layerNode.add(dateNode);
+                    }
+                    if (dataSet[3] != null && !dataSet[3].toString().isEmpty()) {
+                        String destLabel = String.format("%-15s", messages.getString("rp_lauscher_msg4") + ": ");
+                        dateNode = new DefaultMutableTreeNode(destLabel + dataSet[3]);
+                        layerNode.add(dateNode);
+                    }
+                    if (dataSet[4] != null && !dataSet[4].toString().isEmpty()) {
+                        String protocolLabel = String.format("%-15s", messages.getString("rp_lauscher_msg5") + ": ");
+                        dateNode = new DefaultMutableTreeNode(protocolLabel + dataSet[4]);
+                        layerNode.add(dateNode);
+                    }
+                    if (dataSet[6] != null && !dataSet[6].toString().isEmpty()) {
+                        String contentLabel = String.format("%-15s", messages.getString("rp_lauscher_msg7") + ": ");
+                        if (dataSet[6].toString().contains("\n")) {
+                            labelNode = new DefaultMutableTreeNode(contentLabel);
+                            dateNode = new DefaultMutableTreeNode(dataSet[6]);
+                            labelNode.add(dateNode);
+                            layerNode.add(labelNode);
+                        } else {
+                            dateNode = new DefaultMutableTreeNode(contentLabel + dataSet[6]);
+                            layerNode.add(dateNode);
+                        }
+                    }
+                    rootNode.add(layerNode);
+                }
+                JTree detailsTree = new JTree(rootNode);
+                for (int i = 0; i < detailsTree.getRowCount(); i++) {
+                    detailsTree.expandRow(i);
+                }
+                detailsTree.setCellRenderer(new MultiLineCellRenderer());
+                this.removeAll();
+                this.add(detailsTree, BorderLayout.WEST);
+                this.updateUI();
+            }
+        }
+    }
 
-		protected TreeTextArea text;
+    // This code is based on an example published at
+    // http://www.java2s.com/Code/Java/Swing-Components/MultiLineTreeExample.htm
+    class MultiLineCellRenderer extends JPanel implements TreeCellRenderer {
+        protected JLabel icon;
 
-		public MultiLineCellRenderer() {
-			setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
-			icon = new JLabel() {
-				public void setBackground(Color color) {
-					if (color instanceof ColorUIResource)
-						color = null;
-					super.setBackground(color);
-				}
-			};
-			add(icon);
-			add(Box.createHorizontalStrut(4));
-			add(text = new TreeTextArea());
-		}
+        protected TreeTextArea text;
 
-		public Component getTreeCellRendererComponent(JTree tree, Object value, boolean isSelected, boolean expanded,
-		        boolean leaf, int row, boolean hasFocus) {
-			String stringValue = tree.convertValueToText(value, isSelected, expanded, leaf, row, hasFocus);
-			setEnabled(tree.isEnabled());
-			text.setText(stringValue);
-			text.setSelect(isSelected);
-			text.setFocus(hasFocus);
-			// if (leaf) {
-			// icon.setIcon(UIManager.getIcon("Tree.leafIcon"));
-			// } else if (expanded) {
-			// icon.setIcon(UIManager.getIcon("Tree.openIcon"));
-			// } else {
-			// icon.setIcon(UIManager.getIcon("Tree.closedIcon"));
-			// }
-			return this;
-		}
+        public MultiLineCellRenderer() {
+            setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
+            icon = new JLabel() {
+                public void setBackground(Color color) {
+                    if (color instanceof ColorUIResource)
+                        color = null;
+                    super.setBackground(color);
+                }
+            };
+            add(icon);
+            add(Box.createHorizontalStrut(4));
+            add(text = new TreeTextArea());
+        }
 
-		public Dimension getPreferredSize() {
-			Dimension iconD = icon.getPreferredSize();
-			Dimension textD = text.getPreferredSize();
-			int height = iconD.height < textD.height ? textD.height : iconD.height;
-			return new Dimension(iconD.width + textD.width, height);
-		}
+        public Component getTreeCellRendererComponent(JTree tree, Object value, boolean isSelected, boolean expanded,
+                boolean leaf, int row, boolean hasFocus) {
+            String stringValue = tree.convertValueToText(value, isSelected, expanded, leaf, row, hasFocus);
+            setEnabled(tree.isEnabled());
+            text.setText(stringValue);
+            text.setSelect(isSelected);
+            text.setFocus(hasFocus);
+            // if (leaf) {
+            // icon.setIcon(UIManager.getIcon("Tree.leafIcon"));
+            // } else if (expanded) {
+            // icon.setIcon(UIManager.getIcon("Tree.openIcon"));
+            // } else {
+            // icon.setIcon(UIManager.getIcon("Tree.closedIcon"));
+            // }
+            return this;
+        }
 
-		public void setBackground(Color color) {
-			if (color instanceof ColorUIResource)
-				color = null;
-			super.setBackground(color);
-		}
+        public Dimension getPreferredSize() {
+            Dimension iconD = icon.getPreferredSize();
+            Dimension textD = text.getPreferredSize();
+            int height = iconD.height < textD.height ? textD.height : iconD.height;
+            return new Dimension(iconD.width + textD.width, height);
+        }
 
-		class TreeTextArea extends JTextArea {
-			Dimension preferredSize;
+        public void setBackground(Color color) {
+            if (color instanceof ColorUIResource)
+                color = null;
+            super.setBackground(color);
+        }
 
-			TreeTextArea() {
-				setLineWrap(true);
-				setWrapStyleWord(true);
-				setOpaque(true);
-				Font font = getFont();
-				setFont(new Font(Font.MONOSPACED, Font.BOLD, font.getSize()));
-			}
+        class TreeTextArea extends JTextArea {
+            Dimension preferredSize;
 
-			public void setBackground(Color color) {
-				if (color instanceof ColorUIResource)
-					color = null;
-				super.setBackground(color);
-			}
+            TreeTextArea() {
+                setLineWrap(true);
+                setWrapStyleWord(true);
+                setOpaque(true);
+                Font font = getFont();
+                setFont(new Font(Font.MONOSPACED, Font.BOLD, font.getSize()));
+            }
 
-			public void setPreferredSize(Dimension d) {
-				if (d != null) {
-					preferredSize = d;
-				}
-			}
+            public void setBackground(Color color) {
+                if (color instanceof ColorUIResource)
+                    color = null;
+                super.setBackground(color);
+            }
 
-			public Dimension getPreferredSize() {
-				return preferredSize;
-			}
+            public void setPreferredSize(Dimension d) {
+                if (d != null) {
+                    preferredSize = d;
+                }
+            }
 
-			public void setText(String str) {
-				Font font = getFont();
-				FontMetrics fm = getToolkit().getFontMetrics(font);
-				BufferedReader br = new BufferedReader(new StringReader(str));
-				String line;
-				int maxWidth = 0, lines = 0;
-				try {
-					while ((line = br.readLine()) != null) {
-						int width = SwingUtilities.computeStringWidth(fm, line);
-						if (maxWidth < width) {
-							maxWidth = width;
-						}
-						lines++;
-					}
-				} catch (IOException ex) {
-					ex.printStackTrace();
-				}
-				lines = (lines < 1) ? 1 : lines;
-				int height = fm.getHeight() * lines;
-				setPreferredSize(new Dimension(maxWidth + 12, height));
-				super.setText(str);
-			}
+            public Dimension getPreferredSize() {
+                return preferredSize;
+            }
 
-			void setSelect(boolean isSelected) {
-				Color bColor;
-				if (isSelected) {
-					bColor = UIManager.getColor("Tree.selectionBackground");
-				} else {
-					bColor = UIManager.getColor("Tree.textBackground");
-				}
-				super.setBackground(bColor);
-			}
+            public void setText(String str) {
+                Font font = getFont();
+                FontMetrics fm = getToolkit().getFontMetrics(font);
+                BufferedReader br = new BufferedReader(new StringReader(str));
+                String line;
+                int maxWidth = 0, lines = 0;
+                try {
+                    while ((line = br.readLine()) != null) {
+                        int width = SwingUtilities.computeStringWidth(fm, line);
+                        if (maxWidth < width) {
+                            maxWidth = width;
+                        }
+                        lines++;
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                lines = (lines < 1) ? 1 : lines;
+                int height = fm.getHeight() * lines;
+                setPreferredSize(new Dimension(maxWidth + 12, height));
+                super.setText(str);
+            }
 
-			void setFocus(boolean hasFocus) {
-				if (hasFocus) {
-					Color lineColor = UIManager.getColor("Tree.selectionBorderColor");
-					setBorder(BorderFactory.createLineBorder(lineColor));
-				} else {
-					setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-				}
-			}
-		}
-	}
+            void setSelect(boolean isSelected) {
+                Color bColor;
+                if (isSelected) {
+                    bColor = UIManager.getColor("Tree.selectionBackground");
+                } else {
+                    bColor = UIManager.getColor("Tree.textBackground");
+                }
+                super.setBackground(bColor);
+            }
+
+            void setFocus(boolean hasFocus) {
+                if (hasFocus) {
+                    Color lineColor = UIManager.getColor("Tree.selectionBorderColor");
+                    setBorder(BorderFactory.createLineBorder(lineColor));
+                } else {
+                    setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+                }
+            }
+        }
+    }
+
+    public String getTabTitle(String interfaceId) {
+        String title = interfaceId.replaceAll(":", "-");
+        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+            Component tab = tabbedPane.getComponentAt(i);
+            if (tab == openedTabs.get(interfaceId)) {
+                title = tabbedPane.getTitleAt(i);
+                break;
+            }
+        }
+        return title;
+    }
 }

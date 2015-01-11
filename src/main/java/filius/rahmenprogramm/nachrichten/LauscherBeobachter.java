@@ -25,7 +25,12 @@
  */
 package filius.rahmenprogramm.nachrichten;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 public interface LauscherBeobachter {
 
-	public void update();
+    void update();
+
+    void writeToStream(OutputStream outputStream) throws IOException;
 }

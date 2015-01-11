@@ -844,7 +844,6 @@ public class GUIContainer implements Serializable, I18n {
                 yPos = MIN_DESKTOP_SPACING;
             }
         }
-        System.out.println(xPos + " / " + yPos);
         tmpDesktop.setBounds(xPos, yPos, tmpDesktop.getWidth(), tmpDesktop.getHeight());
     }
 

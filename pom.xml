@@ -27,6 +27,7 @@
 		<izpack.installDir>Filius</izpack.installDir>
 		<izpack.appVersion>${project.version}</izpack.appVersion>
 		<commons-lang3.version>3.3.2</commons-lang3.version>
+		<commons-io.version>2.4</commons-io.version>
 	</properties>
 	<packaging>jar</packaging>
 
@@ -70,6 +71,11 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 			<version>${commons-lang3.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>${commons-io.version}</version>
 		</dependency>
 
 	</dependencies>

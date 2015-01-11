@@ -118,7 +118,7 @@ public class Information implements Serializable {
             + System.getProperty("file.separator") + ".filius" + System.getProperty("file.separator");
 
     /** Lokalisierungsobjekt fuer Standard-Spracheinstellung */
-    private Locale locale = null;
+    private Locale locale = Locale.GERMANY;
 
     private boolean oldExchangeDialog = true;
 
