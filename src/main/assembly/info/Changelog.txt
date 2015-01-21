@@ -1,3 +1,14 @@
+filius (1.6) unstable; urgency=low
+  * Fehlerbehebung: Robustere Eingabe der Rechnerkonfiguration
+  * Fehlerbehebung: Verbindungsherstellung/-trennung mit Modem stabiler realisiert
+  * Ausgabe einer Fehlermeldung, wenn ein Broadcast-Ping ausgefuehrt werden soll
+  * Fehlerbehebung: Knoten konnten u.U. nicht mehr selektiert werden, wenn sie durch Beschreibungselemente ueberlagert wurden
+  * Fehlerbehebung: Ping-Fehler behoben
+  * Konfiguration der Knoten als Tooltip in der Netzwerkansicht
+  * Export des Nachrichtenaustauschs als einfache Textdatei
+  * Maximale Anzahl von Verbindungen zu Switch (von 8) auf 24 erhoeht
+  * Fehlerbehebung: TTL wird jetzt korrekt inkrementiert
+
 filius (1.5.4) unstable; urgency=low
   * Fehlerbehebung: Inkompatibilität beim Oeffnen von Projektdateien, die mit aelterer Version erstellt wurden, behoben
   * Fehlerbehebung: Kabelwerkzeug wurde an falscher Position angezeigt, wenn Arbeitsbereich per Schieber verschoben wurde
