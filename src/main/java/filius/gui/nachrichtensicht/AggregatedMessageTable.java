@@ -33,6 +33,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JCheckBoxMenuItem;
@@ -61,6 +65,8 @@ import filius.rahmenprogramm.nachrichten.Lauscher;
 import filius.rahmenprogramm.nachrichten.LauscherBeobachter;
 
 public class AggregatedMessageTable extends JTable implements LauscherBeobachter, I18n {
+
+    private static final int EXPORT_MAX_LINES_PER_MESSAGE = 5;
 
     private static final long serialVersionUID = 1L;
 
@@ -294,36 +300,99 @@ public class AggregatedMessageTable extends JTable implements LauscherBeobachter
 
         Object[] columnNames = new Object[getColumnCount()];
         StringBuilder tmplBuilder = new StringBuilder("| ");
+        StringBuilder lineSeparatorBuilder = new StringBuilder("+");
         for (int colIdx = 0; colIdx < getColumnCount(); colIdx++) {
             columnNames[colIdx] = getColumnName(colIdx);
             if (colIdx == BEMERKUNG_SPALTE) {
                 tmplBuilder.append("%-40s | ");
+                lineSeparatorBuilder.append(StringUtils.repeat('-', 42)+"+");
             } else if (colIdx == LFD_NR_SPALTE) {
                 tmplBuilder.append("%-10s | ");
+                lineSeparatorBuilder.append(StringUtils.repeat('-', 12)+"+");
             } else {
                 tmplBuilder.append("%-20s | ");
+                lineSeparatorBuilder.append(StringUtils.repeat('-', 22)+"+");
             }
         }
         tmplBuilder.append("\r\n");
-        lineSeparator = StringUtils.repeat('-', getColumnCount() * 23 + 1 + 10) + "\r\n";
         rowTemplate = tmplBuilder.toString();
+        lineSeparatorBuilder.append("\r\n");
+        lineSeparator = lineSeparatorBuilder.toString();
 
-        outputStream.write(lineSeparator.getBytes("UTF8"));
+        outputStream.write(lineSeparator.replace('-', '=').getBytes("UTF8"));
         outputStream.write(String.format(rowTemplate, columnNames).getBytes("UTF8"));
-        outputStream.write(lineSeparator.getBytes("UTF8"));
+        outputStream.write(lineSeparator.replace('-', '=').getBytes("UTF8"));
 
-        Object[] values = new Object[getColumnCount()];
         for (int rowIndex = 0; rowIndex < getRowCount(); rowIndex++) {
+            String[] values = new String[getColumnCount()];
             for (int columnIndex = 0; columnIndex < getColumnCount(); columnIndex++) {
-                if (columnIndex == BEMERKUNG_SPALTE) {
-                    values[columnIndex] = StringUtils.abbreviate(
-                            StringUtils.normalizeSpace((String) getModel().getValueAt(rowIndex, columnIndex)), 40);
-                } else {
-                    values[columnIndex] = getModel().getValueAt(rowIndex, columnIndex);
-                }
+                values[columnIndex] = getModel().getValueAt(rowIndex, columnIndex).toString();
             }
-            outputStream.write(String.format(rowTemplate, values).getBytes("UTF8"));
+            List<String[]> lineData = prepareDataArrays(values, 40);
+            for (String[] data : lineData) {
+                outputStream.write(String.format(rowTemplate, data).getBytes("UTF8"));
+            }
+            outputStream.write(lineSeparator.getBytes("UTF8"));
         }
-        outputStream.write(lineSeparator.getBytes("UTF8"));
+    }
+
+    static List<String[]> prepareDataArrays(String[] values, int maxRemarkLength) {
+        List<String> remarks = Collections.<String> emptyList();
+        String[] data = new String[values.length];
+        for (int columnIndex = 0; columnIndex < values.length; columnIndex++) {
+            if (columnIndex == BEMERKUNG_SPALTE) {
+                if (StringUtils.isNoneBlank(values[columnIndex])) {
+                    remarks = splitString(values[columnIndex].toString(), maxRemarkLength);
+                    data[columnIndex] = remarks.get(0);
+                }
+            } else {
+                data[columnIndex] = values[columnIndex];
+            }
+        }
+        List<String[]> lineData = new ArrayList<String[]>();
+        lineData.add(data);
+        for (int i = 1; i < remarks.size() && i < EXPORT_MAX_LINES_PER_MESSAGE; i++) {
+            data = new String[values.length];
+            Arrays.fill(data, StringUtils.EMPTY);
+            data[BEMERKUNG_SPALTE] = remarks.get(i);
+            lineData.add(data);
+        }
+        if (remarks.size() > EXPORT_MAX_LINES_PER_MESSAGE) {
+            data = new String[values.length];
+            Arrays.fill(data, StringUtils.EMPTY);
+            data[BEMERKUNG_SPALTE] = "...";
+            lineData.add(data);
+        }
+        return lineData;
+    }
+
+    static List<String> splitString(String text, int maxLength) {
+        String normalizedText = StringUtils.normalizeSpace(text);
+        String[] tokens = normalizedText.split(" ");
+        List<String> lines = new ArrayList<String>();
+        int currentLength = 0;
+        StringBuilder lineBuilder = new StringBuilder();
+        for (String token : tokens) {
+            if (currentLength + token.length() <= maxLength) {
+                lineBuilder.append(token).append(" ");
+                currentLength += token.length() + 1;
+            } else if (token.length() > maxLength) {
+                if (currentLength > 0) {
+                    lines.add(lineBuilder.toString().trim());
+                }
+                String[] parts = token.split("(?<=\\G.{" + maxLength + "})");
+                for (int i = 0; i < parts.length - 1; i++) {
+                    lines.add(parts[i]);
+                }
+                lineBuilder = new StringBuilder(parts[parts.length - 1]).append(" ");
+                currentLength = parts[parts.length - 1].length() + 1;
+            } else {
+                lines.add(lineBuilder.toString().trim());
+                lineBuilder = new StringBuilder(token).append(" ");
+                currentLength = token.length() + 1;
+            }
+        }
+        lines.add(lineBuilder.toString().trim());
+        return lines;
     }
 }
