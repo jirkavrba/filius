@@ -744,7 +744,7 @@ public class Terminal extends ClientAnwendung implements I18n {
         }
         try {
             Route route = ((InternetKnotenBetriebssystem) getSystemSoftware()).determineRoute(destIp);
-            if (VermittlungsProtokoll.isBroadcast(destIp, route.getNetMask())) {
+            if (VermittlungsProtokoll.isBroadcast(destIp, route.getInterfaceIpAddress(), route.getNetMask())) {
                 benachrichtigeBeobachter(messages.getString("sw_terminal_msg53"));
                 return messages.getString("sw_terminal_msg53");
             }

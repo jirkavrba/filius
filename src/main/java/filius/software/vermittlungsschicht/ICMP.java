@@ -108,7 +108,7 @@ public class ICMP extends VermittlungsProtokoll implements I18n {
         sendeICMP(typ, code, 64, seqNr, quellIP, zielIP);
     }
 
-    public void sendeICMP(int typ, int code, int ttl, int seqNr, String quellIP, String zielIP) {
+    private void sendeICMP(int typ, int code, int ttl, int seqNr, String quellIP, String zielIP) {
         IcmpPaket icmpPaket = new IcmpPaket();
         icmpPaket.setProtokollTyp(EthernetFrame.IP);
         icmpPaket.setZielIp(zielIP);
@@ -152,27 +152,15 @@ public class ICMP extends VermittlungsProtokoll implements I18n {
      * @throws VerbindungsException
      */
     private void dispatch(IcmpPaket paket, String zielIp, Route route) throws RouteNotFoundException {
-        InternetKnotenBetriebssystem bs = (InternetKnotenBetriebssystem) holeSystemSoftware();
-
-        String gateway = route.getGateway();
-        String schnittstelle = route.getInterfaceIpAddress();
-        InternetKnoten knoten = (InternetKnoten) bs.getKnoten();
-        NetzwerkInterface nic = knoten.getNetzwerkInterfaceByIp(schnittstelle);
-        String netzmaske = nic.getSubnetzMaske();
-        String macAddressOfNicToUse = nic.getMac();
-
-        if (isBroadcast(zielIp, netzmaske)) {
-            sendBroadcast(paket, zielIp, macAddressOfNicToUse);
+        NetzwerkInterface nic = ((InternetKnoten) holeSystemSoftware().getKnoten()).getNetzwerkInterfaceByIp(route
+                .getInterfaceIpAddress());
+        
+        if (isBroadcast(zielIp, route.getInterfaceIpAddress(), nic.getSubnetzMaske())) {
+            sendBroadcast(paket, zielIp, nic.getMac());
+        } else if (gleichesRechnernetz(zielIp, route.getInterfaceIpAddress(), nic.getSubnetzMaske())) {
+            sendUnicastToNextHop(paket, paket.getZielIp(), nic.getMac());
         } else {
-            String nextHopIpAddress = null;
-            if (gleichesRechnernetz(zielIp, schnittstelle, netzmaske)) {
-                // adressierter Knoten befindet sich im lokalen Rechnernetz
-                nextHopIpAddress = paket.getZielIp();
-            } else {
-                // adressierter Knoten ist ueber Gateway zu erreichen
-                nextHopIpAddress = gateway;
-            }
-            sendUnicastToNextHop(paket, nextHopIpAddress, macAddressOfNicToUse);
+            sendUnicastToNextHop(paket, route.getGateway(), nic.getMac());
         }
     }
 

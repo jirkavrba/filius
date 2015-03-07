@@ -57,20 +57,16 @@ public class ICMPThread extends ProtokollThread {
     protected void verarbeiteDatenEinheit(Object datenEinheit) {
         IcmpPaket icmpPaket = ((IcmpPaket) datenEinheit).clone();
 
-        // TTL dekrementieren
-        icmpPaket.decrementTtl();
-
         if (vermittlung.isLocalAddress(icmpPaket.getZielIp())
                 || vermittlung.isApplicableBroadcast(icmpPaket.getZielIp())) {
-            // Paket wurde an diesen Rechner gesendet
             if (icmpPaket.isEchoRequest()) {
+                icmpPaket.decrementTtl();
                 vermittlung.sendEchoReply(icmpPaket);
             } else {
                 addIcmpResponse(icmpPaket);
             }
         } else {
-            // Paket wurde an anderen Rechner gesendet und
-            // muss weitergeleitet werden
+            icmpPaket.decrementTtl();
             vermittlung.weiterleitenPaket(icmpPaket);
         }
     }

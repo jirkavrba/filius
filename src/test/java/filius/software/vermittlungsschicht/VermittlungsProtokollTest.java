@@ -32,42 +32,56 @@ public class VermittlungsProtokollTest {
     
     @Test
     public void testIstBroadcast_No_InCaseOfLocalhost() throws Exception {
-        boolean isBroadcast = VermittlungsProtokoll.isBroadcast("10.0.0.1", "255.255.255.0");
+        boolean isBroadcast = VermittlungsProtokoll.isBroadcast("10.0.0.1", "10.0.0.1", "255.255.255.0");
         
         assertThat(isBroadcast, is(false));
     }
     
     @Test
     public void testIstBroadcast_Yes_InCaseOf255() throws Exception {
-        boolean isBroadcast = VermittlungsProtokoll.isBroadcast("10.0.0.255", "255.255.255.0");
+        boolean isBroadcast = VermittlungsProtokoll.isBroadcast("10.0.0.255", "10.0.0.1", "255.255.255.0");
         
         assertThat(isBroadcast, is(true));
     }
     
     @Test
     public void testIstBroadcast_Yes_DifficultNetmask() throws Exception {
-        boolean isBroadcast = VermittlungsProtokoll.isBroadcast("10.0.63.255", "255.255.192.0");
+        boolean isBroadcast = VermittlungsProtokoll.isBroadcast("10.0.63.255", "10.0.63.1", "255.255.192.0");
         
         assertThat(isBroadcast, is(true));
     }
     
     @Test
     public void testIstBroadcast_No_DifficultNetmask() throws Exception {
-        boolean isBroadcast = VermittlungsProtokoll.isBroadcast("10.0.31.255", "255.255.192.0");
+        boolean isBroadcast = VermittlungsProtokoll.isBroadcast("10.0.31.255", "10.0.31.1", "255.255.192.0");
         
         assertThat(isBroadcast, is(false));
     }
     
     @Test
-    public void testIstBroadcast_Yes_ToNetworkAddress() throws Exception {
-        boolean isBroadcast = VermittlungsProtokoll.isBroadcast("10.0.0.0", "255.255.192.0");
+    public void testIstBroadcast_Yes_GleichesRechnernetz() throws Exception {
+        boolean isBroadcast = VermittlungsProtokoll.isBroadcast("10.0.0.255", "10.0.0.11", "255.255.255.0");
         
         assertThat(isBroadcast, is(true));
     }
     
     @Test
+    public void testIstBroadcast_No_AnderesRechnernetz() throws Exception {
+        boolean isBroadcast = VermittlungsProtokoll.isBroadcast("10.0.0.255", "10.0.1.11", "255.255.255.0");
+        
+        assertThat(isBroadcast, is(false));
+    }
+    
+    @Test
+    public void testIstBroadcast_No_ToNetworkAddress() throws Exception {
+        boolean isBroadcast = VermittlungsProtokoll.isBroadcast("10.0.0.0", "10.0.0.1", "255.255.192.0");
+        
+        assertThat(isBroadcast, is(false));
+    }
+    
+    @Test
     public void testIstBroadcast_Yes_GenericBroadcastAddress() throws Exception {
-        boolean isBroadcast = VermittlungsProtokoll.isBroadcast("255.255.255.255", "255.255.192.0");
+        boolean isBroadcast = VermittlungsProtokoll.isBroadcast("255.255.255.255", "10.0.0.1", "255.255.192.0");
         
         assertThat(isBroadcast, is(true));
     }

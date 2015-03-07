@@ -154,7 +154,7 @@ public class IP extends VermittlungsProtokoll implements I18n {
      * @param segment
      *            das zu verarbeitende Segment
      */
-    private void benachrichtigeTransportschicht(IpPaket paket) {
+    void benachrichtigeTransportschicht(IpPaket paket) {
         Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (IP), benachrichtigeTransportschicht("
                 + paket.toString() + ")");
         if (paket.getSegment() instanceof TcpSegment) {
@@ -178,41 +178,17 @@ public class IP extends VermittlungsProtokoll implements I18n {
      *            das zu versendende IP-Paket
      * @throws RouteNotFoundException
      */
-    private void sendeUnicast(IpPaket paket) throws RouteNotFoundException {
-        dispatch(paket, false);
-    }
-
-    private void dispatch(IpPaket paket, boolean setzeSender) throws RouteNotFoundException {
-        if (this.isLocalAddress(paket.getEmpfaenger())) {
-            // Paket ist an diesen Rechner gerichtet
-            if (setzeSender) {
-                paket.setSender(LOCALHOST);
-            }
-            benachrichtigeTransportschicht(paket);
-            return;
-        }
-
-        InternetKnotenBetriebssystem bs = (InternetKnotenBetriebssystem) holeSystemSoftware();
-        Route route = bs.determineRoute(paket.getEmpfaenger());
-
-        String gateway = route.getGateway();
-        String schnittstelle = route.getInterfaceIpAddress();
-        InternetKnoten knoten = (InternetKnoten) bs.getKnoten();
-        NetzwerkInterface nic = knoten.getNetzwerkInterfaceByIp(schnittstelle);
+    private void sendeUnicast(IpPaket paket, Route route) throws RouteNotFoundException {
+        NetzwerkInterface nic = ((InternetKnoten) holeSystemSoftware().getKnoten()).getNetzwerkInterfaceByIp(route
+                .getInterfaceIpAddress());
         String netzmaske = nic.getSubnetzMaske();
 
-        if (setzeSender) {
-            paket.setSender(schnittstelle);
-        }
-
-        if (isBroadcast(paket.getEmpfaenger(), netzmaske)) {
-            sendBroadcastOverNic(nic, paket);
-        } else if (gleichesRechnernetz(paket.getEmpfaenger(), schnittstelle, netzmaske)) {
+        if (gleichesRechnernetz(paket.getEmpfaenger(), route.getInterfaceIpAddress(), netzmaske)) {
             // adressierter Knoten befindet sich im lokalen Rechnernetz
             sendeUnicastLokal(paket, paket.getEmpfaenger(), nic);
         } else {
             // adressierter Knoten ist ueber Gateway zu erreichen
-            sendeUnicastLokal(paket, gateway, nic);
+            sendeUnicastLokal(paket, route.getGateway(), nic);
         }
     }
 
@@ -227,7 +203,8 @@ public class IP extends VermittlungsProtokoll implements I18n {
             // Es konnte keine MAC-Adresse bestimmt werden.
             // Es muss ein ICMP Destination Unreachable: Host Unreachable
             // (3/1) zurueckgesendet werden:
-            bs.holeICMP().sendeICMP(ICMP.TYPE_DESTINATION_UNREACHABLE, ICMP.CODE_DEST_HOST_UNREACHABLE, paket.getSender());
+            bs.holeICMP().sendeICMP(ICMP.TYPE_DESTINATION_UNREACHABLE, ICMP.CODE_DEST_HOST_UNREACHABLE,
+                    paket.getSender());
         }
     }
 
@@ -253,7 +230,11 @@ public class IP extends VermittlungsProtokoll implements I18n {
         paket.setTtl(ttl);
         paket.setSegment(segment);
 
-        if (zielIp.equals("255.255.255.255")) {
+        if (this.isLocalAddress(zielIp)) {
+            // Paket ist an diesen Rechner gerichtet
+            paket.setSender(LOCALHOST);
+            benachrichtigeTransportschicht(paket);
+        } else if (zielIp.equals("255.255.255.255")) {
             if (quellIp == null) {
                 quellIp = ((InternetKnotenBetriebssystem) holeSystemSoftware()).holeIPAdresse();
             }
@@ -261,49 +242,33 @@ public class IP extends VermittlungsProtokoll implements I18n {
             sendeBroadcast(paket);
         } else {
             try {
-                dispatch(paket, true);
+                InternetKnotenBetriebssystem bs = (InternetKnotenBetriebssystem) holeSystemSoftware();
+                Route route = bs.determineRoute(paket.getEmpfaenger());
+                paket.setSender(route.getInterfaceIpAddress());
+                sendeUnicast(paket, route);
             } catch (RouteNotFoundException e) {}
         }
     }
 
     /**
      * Methode zum Weiterleiten eines IP-Pakets. Zunaechst wird geprueft, ob das Feld Time-to-Live-Feld (TTL) noch nicht
-     * abgelaufen ist (d. h. TTL groesser 0). Wenn diese Bedingung erfuellt ist, wird zunaechst geprueft, ob es sich um
-     * einen Broadcast handelt. Ein solches Paket wird nicht weitergeleitet sondern nur an die Transportschicht
-     * weitergegeben. Sonst wird die Weiterleitungstabelle nach einem passenden Eintrag abgefragt. Anhand des
-     * zurueckgegebenen Eintrags wird geprueft, ob das Paket fuer den eigenen Rechner ist oder ob ein Unicast-Paket
-     * verschickt werden muss.
+     * abgelaufen ist (d. h. TTL groesser 0). Wenn diese Bedingung erfuellt ist, wird die Weiterleitungstabelle nach einem 
+     * passenden Eintrag abgefragt und entsprechend verschickt.
      * 
-     * @param ipPaket
-     *            das zu versendende IP-Paket
+     * @param ipPaket das zu versendende IP-Paket
      */
     public void weiterleitenPaket(IpPaket paket) {
         InternetKnotenBetriebssystem bs = (InternetKnotenBetriebssystem) holeSystemSoftware();
 
-        if (paket.getEmpfaenger().equals("255.255.255.255")) {
-            // Broadcast, darf nicht weitergeleitet werden.
-            // Lokal verarbeiten:
-            benachrichtigeTransportschicht(paket);
-        } else if (paket.getTtl() <= 0) {
-            // TTL ist abgelaufen.
-            // (wird in IPThread.verarbeiteDatenEinheit()
-            // dekrementiert, bevor diese Funktion aufgerufen
-            // wird)
-            // ICMP Timeout Expired In Transit (11/0) zuruecksenden:
+        if (paket.getTtl() <= 0) {
             bs.holeICMP().sendeICMP(ICMP.TYPE_TIME_EXCEEDED, ICMP.CODE_TTL_EXPIRED, paket.getSender());
         } else {
-            // TTL ist nicht abgelaufen.
-            // Paket weiterleiten:
             try {
-                sendeUnicast(paket);
+                Route route = bs.determineRoute(paket.getEmpfaenger());
+                sendeUnicast(paket, route);
             } catch (RouteNotFoundException e) {
-                // Es wurde keine Route gefunden, ueber die das Paket versendet
-                // werden koennte.
-                // Es muss ein ICMP Destination Unreachable: Network Unreachable
-                // (3/0) zurueckgesendet werden:
                 bs.holeICMP().sendeICMP(ICMP.TYPE_DESTINATION_UNREACHABLE, ICMP.CODE_DEST_NETWORK_UNREACHABLE,
                         paket.getSender());
-
                 bs.benachrichtigeBeobacher(messages.getString("sw_ip_msg4") + " \"" + bs.getKnoten().getName()
                         + "\"!\n" + messages.getString("sw_ip_msg5") + " " + paket.getEmpfaenger() + " "
                         + messages.getString("sw_ip_msg6"));

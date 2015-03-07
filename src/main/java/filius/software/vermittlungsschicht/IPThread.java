@@ -30,38 +30,37 @@ import filius.software.ProtokollThread;
 import filius.software.system.InternetKnotenBetriebssystem;
 
 /**
- * Thread zur Ueberwachung des IP-Puffers, in den von der Ethernet-Schicht
- * eingehende IP-Pakete geschrieben werden
+ * Thread zur Ueberwachung des IP-Puffers, in den von der Ethernet-Schicht eingehende IP-Pakete geschrieben werden
  */
 public class IPThread extends ProtokollThread {
 
-	/** Die IPsschicht */
-	private IP vermittlung;
+    /** Die IPsschicht */
+    private IP vermittlung;
 
-	/**
-	 * Konstruktor zur Initialisierung des zu ueberwachenden Puffers und der
-	 * IPsschicht.
-	 */
-	public IPThread(IP vermittlung) {
-		super(((InternetKnotenBetriebssystem) vermittlung.holeSystemSoftware()).holeEthernet().holeIPPuffer());
-		Main.debug.println("INVOKED-2 (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
-		        + " (IPThread), constr: IPThread(" + vermittlung + ")");
+    /**
+     * Konstruktor zur Initialisierung des zu ueberwachenden Puffers und der IPsschicht.
+     */
+    public IPThread(IP vermittlung) {
+        super(((InternetKnotenBetriebssystem) vermittlung.holeSystemSoftware()).holeEthernet().holeIPPuffer());
+        Main.debug.println("INVOKED-2 (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
+                + " (IPThread), constr: IPThread(" + vermittlung + ")");
 
-		this.vermittlung = vermittlung;
-	}
+        this.vermittlung = vermittlung;
+    }
 
-	/**
-	 * In dieser Methode wird zunaechst das Feld Time-to-Live (TTL) des
-	 * eingehenden Pakets dekrementiert. Anschliessend wird es an die Methode
-	 * weiterleitenPaket() des IP uebergeben. Dort werden Pakete, die fuer
-	 * diesen Rechner bestimmt sind, an die Transportschicht weiter gegeben und
-	 * Pakete an andere Rechner weitergeleitet.
-	 */
-	protected void verarbeiteDatenEinheit(Object datenEinheit) {
-		IpPaket ipPaket = ((IpPaket) datenEinheit).clone();
+    /**
+     * In dieser Methode wird zunaechst das Feld Time-to-Live (TTL) des eingehenden Pakets dekrementiert. Anschliessend
+     * wird es an die Methode weiterleitenPaket() des IP uebergeben. Dort werden Pakete, die fuer diesen Rechner
+     * bestimmt sind, an die Transportschicht weiter gegeben und Pakete an andere Rechner weitergeleitet.
+     */
+    protected void verarbeiteDatenEinheit(Object datenEinheit) {
+        IpPaket ipPaket = ((IpPaket) datenEinheit).clone();
 
-		ipPaket.decrementTtl();
-
-		vermittlung.weiterleitenPaket(ipPaket);
-	}
+        if (vermittlung.isLocalAddress(ipPaket.getEmpfaenger()) || ipPaket.getEmpfaenger().equals("255.255.255.255")) {
+            vermittlung.benachrichtigeTransportschicht(ipPaket);
+        } else {
+            ipPaket.decrementTtl();
+            vermittlung.weiterleitenPaket(ipPaket);
+        }
+    }
 }
