@@ -30,6 +30,8 @@ import java.awt.Dimension;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.swing.BoxLayout;
+
 import filius.gui.JBackgroundPanel;
 
 public abstract class GUISidebar {
@@ -56,6 +58,8 @@ public abstract class GUISidebar {
 			}
 		};
 		leistenpanel.setBackgroundImage("gfx/allgemein/leisten_hg.png");
+		BoxLayout layout = new BoxLayout( leistenpanel, BoxLayout.Y_AXIS );
+        leistenpanel.setLayout( layout);
 		leistenpanel.setEnabled(false);
 
 		addItemsToSidebar();

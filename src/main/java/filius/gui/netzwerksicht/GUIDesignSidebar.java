@@ -74,6 +74,7 @@ public class GUIDesignSidebar extends GUISidebar {
 		newCableCursor.setText(Kabel.TYPE);
 		newCableCursor.setVerticalTextPosition(SwingConstants.BOTTOM);
 		newCableCursor.setHorizontalTextPosition(SwingConstants.CENTER);
+		newCableCursor.setAlignmentX(0.5f);
 
 		newCableCursor.setVerticalTextPosition(SwingConstants.BOTTOM);
 		newCableCursor.setHorizontalTextPosition(SwingConstants.CENTER);

@@ -88,6 +88,7 @@ public class JSidebarButton extends JLabel implements Observer, I18n {
     public JSidebarButton(String text, Icon icon, String typ) {
         this(text, icon);
         this.typ = typ;
+        this.setAlignmentX(0.5f);
     }
 
     @Override
