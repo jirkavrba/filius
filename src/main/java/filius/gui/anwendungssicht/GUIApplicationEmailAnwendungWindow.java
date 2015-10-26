@@ -34,7 +34,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyVetoException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Observable;
@@ -139,8 +138,8 @@ public class GUIApplicationEmailAnwendungWindow extends GUIApplicationWindow {
                 auswahlfuerloeschen = zeilenNummer;
                 paa = ListMode.INBOX;
                 if (zeilenNummer != -1) {
-                    Email tmpEmail = (Email) ((EmailAnwendung) holeAnwendung()).getEmpfangeneNachrichten().get(
-                            zeilenNummer);
+                    Email tmpEmail = (Email) ((EmailAnwendung) holeAnwendung()).getEmpfangeneNachrichten()
+                            .get(zeilenNummer);
                     emailVorschau.setContentType("text/plain");
                     emailVorschau.setText(tmpEmail.getText());
                     aktuelleMail = tmpEmail;
@@ -163,8 +162,8 @@ public class GUIApplicationEmailAnwendungWindow extends GUIApplicationWindow {
                 auswahlfuerloeschen = zeilenNummer;
                 paa = ListMode.OUTBOX;
                 if (zeilenNummer != -1) {
-                    Email tmpEmail = (Email) ((EmailAnwendung) holeAnwendung()).getGesendeteNachrichten().get(
-                            zeilenNummer);
+                    Email tmpEmail = (Email) ((EmailAnwendung) holeAnwendung()).getGesendeteNachrichten()
+                            .get(zeilenNummer);
                     emailVorschau.setContentType("text/plain");
                     emailVorschau.setText(tmpEmail.getText());
                     aktuelleMail = tmpEmail;
@@ -310,8 +309,8 @@ public class GUIApplicationEmailAnwendungWindow extends GUIApplicationWindow {
             emailVorschau.setText(" ");
             emailVorschau.updateUI();
         } else {
-            Main.debug
-                    .println("============================================GuiAppl. Emailloeschen: Email konnte nicht geloescht werden=======================================");
+            Main.debug.println(
+                    "============================================GuiAppl. Emailloeschen: Email konnte nicht geloescht werden=======================================");
         }
     }
 
@@ -323,7 +322,7 @@ public class GUIApplicationEmailAnwendungWindow extends GUIApplicationWindow {
     private void emailVerfassen(Email antwortAuf) {
         ImageIcon image;
         inFrVerfassen = new JInternalFrame(messages.getString("emailanwendung_msg12"));
-        inFrVerfassen.setBounds(100, 50, 512, 384);
+        inFrVerfassen.setBounds(100, 50, 530, 400);
         inFrVerfassen.setVisible(true);
         inFrVerfassen.setResizable(true);
         inFrVerfassen.setClosable(true);
@@ -356,11 +355,9 @@ public class GUIApplicationEmailAnwendungWindow extends GUIApplicationWindow {
 
         Box absenderBox = Box.createHorizontalBox();
 
-        Iterator it = ((EmailAnwendung) holeAnwendung()).holeKontoListe().values().iterator();
-        Vector kontenVector = new Vector();
-        while (it.hasNext()) {
-            EmailKonto aktuellesKonto = (EmailKonto) it.next();
-            kontenVector.addElement(aktuellesKonto.getBenutzername());
+        Vector<String> kontenVector = new Vector<String>();
+        for (EmailKonto konto : ((EmailAnwendung) holeAnwendung()).holeKontoListe().values()) {
+            kontenVector.addElement(konto.getBenutzername());
         }
         final JComboBox cbAbsender = new JComboBox(kontenVector);
         absenderBox.add(cbAbsender);
@@ -370,7 +367,7 @@ public class GUIApplicationEmailAnwendungWindow extends GUIApplicationWindow {
         /* Box mit An Feld und dazugehörigem Label */
         Box kleineBox = Box.createHorizontalBox();
         JLabel anLabel = new JLabel(messages.getString("emailanwendung_msg14"));
-        anLabel.setPreferredSize(new Dimension(50, 30));
+        anLabel.setPreferredSize(new Dimension(70, 30));
         kleineBox.add(anLabel);
         kleineBox.add(Box.createHorizontalStrut(5));
         final JTextField anField = new JTextField();
@@ -387,7 +384,7 @@ public class GUIApplicationEmailAnwendungWindow extends GUIApplicationWindow {
         /* Box mit CC Feld und dazugehörigem Label */
         kleineBox = Box.createHorizontalBox();
         JLabel ccLabel = new JLabel(messages.getString("emailanwendung_msg15"));
-        ccLabel.setPreferredSize(new Dimension(50, 30));
+        ccLabel.setPreferredSize(new Dimension(70, 30));
         kleineBox.add(ccLabel);
         kleineBox.add(Box.createHorizontalStrut(5));
         final JTextField ccField = new JTextField();
@@ -405,7 +402,7 @@ public class GUIApplicationEmailAnwendungWindow extends GUIApplicationWindow {
         /* Box mit CC Feld und dazugehörigem Label */
         kleineBox = Box.createHorizontalBox();
         JLabel bccLabel = new JLabel(messages.getString("emailanwendung_msg16"));
-        bccLabel.setPreferredSize(new Dimension(50, 30));
+        bccLabel.setPreferredSize(new Dimension(70, 30));
         kleineBox.add(bccLabel);
         kleineBox.add(Box.createHorizontalStrut(5));
         final JTextField bccField = new JTextField();
@@ -423,7 +420,7 @@ public class GUIApplicationEmailAnwendungWindow extends GUIApplicationWindow {
         /* Box mit Betreffszeile und dazugehörigem Label */
         kleineBox = Box.createHorizontalBox();
         JLabel betreffLabel = new JLabel(messages.getString("emailanwendung_msg17"));
-        betreffLabel.setPreferredSize(new Dimension(50, 30));
+        betreffLabel.setPreferredSize(new Dimension(70, 30));
         kleineBox.add(betreffLabel);
         kleineBox.add(Box.createHorizontalStrut(5));
         final JTextField betreffszeile = new JTextField();
@@ -472,8 +469,8 @@ public class GUIApplicationEmailAnwendungWindow extends GUIApplicationWindow {
                     versendeKonto = (EmailKonto) ((EmailAnwendung) holeAnwendung()).holeKontoListe().get(kontoString);
 
                     mail.setAbsender(versendeKonto.getVorname()
-                            + (!versendeKonto.getNachname().isEmpty() ? (" " + versendeKonto.getNachname()) : "")
-                            + " <" + versendeKonto.getEmailAdresse() + ">");
+                            + (!versendeKonto.getNachname().isEmpty() ? (" " + versendeKonto.getNachname()) : "") + " <"
+                            + versendeKonto.getEmailAdresse() + ">");
 
                     if (!mailPruefen(anField)) {
                         eingabeFehler = true;
@@ -495,8 +492,8 @@ public class GUIApplicationEmailAnwendungWindow extends GUIApplicationWindow {
 
                     if (eingabeFehler) {
                         showMessageDialog(messages.getString("emailanwendung_msg20"));
-                    } else if (mail.getEmpfaenger().size() == 0 && mail.getCc().size() == 0
-                            && mail.getBcc().size() == 0) {
+                    } else
+                        if (mail.getEmpfaenger().size() == 0 && mail.getCc().size() == 0 && mail.getBcc().size() == 0) {
                         showMessageDialog(messages.getString("emailanwendung_msg21"));
                     } else {
                         mail.setBetreff(betreffszeile.getText());
@@ -548,8 +545,8 @@ public class GUIApplicationEmailAnwendungWindow extends GUIApplicationWindow {
             inFrAbholen.getContentPane().validate();
 
             for (EmailKonto aktuellesKonto : ((EmailAnwendung) holeAnwendung()).holeKontoListe().values()) {
-                progressBar.setString(messages.getString("emailanwendung_msg24") + aktuellesKonto.getEmailAdresse()
-                        + ")");
+                progressBar
+                        .setString(messages.getString("emailanwendung_msg24") + aktuellesKonto.getEmailAdresse() + ")");
                 ((EmailAnwendung) holeAnwendung()).emailsAbholenEmails(aktuellesKonto.getBenutzername(),
                         aktuellesKonto.getPasswort(), aktuellesKonto.getPop3port(), aktuellesKonto.getPop3server());
                 tabbedPane.setSelectedIndex(0);
