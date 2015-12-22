@@ -49,6 +49,7 @@ import filius.gui.GUIErrorHandler;
 import filius.gui.netzwerksicht.GUIDocuItem;
 import filius.gui.netzwerksicht.GUIKabelItem;
 import filius.gui.netzwerksicht.GUIKnotenItem;
+import filius.gui.netzwerksicht.JSidebarButton;
 
 public class SzenarioVerwaltung extends Observable implements I18n {
 
@@ -308,6 +309,10 @@ public class SzenarioVerwaltung extends Observable implements I18n {
                     && ((List) tmpObject).get(0) instanceof GUIKnotenItem) {
                 List<GUIKnotenItem> tempList = (List<GUIKnotenItem>) tmpObject;
                 for (GUIKnotenItem tmpNode : tempList) {
+                    if (tmpNode.getImageLabel() == null) {
+                        JSidebarButton imageLabel = new JSidebarButton();
+                        tmpNode.setImageLabel(imageLabel);
+                    }
                     tmpNode.getImageLabel().setTyp(tmpNode.getKnoten().holeHardwareTyp());
                     hardwareItems.add(tmpNode);
                 }
