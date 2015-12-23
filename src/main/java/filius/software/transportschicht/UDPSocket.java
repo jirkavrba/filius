@@ -217,9 +217,11 @@ public class UDPSocket extends Socket {
         if (!verbunden) {
             if (modus == PASSIV) {
                 synchronized (puffer) {
-                    try {
-                        puffer.wait();
-                    } catch (InterruptedException e) {}
+                    if (puffer.size() <= 0) {
+                        try {
+                            puffer.wait();
+                        } catch (InterruptedException e) {}
+                    }
                 }
             }
 

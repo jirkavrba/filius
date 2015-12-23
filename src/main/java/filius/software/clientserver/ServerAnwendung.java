@@ -26,7 +26,6 @@
 package filius.software.clientserver;
 
 import java.util.LinkedList;
-import java.util.ListIterator;
 
 import filius.Main;
 import filius.exception.ServerSocketException;
@@ -127,7 +126,7 @@ public abstract class ServerAnwendung extends Anwendung implements I18n {
 
     // return, whether this application can be used already
     public boolean isStarted() {
-        return (socket != null);
+        return socket != null;
     }
 
     /**
@@ -137,17 +136,17 @@ public abstract class ServerAnwendung extends Anwendung implements I18n {
     public void beenden() {
         Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
                 + " (ServerAnwendung), beenden()");
-        ListIterator it;
-
         super.beenden();
 
-        it = mitarbeiter.listIterator();
-        while (it.hasNext()) {
-            ((ServerMitarbeiter) it.next()).beenden();
+        if (null != mitarbeiter) {
+            for (ServerMitarbeiter thread : mitarbeiter) {
+                thread.beenden();
+            }
         }
 
-        if (socket != null)
+        if (socket != null) {
             socket.beenden();
+        }
         socket = null;
     }
 
@@ -192,8 +191,9 @@ public abstract class ServerAnwendung extends Anwendung implements I18n {
                         e.printStackTrace(Main.debug);
                         benachrichtigeBeobachter(messages.getString("sw_serveranwendung_msg3"));
                         setAktiv(false);
-                        if (socket != null)
+                        if (socket != null) {
                             socket.beenden();
+                        }
                         socket = null;
                     }
                 }
