@@ -33,26 +33,29 @@ import filius.Main;
 @SuppressWarnings("serial")
 public abstract class Hardware extends Observable implements Serializable {
 
-	private boolean aktiv = false; // ist die Hardware gerade aktiv? vor allem
-	                               // wichtig fuer die GUI
+    private boolean aktiv = false; // ist die Hardware gerade aktiv? vor allem
+                                   // wichtig fuer die GUI
 
-	public String holeHardwareTyp() {
-		return "";
-	}
+    public String holeHardwareTyp() {
+        return "";
+    }
 
-	public boolean isAktiv() {
-		return aktiv;
-	}
+    public boolean isAktiv() {
+        return aktiv;
+    }
 
-	public void setAktiv(boolean aktiv) {
-		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (Hardware), setAktiv(" + aktiv + ")");
+    public void setAktiv(boolean aktiv) {
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (Hardware), setAktiv(" + aktiv + ")");
 
-		if (this.aktiv != aktiv) {
-			this.aktiv = aktiv;
+        if (this.aktiv != aktiv) {
+            this.aktiv = aktiv;
 
-			setChanged();
+            benachrichtigeBeobachter();
+        }
+    }
 
-			notifyObservers(aktiv);
-		}
-	}
+    public void benachrichtigeBeobachter() {
+        setChanged();
+        notifyObservers(aktiv);
+    }
 }

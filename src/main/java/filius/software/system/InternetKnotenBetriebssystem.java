@@ -595,9 +595,6 @@ public abstract class InternetKnotenBetriebssystem extends SystemSoftware {
                 && getKnoten() instanceof InternetKnoten) {
             knoten = (InternetKnoten) getKnoten();
             ((NetzwerkInterface) knoten.getNetzwerkInterfaces().get(0)).setIp(ip);
-            // Main.debug.println("\t"
-            // + ((NetzwerkInterface) knoten.getNetzwerkInterfaces()
-            // .getFirst()).getIp());
         }
     }
 

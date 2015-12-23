@@ -127,9 +127,5 @@ public class Betriebssystem extends InternetKnotenBetriebssystem {
     /** Ob die Konfiguration der Netzwerkkarte mit DHCP erfolgt */
     public void setDHCPKonfiguration(boolean dhcp) {
         this.dhcpKonfiguration = dhcp;
-        if (dhcp) {
-            setzeIPAdresse("0.0.0.0");
-            setzeNetzmaske("0.0.0.0");
-        }
     }
 }

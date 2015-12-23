@@ -56,9 +56,6 @@ public class DHCPClient extends ClientAnwendung {
     public void konfiguriere() {
         Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
                 + " (DHCPClient), konfiguriere()");
-        getSystemSoftware().setzeIPAdresse("0.0.0.0");
-        getSystemSoftware().setzeNetzmaske("0.0.0.0");
-        getSystemSoftware().setStandardGateway("");
         boolean activeDHCPserversStarted;
 
         // es muss gewaehrleistet werden, dass der DHCP-Server bereits
@@ -113,7 +110,7 @@ public class DHCPClient extends ClientAnwendung {
             // "\n\tkonfiguriere() -> zustand = "
             // + zustand);
 
-            while (zustand != IP_ZUGEWIESEN && zustand != ABBRUCH && fehlerzaehler < maxFehler) {
+            while (zustand != IP_ZUGEWIESEN && zustand != ABBRUCH && fehlerzaehler < maxFehler && running) {
 
                 if (zustand == INIT_DHCP) {
                     socket.senden("DHCPDISCOVER " + getSystemSoftware().holeIPAdresse() + " "
@@ -214,7 +211,7 @@ public class DHCPClient extends ClientAnwendung {
                         fehlerzaehler++;
                     }
                 }
-                if (fehlerzaehler == maxFehler) {
+                if (fehlerzaehler == maxFehler && running) {
                     zustand = ABBRUCH;
                     Main.debug.println("ERROR (" + this.hashCode() + "): kein DHCPACK erhalten");
 
@@ -225,7 +222,6 @@ public class DHCPClient extends ClientAnwendung {
                     getSystemSoftware().setzeNetzmaske("255.255.0.0");
                     getSystemSoftware().setStandardGateway(""); // set Gateway
                     getSystemSoftware().setDNSServer("");
-                    // /////
 
                     fehlerzaehler = 0;
                 }
@@ -237,6 +233,7 @@ public class DHCPClient extends ClientAnwendung {
         }
 
         Host host = ((Host) this.getSystemSoftware().getKnoten());
+        host.benachrichtigeBeobachter();
         this.getSystemSoftware().benachrichtigeBeobacher(host);
 
         beenden();
