@@ -54,8 +54,8 @@ public class JSidebarButton extends JLabel implements Observer, I18n {
     private static final long serialVersionUID = 1L;
 
     private String typ;
-    private boolean selektiert = false;
-    private boolean modemVerbunden = false;
+    private boolean selektiert;
+    private boolean modemVerbunden;
 
     public boolean isSelektiert() {
         return selektiert;
