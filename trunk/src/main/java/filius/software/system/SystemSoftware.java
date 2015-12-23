@@ -32,51 +32,48 @@ import filius.Main;
 import filius.hardware.knoten.Knoten;
 
 /**
- * Die Klasse SystemSoftware umfasst die grundlegenden Funktionen einer
- * Systemsoftware, die auf allen Stationen (Endsysteme und
- * Uebertragungseinheiten) zur Verfuegung stehen muss. <br />
- * Die Klasse ist abstrakt und wird fuer die verschiedenen Stationen
- * unterschiedlich implementiert.
+ * Die Klasse SystemSoftware umfasst die grundlegenden Funktionen einer Systemsoftware, die auf allen Stationen
+ * (Endsysteme und Uebertragungseinheiten) zur Verfuegung stehen muss. <br />
+ * Die Klasse ist abstrakt und wird fuer die verschiedenen Stationen unterschiedlich implementiert.
  */
+@SuppressWarnings("serial")
 public abstract class SystemSoftware extends Observable implements Serializable {
 
-	/** Die Hardware, auf der diese Systemsoftware laeuft. */
-	private Knoten hardware;
+    /** Die Hardware, auf der diese Systemsoftware laeuft. */
+    private Knoten hardware;
 
-	/**
-	 * Diese Methode wird beim Wechsel vom Konfigurationsmodus (zum Aufbau des
-	 * Rechnernetzes und Konfiguration der Komponenten) zum Aktionsmodus (mit
-	 * der Moeglichkeit den Datenaustausch zu simulieren) ausgefuehrt! <br />
-	 * In den implementierenden Unterklassen sollen an dieser Stelle alle
-	 * Threads zur Simulation des virtuellen Netzwerks gestartet werden.
-	 */
-	public abstract void starten();
+    /**
+     * Diese Methode wird beim Wechsel vom Konfigurationsmodus (zum Aufbau des Rechnernetzes und Konfiguration der
+     * Komponenten) zum Aktionsmodus (mit der Moeglichkeit den Datenaustausch zu simulieren) ausgefuehrt! <br />
+     * In den implementierenden Unterklassen sollen an dieser Stelle alle Threads zur Simulation des virtuellen
+     * Netzwerks gestartet werden.
+     */
+    public abstract void starten();
 
-	/**
-	 * Diese Methode wird beim Wechsel vom Aktionsmodus (mit der Moeglichkeit
-	 * den Datenaustausch zu simulieren) zum Konfigurationsmodus (zum Aufbau des
-	 * Rechnernetzes und Konfiguration der Komponenten) ausgefuehrt! <br />
-	 * In den implementierenden Unterklassen sollen an dieser Stelle alle
-	 * Threads zur Simulation des virtuellen Netzwerks angehalten werden.
-	 */
-	public abstract void beenden();
+    /**
+     * Diese Methode wird beim Wechsel vom Aktionsmodus (mit der Moeglichkeit den Datenaustausch zu simulieren) zum
+     * Konfigurationsmodus (zum Aufbau des Rechnernetzes und Konfiguration der Komponenten) ausgefuehrt! <br />
+     * In den implementierenden Unterklassen sollen an dieser Stelle alle Threads zur Simulation des virtuellen
+     * Netzwerks angehalten werden.
+     */
+    public abstract void beenden();
 
-	public Knoten getKnoten() {
-		return hardware;
-	}
+    public Knoten getKnoten() {
+        return hardware;
+    }
 
-	public void setKnoten(Knoten hardware) {
-		this.hardware = hardware;
-		// Main.debug.println("DEBUG: SystemSoftware ("+this.hashCode()+") now is connected to Knoten ("+hardware.hashCode()+")");
-	}
+    public void setKnoten(Knoten hardware) {
+        this.hardware = hardware;
+        // Main.debug.println("DEBUG: SystemSoftware ("+this.hashCode()+") now is connected to Knoten ("+hardware.hashCode()+")");
+    }
 
-	/**
-	 * Statusnachrichten werden damit an die Beobachter weitergeleitet.
-	 */
-	public void benachrichtigeBeobacher(Object o) {
-		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
-		        + " (SystemSoftware), benachrichtigeBeobachter(" + o + ")");
-		setChanged();
-		notifyObservers(o);
-	}
+    /**
+     * Statusnachrichten werden damit an die Beobachter weitergeleitet.
+     */
+    public void benachrichtigeBeobacher(Object o) {
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
+                + " (SystemSoftware), benachrichtigeBeobachter(" + o + ")");
+        setChanged();
+        notifyObservers(o);
+    }
 }
