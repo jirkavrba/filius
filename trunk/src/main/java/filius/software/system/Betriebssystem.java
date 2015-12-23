@@ -31,106 +31,105 @@ import filius.software.dhcp.DHCPServer;
 import filius.software.rip.RIPTable;
 
 /**
- * Diese Klasse stellt die Funktionalitaet eines Betriebssystems fuer Hosts (d.
- * h. Rechner und Notebooks) zur Verfuegung. Spezifisch ist die Moeglichkeit,
- * einen DHCP-Server zu installieren und die Konfiguration der Netzwerkkarten
- * mit DHCP durchzufuehren. Die weitere Funktionalitaet wird von der Oberklasse
+ * Diese Klasse stellt die Funktionalitaet eines Betriebssystems fuer Hosts (d. h. Rechner und Notebooks) zur
+ * Verfuegung. Spezifisch ist die Moeglichkeit, einen DHCP-Server zu installieren und die Konfiguration der
+ * Netzwerkkarten mit DHCP durchzufuehren. Die weitere Funktionalitaet wird von der Oberklasse
  * (InternetKnotenBetriebssystem) zur Verfuegung gestellt.
  * 
  */
 public class Betriebssystem extends InternetKnotenBetriebssystem {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	/**
-	 * ob die Konfiguration der Netzwerkkarte mit DHCP erfolgt
-	 */
-	private boolean dhcpKonfiguration;
-	/** der DHCP-Server, der aktiviert und deaktiviert werden kann */
-	private DHCPServer dhcpServer;
-	/**
-	 * der DHCP-Client, der zur Konfiguration der Netzwerkkarte genutzt wird,
-	 * wenn die Konfiguration mit DHCP erfolgen soll
-	 * 
-	 * @see dhcpKonfiguration
-	 */
-	private DHCPClient dhcpClient;
+    /**
+     * ob die Konfiguration der Netzwerkkarte mit DHCP erfolgt
+     */
+    private boolean dhcpKonfiguration;
+    /** der DHCP-Server, der aktiviert und deaktiviert werden kann */
+    private DHCPServer dhcpServer;
+    /**
+     * der DHCP-Client, der zur Konfiguration der Netzwerkkarte genutzt wird, wenn die Konfiguration mit DHCP erfolgen
+     * soll
+     * 
+     * @see dhcpKonfiguration
+     */
+    private DHCPClient dhcpClient;
 
-	/**
-	 * Konstruktur, in dem DHCP-Client und -Server initialisiert werden
-	 */
-	public Betriebssystem() {
-		super();
-		Main.debug.println("INVOKED-2 (" + this.hashCode() + ") " + getClass()
-		        + " (Betriebssystem), constr: Betriebssystem()");
+    /**
+     * Konstruktur, in dem DHCP-Client und -Server initialisiert werden
+     */
+    public Betriebssystem() {
+        super();
+        Main.debug.println("INVOKED-2 (" + this.hashCode() + ") " + getClass()
+                + " (Betriebssystem), constr: Betriebssystem()");
 
-		dhcpServer = new DHCPServer();
-		dhcpServer.setSystemSoftware(this);
-	}
+        dhcpServer = new DHCPServer();
+        dhcpServer.setSystemSoftware(this);
+    }
 
-	@Override
-	public boolean isRipEnabled() {
-		return false;
-	}
+    @Override
+    public boolean isRipEnabled() {
+        return false;
+    }
 
-	@Override
-	public RIPTable getRIPTable() {
-		return null;
-	}
+    @Override
+    public RIPTable getRIPTable() {
+        return null;
+    }
 
-	/**
-	 * Starten der Threads. Der DHCP-Client wird hier gestartet, wenn die
-	 * Konfiguration mit DHCP aktiviert ist. Der DHCP-Server wird hier auch
-	 * gestartet.
-	 */
-	public void starten() {
-		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (Betriebssystem), starten()");
-		super.starten();
+    /**
+     * Starten der Threads. Der DHCP-Client wird hier gestartet, wenn die Konfiguration mit DHCP aktiviert ist. Der
+     * DHCP-Server wird hier auch gestartet.
+     */
+    @Override
+    public synchronized void starten() {
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (Betriebssystem), starten()");
+        super.starten();
 
-		dhcpServer.starten();
+        if (isDHCPKonfiguration()) {
+            dhcpClient = new DHCPClient();
+            dhcpClient.setSystemSoftware(this);
+            dhcpClient.starten();
+        } else if (dhcpServer.isAktiv()) {
+            dhcpServer.starten();
+        }
+    }
 
-		if (isDHCPKonfiguration()) {
-			dhcpClient = new DHCPClient();
-			dhcpClient.setSystemSoftware(this);
-			dhcpClient.starten();
-		}
-	}
+    /**
+     * Aufruf erfolgt beim Wechsel vom Aktions- zum Entwurfsmodus. Die entsprechende Methode der Oberklasse wird
+     * aufgerufen und der DHCP-Server und -Client beendet.
+     */
+    public void beenden() {
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (Betriebssystem), beenden()");
+        super.beenden();
 
-	/**
-	 * Aufruf erfolgt beim Wechsel vom Aktions- zum Entwurfsmodus. Die
-	 * entsprechende Methode der Oberklasse wird aufgerufen und der DHCP-Server
-	 * und -Client beendet.
-	 */
-	public void beenden() {
-		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (Betriebssystem), beenden()");
-		super.beenden();
+        dhcpServer.beenden();
+        if (dhcpClient != null) {
+            dhcpClient.beenden();
+        }
+    }
 
-		dhcpServer.beenden();
-		if (dhcpClient != null)
-			dhcpClient.beenden();
-	}
+    /** Methode zum Zugriff auf den DHCP-Server. */
+    public DHCPServer getDHCPServer() {
+        return dhcpServer;
+    }
 
-	/** Methode zum Zugriff auf den DHCP-Server. */
-	public DHCPServer getDHCPServer() {
-		return dhcpServer;
-	}
+    /** Methode zum Zugriff auf den DHCP-Server. */
+    public void setDHCPServer(DHCPServer dhcpServer) {
+        this.dhcpServer = dhcpServer;
+    }
 
-	/** Methode zum Zugriff auf den DHCP-Server. */
-	public void setDHCPServer(DHCPServer dhcpServer) {
-		this.dhcpServer = dhcpServer;
-	}
+    /** Ob die Konfiguration der Netzwerkkarte mit DHCP erfolgt */
+    public boolean isDHCPKonfiguration() {
+        return dhcpKonfiguration;
+    }
 
-	/** Ob die Konfiguration der Netzwerkkarte mit DHCP erfolgt */
-	public boolean isDHCPKonfiguration() {
-		return dhcpKonfiguration;
-	}
-
-	/** Ob die Konfiguration der Netzwerkkarte mit DHCP erfolgt */
-	public void setDHCPKonfiguration(boolean dhcp) {
-		this.dhcpKonfiguration = dhcp;
-		if (dhcp) {
-			setzeIPAdresse("0.0.0.0");
-			setzeNetzmaske("0.0.0.0");
-		}
-	}
+    /** Ob die Konfiguration der Netzwerkkarte mit DHCP erfolgt */
+    public void setDHCPKonfiguration(boolean dhcp) {
+        this.dhcpKonfiguration = dhcp;
+        if (dhcp) {
+            setzeIPAdresse("0.0.0.0");
+            setzeNetzmaske("0.0.0.0");
+        }
+    }
 }

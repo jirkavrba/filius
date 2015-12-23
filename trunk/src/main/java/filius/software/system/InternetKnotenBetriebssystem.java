@@ -258,7 +258,8 @@ public abstract class InternetKnotenBetriebssystem extends SystemSoftware {
      * 
      * @see filius.software.system.SystemSoftware.starten()
      */
-    public void starten() {
+    @Override
+    public synchronized void starten() {
         Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
                 + " (InternetKnotenBetriebssystem), starten()");
 
@@ -521,7 +522,7 @@ public abstract class InternetKnotenBetriebssystem extends SystemSoftware {
     public Weiterleitungstabelle getWeiterleitungstabelle() {
         return weiterleitungstabelle;
     }
-    
+
     public Route determineRoute(String ipAddress) throws RouteNotFoundException {
         return weiterleitungstabelle.holeWeiterleitungsEintrag(ipAddress);
     }
