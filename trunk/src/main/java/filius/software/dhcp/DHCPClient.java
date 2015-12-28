@@ -101,7 +101,6 @@ public class DHCPClient extends ClientAnwendung {
         int maxFehler = 5;
 
         zustand = INIT_DHCP;
-
         try {
             socket = new UDPSocket(getSystemSoftware(), "255.255.255.255", 67, 68);
             socket.verbinden();
@@ -111,10 +110,10 @@ public class DHCPClient extends ClientAnwendung {
             // + zustand);
 
             while (zustand != IP_ZUGEWIESEN && zustand != ABBRUCH && fehlerzaehler < maxFehler && running) {
-
                 if (zustand == INIT_DHCP) {
-                    socket.senden("DHCPDISCOVER " + getSystemSoftware().holeIPAdresse() + " "
-                            + getSystemSoftware().holeMACAdresse() + " " + dhcpserverIP);
+                    String oldIPAddress = getSystemSoftware().holeIPAdresse();
+                    socket.sendeBroadcast("DHCPDISCOVER " + oldIPAddress + " " + getSystemSoftware().holeMACAdresse()
+                            + " " + dhcpserverIP, "0.0.0.0");
 
                     start = System.currentTimeMillis();
                     do {
@@ -159,8 +158,8 @@ public class DHCPClient extends ClientAnwendung {
                     socket = new UDPSocket(getSystemSoftware(), dhcpserverIP, 67, 68);
                     socket.verbinden();
 
-                    socket.senden("DHCPREQUEST " + getSystemSoftware().holeIPAdresse() + " "
-                            + getSystemSoftware().holeMACAdresse() + " " + dhcpserverIP + " " + angeboteneIP);
+                    socket.sendeBroadcast("DHCPREQUEST " + getSystemSoftware().holeIPAdresse() + " "
+                            + getSystemSoftware().holeMACAdresse() + " " + dhcpserverIP + " " + angeboteneIP, "0.0.0.0");
 
                     start = System.currentTimeMillis();
                     do {
@@ -203,9 +202,6 @@ public class DHCPClient extends ClientAnwendung {
                                 }
                             }
                             zustand = IP_ZUGEWIESEN;
-                            // Main.debug.println(getClass()
-                            // + "\n\tkonfiguriere(): IP-Adresse = "
-                            // + angeboteneIP);
                         }
                     } else {
                         fehlerzaehler++;
@@ -226,7 +222,6 @@ public class DHCPClient extends ClientAnwendung {
                     fehlerzaehler = 0;
                 }
             }
-
             socket.schliessen();
         } catch (VerbindungsException e1) {
             e1.printStackTrace(Main.debug);

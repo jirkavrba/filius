@@ -175,6 +175,10 @@ public class UDPSocket extends Socket {
 
     /** Methode zum senden eines Broadcast Datagramms mit UDP */
     public synchronized void sendeBroadcast(String nachricht) {
+        sendeBroadcast(nachricht, null);
+    }
+
+    public synchronized void sendeBroadcast(String nachricht, String quellIp) {
         Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (UDPSocket), sendeBroadcast("
                 + nachricht + ")");
         UdpSegment segment;
@@ -184,7 +188,7 @@ public class UDPSocket extends Socket {
         segment.setQuellPort(lokalerPort);
         segment.setZielPort(zielPort);
 
-        protokoll.senden("255.255.255.255", segment);
+        protokoll.senden("255.255.255.255", quellIp, segment);
     }
 
     /**
