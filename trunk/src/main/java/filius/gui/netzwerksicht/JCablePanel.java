@@ -32,8 +32,11 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.QuadCurve2D;
+import java.awt.geom.Rectangle2D;
 import java.util.Observable;
 import java.util.Observer;
+
+import javax.swing.JPanel;
 
 import filius.Main;
 
@@ -41,17 +44,13 @@ import filius.Main;
  * 
  * @author Johannes Bade
  */
-public class JCablePanel extends javax.swing.JPanel implements Observer {
+public class JCablePanel extends JPanel implements Observer {
     private static final long serialVersionUID = 1L;
     private GUIKnotenItem ziel1, ziel2;
 
-    private boolean kurven = true;
     private QuadCurve2D currCurve = null;
-
     private Color kabelFarbe = new Color(64, 64, 64);
-
     private final Color farbeStandard = new Color(64, 64, 64);
-
     private final Color farbeBlinken = new Color(0, 255, 64);
 
     public JCablePanel() {
@@ -110,25 +109,18 @@ public class JCablePanel extends javax.swing.JPanel implements Observer {
         g2.setStroke(new BasicStroke(2));
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        if (isKurven()) {
-            int kp1 = (x1 - this.getX() + x2 - this.getX()) / 4;
-            if ((x1 > x2 && y1 > y2) || (x1 < x2 && y1 < y2))
-                kp1 = 3 * kp1; // correct X value of control point for falling
-                               // lines (upper left to lower right corner)
-            int kp2 = (y1 - this.getY() + y2 - this.getY()) / 4;
+        int kp1 = (x1 - this.getX() + x2 - this.getX()) / 4;
+        if ((x1 > x2 && y1 > y2) || (x1 < x2 && y1 < y2))
+            kp1 = 3 * kp1; // correct X value of control point for falling
+                           // lines (upper left to lower right corner)
+        int kp2 = (y1 - this.getY() + y2 - this.getY()) / 4;
 
-            QuadCurve2D myCurve = new QuadCurve2D.Double(x1 - this.getX(), y1 - this.getY(), // Punkt
-                                                                                             // 1
-                    kp1, kp2, // Kontrollpunkt k
-                    x2 - this.getX(), y2 - this.getY() // Punkt 2
-            );
+        QuadCurve2D myCurve = new QuadCurve2D.Double(x1 - this.getX(), y1 - this.getY(), kp1, kp2, x2 - this.getX(), y2
+                - this.getY());
 
-            // Kurve malen
-            g2.draw(myCurve);
-            this.currCurve = myCurve;
-        } else {
-            g2.drawLine(x1 - this.getX(), y1 - this.getY(), x2 - this.getX(), y2 - this.getY());
-        }
+        // Kurve malen
+        g2.draw(myCurve);
+        this.currCurve = myCurve;
         this.setOpaque(false);
     }
 
@@ -140,60 +132,14 @@ public class JCablePanel extends javax.swing.JPanel implements Observer {
     public boolean clicked(int x, int y) {
         Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (JCablePanel), clicked(" + x + "," + y
                 + ")");
-        if (this.getHeight() < 20 || this.getWidth() < 20)
-            return true; // very slim panel --> always within collision area
-                         // (incl. tolerance)
+        int delta = 10;
 
-        int deltaX = 0;
-        int deltaY = 0;
-        int xFactor = 1; // factor for adjusting the deltaX sign according to
-                         // orientation of line
-        double tmpX = 0;
-        double tmpY = 0;
-        boolean invers = false;
-
-        if (isKurven()) {
-            // test bounds placement and behaviour
-            tmpX = this.currCurve.getCtrlX();
-            tmpY = this.currCurve.getCtrlY() - 2;
-            if (!this.currCurve.contains(tmpX, tmpY)) { // unexpected behaviour:
-                                                        // bound is considered
-                                                        // to be above curve
-                invers = true;
-            }
-            if (this.getWidth() < this.getHeight()) {
-                deltaX = 10;
-                if (this.currCurve.getY1() > this.currCurve.getY2()) {
-                    // line is "falling" from upper left to lower left corner;
-                    // --> invert deltaX to move rightwards
-                    xFactor = -1;
-                }
-            } else {
-                deltaY = 10;
-            }
-
-            // FIXME: still suboptimal; bounds seem to be strange concepts
-            // (probably only are of closed curve considered as "bound")
-            QuadCurve2D topCurve = new QuadCurve2D.Double(this.currCurve.getX1() - (xFactor * deltaX),
-                    this.currCurve.getY1() + deltaY, this.currCurve.getCtrlX() - (xFactor * deltaX),
-                    this.currCurve.getCtrlY() + deltaY, this.currCurve.getX2() - (xFactor * deltaX),
-                    this.currCurve.getY2() + deltaY);
-            QuadCurve2D bottomCurve = new QuadCurve2D.Double(this.currCurve.getX1() + (xFactor * deltaX),
-                    this.currCurve.getY1() - deltaY, this.currCurve.getCtrlX() + (xFactor * deltaX),
-                    this.currCurve.getCtrlY() - deltaY, this.currCurve.getX2() + (xFactor * deltaX),
-                    this.currCurve.getY2() - deltaY);
-
-            if (!invers) {
-                return (topCurve.contains(x - this.getX(), y - this.getY()) && !bottomCurve.contains(x - this.getX(), y
-                        - this.getY()));
-            } else {
-                return (!topCurve.contains(x - this.getX(), y - this.getY()) && bottomCurve.contains(x - this.getX(), y
-                        - this.getY()));
-            }
-        } else { // cables represented by simple lines
-            // FIXME
-            return true;
-        }
+        Rectangle2D absolutePointerRect = new Rectangle2D.Double(x - delta, y - delta, 2 * delta, 2 * delta);
+        boolean hitPanel = getBounds().intersects(absolutePointerRect);
+        Rectangle2D relativePointerRect = new Rectangle2D.Double(x - getX() - delta, y - getY() - delta, 2 * delta,
+                2 * delta);
+        boolean hitCurve = currCurve.intersects(relativePointerRect);
+        return hitCurve && hitPanel;
     }
 
     public GUIKnotenItem getZiel1() {
@@ -211,29 +157,6 @@ public class JCablePanel extends javax.swing.JPanel implements Observer {
     public void setZiel2(GUIKnotenItem ziel2) {
         this.ziel2 = ziel2;
         updateBounds();
-    }
-
-    /**
-     * @author Johannes Bade & Thomas Gerding
-     * 
-     *         Gibt zurück ob die Kabel als Geraden oder Kurven dargestellt werden.
-     * 
-     * @return boolean
-     */
-    public boolean isKurven() {
-        return kurven;
-    }
-
-    /**
-     * @author Johannes Bade & Thomas Gerding
-     * 
-     *         Gibt an ob die Kabel als Geraden oder Kurven dargestellt werden.
-     * 
-     * 
-     * @param boolean
-     */
-    public void setKurven(boolean kurven) {
-        this.kurven = kurven;
     }
 
     /**
