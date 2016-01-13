@@ -318,13 +318,6 @@ public class AggregatedExchangeDialog extends JDialog implements ExchangeDialog,
             text.setText(stringValue);
             text.setSelect(isSelected);
             text.setFocus(hasFocus);
-            // if (leaf) {
-            // icon.setIcon(UIManager.getIcon("Tree.leafIcon"));
-            // } else if (expanded) {
-            // icon.setIcon(UIManager.getIcon("Tree.openIcon"));
-            // } else {
-            // icon.setIcon(UIManager.getIcon("Tree.closedIcon"));
-            // }
             return this;
         }
 

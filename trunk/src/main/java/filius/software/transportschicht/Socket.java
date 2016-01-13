@@ -192,6 +192,11 @@ public abstract class Socket implements SocketSchnittstelle, I18n {
         protokoll.senden(zielIp, quellIp, segment);
     }
 
+    protected void sende(String zielIp, String quellIp, Segment segment) {
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (Socket), sende(" + segment + ")");
+        protokoll.senden(zielIp, quellIp, segment);
+    }
+
     /**
      * Methode zum Schliessen eines Sockets. Damit ist gegebenenfalls auch verbunden, dass der Port freigegeben wird.
      * 

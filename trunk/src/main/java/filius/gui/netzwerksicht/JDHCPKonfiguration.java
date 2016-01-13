@@ -54,269 +54,264 @@ import filius.software.system.Betriebssystem;
 
 public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
 
-	private static final long serialVersionUID = 1L;
-	private DHCPServer server;
-	private JTextField tfObergrenze;
-	private JTextField tfUntergrenze;
-	private JTextField tfNetzmaske;
-	private JTextField tfGateway;
-	private JTextField tfDNSServer;
-	private JCheckBox cbAktiv;
-	private JCheckBox cbUseInternal;
+    private static final long serialVersionUID = 1L;
+    private DHCPServer server;
+    private JTextField tfObergrenze;
+    private JTextField tfUntergrenze;
+    private JTextField tfNetzmaske;
+    private JTextField tfGateway;
+    private JTextField tfDNSServer;
+    private JCheckBox cbAktiv;
+    private JCheckBox cbUseInternal;
 
-	public JDHCPKonfiguration(JFrame owner, String titel, Betriebssystem bs) {
-		super(owner, titel, true);
-		this.server = bs.getDHCPServer();
+    public JDHCPKonfiguration(JFrame owner, String titel, Betriebssystem bs) {
+        super(owner, titel, true);
+        this.server = bs.getDHCPServer();
 
-		this.setSize(380, 360);
-		this.setResizable(false);
+        this.setSize(380, 360);
+        this.setResizable(false);
 
-		// Main.debug.println(owner.getSize().width+" "+owner.getSize().height);
-		// Main.debug.println(owner.getWidth()+" "+owner.getHeight());
-		// Main.debug.println((owner.getWidth()/2)-(this.getSize().width)/2);
-		// Main.debug.println((owner.getHeight()/2)-(this.getSize().height)/2);
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
 
-		Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        Point location = new Point((screen.width / 2) - 190, (screen.height / 2) - 140);
 
-		Point location = new Point((screen.width / 2) - 190, (screen.height / 2) - 140);
+        this.setLocation(location);
 
-		this.setLocation(location);
+        initComponents();
+    }
 
-		initComponents();
-	}
+    private void initComponents() {
+        JPanel jpDhcp;
+        JLabel lbObergrenze;
+        JLabel lbUntergrenze;
+        JLabel lbNetzmaske;
+        JLabel lbGateway;
+        JLabel lbDNSServer;
+        JButton btUebernehmen;
 
-	private void initComponents() {
-		JPanel jpDhcp;
-		JLabel lbObergrenze;
-		JLabel lbUntergrenze;
-		JLabel lbNetzmaske;
-		JLabel lbGateway;
-		JLabel lbDNSServer;
-		JButton btUebernehmen;
+        JLabel lbAktiv;
+        JLabel lbUseInternal;
+        final JDialog config = this;
 
-		JLabel lbAktiv;
-		JLabel lbUseInternal;
-		final JDialog config = this;
+        SpringLayout layout = new SpringLayout();
+        jpDhcp = new JPanel(layout);
 
-		SpringLayout layout = new SpringLayout();
-		jpDhcp = new JPanel(layout);
+        lbUntergrenze = new JLabel(messages.getString("jdhcpkonfiguration_msg1"));
+        tfUntergrenze = new JTextField(server.getUntergrenze());
+        tfUntergrenze.setPreferredSize(new Dimension(150, 25));
+        tfUntergrenze.addKeyListener(new KeyAdapter() {
+            public void keyReleased(KeyEvent e) {
+                ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfUntergrenze);
+            }
+        });
 
-		lbUntergrenze = new JLabel(messages.getString("jdhcpkonfiguration_msg1"));
-		tfUntergrenze = new JTextField(server.getUntergrenze());
-		tfUntergrenze.setPreferredSize(new Dimension(150, 25));
-		tfUntergrenze.addKeyListener(new KeyAdapter() {
-			public void keyReleased(KeyEvent e) {
-				ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfUntergrenze);
-			}
-		});
+        lbObergrenze = new JLabel(messages.getString("jdhcpkonfiguration_msg2"));
+        tfObergrenze = new JTextField(server.getObergrenze());
+        tfObergrenze.setPreferredSize(new Dimension(150, 25));
+        tfObergrenze.addKeyListener(new KeyAdapter() {
+            public void keyReleased(KeyEvent e) {
+                ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfObergrenze);
+            }
+        });
 
-		lbObergrenze = new JLabel(messages.getString("jdhcpkonfiguration_msg2"));
-		tfObergrenze = new JTextField(server.getObergrenze());
-		tfObergrenze.setPreferredSize(new Dimension(150, 25));
-		tfObergrenze.addKeyListener(new KeyAdapter() {
-			public void keyReleased(KeyEvent e) {
-				ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfObergrenze);
-			}
-		});
+        lbNetzmaske = new JLabel(messages.getString("jdhcpkonfiguration_msg3"));
+        tfNetzmaske = new JTextField(server.getSubnetzmaske());
+        tfNetzmaske.setPreferredSize(new Dimension(150, 25));
+        tfNetzmaske.setEditable(false);
 
-		lbNetzmaske = new JLabel(messages.getString("jdhcpkonfiguration_msg3"));
-		tfNetzmaske = new JTextField(server.getSubnetzmaske());
-		tfNetzmaske.setPreferredSize(new Dimension(150, 25));
-		tfNetzmaske.setEditable(false);
+        lbGateway = new JLabel(messages.getString("jdhcpkonfiguration_msg4"));
+        tfGateway = new JTextField(server.getGatewayip());
+        tfGateway.setPreferredSize(new Dimension(150, 25));
+        tfGateway.addKeyListener(new KeyAdapter() {
+            public void keyReleased(KeyEvent e) {
+                ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfGateway);
+            }
+        });
+        tfGateway.setEditable(server.isOwnSettings());
 
-		lbGateway = new JLabel(messages.getString("jdhcpkonfiguration_msg4"));
-		tfGateway = new JTextField(server.getGatewayip());
-		tfGateway.setPreferredSize(new Dimension(150, 25));
-		tfGateway.addKeyListener(new KeyAdapter() {
-			public void keyReleased(KeyEvent e) {
-				ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfGateway);
-			}
-		});
-		tfGateway.setEditable(server.useInternal());
+        lbDNSServer = new JLabel(messages.getString("jdhcpkonfiguration_msg5"));
+        tfDNSServer = new JTextField(server.getDnsserverip());
+        tfDNSServer.setPreferredSize(new Dimension(150, 25));
+        tfDNSServer.addKeyListener(new KeyAdapter() {
+            public void keyReleased(KeyEvent e) {
+                ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfDNSServer);
+            }
+        });
+        tfDNSServer.setEditable(server.isOwnSettings());
 
-		lbDNSServer = new JLabel(messages.getString("jdhcpkonfiguration_msg5"));
-		tfDNSServer = new JTextField(server.getDnsserverip());
-		tfDNSServer.setPreferredSize(new Dimension(150, 25));
-		tfDNSServer.addKeyListener(new KeyAdapter() {
-			public void keyReleased(KeyEvent e) {
-				ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfDNSServer);
-			}
-		});
-		tfDNSServer.setEditable(server.useInternal());
+        jpDhcp.add(lbUntergrenze);
+        jpDhcp.add(lbObergrenze);
+        jpDhcp.add(lbNetzmaske);
 
-		jpDhcp.add(lbUntergrenze);
-		jpDhcp.add(lbObergrenze);
-		jpDhcp.add(lbNetzmaske);
+        JPanel borderPanel = new JPanel(); // Panel used to paint border around
+                                           // gateway/DNS form field
+        borderPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 2));
+        borderPanel.setOpaque(false);
+        jpDhcp.add(borderPanel);
 
-		JPanel borderPanel = new JPanel(); // Panel used to paint border around
-		                                   // gateway/DNS form field
-		borderPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 2));
-		borderPanel.setOpaque(false);
-		jpDhcp.add(borderPanel);
+        jpDhcp.add(lbGateway);
+        jpDhcp.add(lbDNSServer);
 
-		jpDhcp.add(lbGateway);
-		jpDhcp.add(lbDNSServer);
+        jpDhcp.add(tfUntergrenze);
+        jpDhcp.add(tfObergrenze);
+        jpDhcp.add(tfNetzmaske);
 
-		jpDhcp.add(tfUntergrenze);
-		jpDhcp.add(tfObergrenze);
-		jpDhcp.add(tfNetzmaske);
+        jpDhcp.add(tfGateway);
+        jpDhcp.add(tfDNSServer);
 
-		jpDhcp.add(tfGateway);
-		jpDhcp.add(tfDNSServer);
+        btUebernehmen = new JButton(messages.getString("jdhcpkonfiguration_msg7"));
+        btUebernehmen.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent arg0) {
+                if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfObergrenze))
+                    server.setObergrenze(tfObergrenze.getText());
 
-		btUebernehmen = new JButton(messages.getString("jdhcpkonfiguration_msg7"));
-		btUebernehmen.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfObergrenze))
-					server.setObergrenze(tfObergrenze.getText());
+                if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfUntergrenze))
+                    server.setUntergrenze(tfUntergrenze.getText());
 
-				if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfUntergrenze))
-					server.setUntergrenze(tfUntergrenze.getText());
+                if (cbUseInternal.isSelected()) {
+                    server.setOwnSettings(true);
+                    if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfGateway))
+                        server.setGatewayip(tfGateway.getText());
+                    if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfDNSServer))
+                        server.setDnsserverip(tfDNSServer.getText());
+                } else {
+                    server.setOwnSettings(false);
+                }
 
-				if (cbUseInternal.isSelected()) {
-					server.setOwnSettings(true);
-					if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfGateway))
-						server.setGatewayip(tfGateway.getText());
-					if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfDNSServer))
-						server.setDnsserverip(tfDNSServer.getText());
-				} else {
-					server.setOwnSettings(false);
-				}
+                server.setAktiv(cbAktiv.isSelected());
 
-				server.setAktiv(cbAktiv.isSelected());
+                update();
+                config.setVisible(false);
+            }
+        });
 
-				update();
-				config.setVisible(false);
-			}
-		});
+        lbAktiv = new JLabel(messages.getString("jdhcpkonfiguration_msg6"));
+        lbAktiv.setPreferredSize(new Dimension(200, 15));
+        cbAktiv = new JCheckBox();
+        cbAktiv.setSelected(server.isAktiv());
 
-		lbAktiv = new JLabel(messages.getString("jdhcpkonfiguration_msg6"));
-		lbAktiv.setPreferredSize(new Dimension(200, 15));
-		cbAktiv = new JCheckBox();
-		cbAktiv.setSelected(server.isAktiv());
+        lbUseInternal = new JLabel(messages.getString("jdhcpkonfiguration_msg8"));
+        lbUseInternal.setToolTipText(messages.getString("jdhcpkonfiguration_msg9"));
+        cbUseInternal = new JCheckBox();
+        cbUseInternal.addItemListener(this);
+        cbUseInternal.setToolTipText(messages.getString("jdhcpkonfiguration_msg9"));
+        cbUseInternal.setSelected(server.isOwnSettings());
 
-		lbUseInternal = new JLabel(messages.getString("jdhcpkonfiguration_msg8"));
-		lbUseInternal.setToolTipText(messages.getString("jdhcpkonfiguration_msg9"));
-		cbUseInternal = new JCheckBox();
-		cbUseInternal.addItemListener(this);
-		cbUseInternal.setToolTipText(messages.getString("jdhcpkonfiguration_msg9"));
-		cbUseInternal.setSelected(server.useInternal());
+        jpDhcp.add(lbUseInternal);
+        jpDhcp.add(cbUseInternal);
 
-		jpDhcp.add(lbUseInternal);
-		jpDhcp.add(cbUseInternal);
+        jpDhcp.add(lbAktiv);
+        jpDhcp.add(cbAktiv);
+        jpDhcp.add(btUebernehmen);
 
-		jpDhcp.add(lbAktiv);
-		jpDhcp.add(cbAktiv);
-		jpDhcp.add(btUebernehmen);
+        /* Layout. Set positions with Constraints. */
+        // Labels:
+        layout.putConstraint(SpringLayout.NORTH, lbUntergrenze, 20, SpringLayout.NORTH, this.getContentPane());
+        layout.putConstraint(SpringLayout.WEST, lbUntergrenze, 25, SpringLayout.WEST, this.getContentPane());
 
-		/* Layout. Set positions with Constraints. */
-		// Labels:
-		layout.putConstraint(SpringLayout.NORTH, lbUntergrenze, 20, SpringLayout.NORTH, this.getContentPane());
-		layout.putConstraint(SpringLayout.WEST, lbUntergrenze, 25, SpringLayout.WEST, this.getContentPane());
+        layout.putConstraint(SpringLayout.NORTH, lbObergrenze, 20, SpringLayout.SOUTH, lbUntergrenze);
+        layout.putConstraint(SpringLayout.WEST, lbObergrenze, 25, SpringLayout.WEST, this.getContentPane());
 
-		layout.putConstraint(SpringLayout.NORTH, lbObergrenze, 20, SpringLayout.SOUTH, lbUntergrenze);
-		layout.putConstraint(SpringLayout.WEST, lbObergrenze, 25, SpringLayout.WEST, this.getContentPane());
+        layout.putConstraint(SpringLayout.NORTH, lbNetzmaske, 20, SpringLayout.SOUTH, lbObergrenze);
+        layout.putConstraint(SpringLayout.WEST, lbNetzmaske, 25, SpringLayout.WEST, this.getContentPane());
 
-		layout.putConstraint(SpringLayout.NORTH, lbNetzmaske, 20, SpringLayout.SOUTH, lbObergrenze);
-		layout.putConstraint(SpringLayout.WEST, lbNetzmaske, 25, SpringLayout.WEST, this.getContentPane());
+        layout.putConstraint(SpringLayout.NORTH, lbGateway, 30, SpringLayout.SOUTH, lbNetzmaske);
+        layout.putConstraint(SpringLayout.WEST, lbGateway, 30, SpringLayout.WEST, this.getContentPane());
 
-		layout.putConstraint(SpringLayout.NORTH, lbGateway, 30, SpringLayout.SOUTH, lbNetzmaske);
-		layout.putConstraint(SpringLayout.WEST, lbGateway, 30, SpringLayout.WEST, this.getContentPane());
+        layout.putConstraint(SpringLayout.NORTH, lbDNSServer, 20, SpringLayout.SOUTH, lbGateway);
+        layout.putConstraint(SpringLayout.WEST, lbDNSServer, 30, SpringLayout.WEST, this.getContentPane());
 
-		layout.putConstraint(SpringLayout.NORTH, lbDNSServer, 20, SpringLayout.SOUTH, lbGateway);
-		layout.putConstraint(SpringLayout.WEST, lbDNSServer, 30, SpringLayout.WEST, this.getContentPane());
+        // Textfields:
+        layout.putConstraint(SpringLayout.NORTH, tfUntergrenze, 0, SpringLayout.NORTH, lbUntergrenze);
+        layout.putConstraint(SpringLayout.WEST, tfUntergrenze, 200, SpringLayout.WEST, this.getContentPane());
 
-		// Textfields:
-		layout.putConstraint(SpringLayout.NORTH, tfUntergrenze, 0, SpringLayout.NORTH, lbUntergrenze);
-		layout.putConstraint(SpringLayout.WEST, tfUntergrenze, 200, SpringLayout.WEST, this.getContentPane());
+        layout.putConstraint(SpringLayout.NORTH, tfObergrenze, 0, SpringLayout.NORTH, lbObergrenze);
+        layout.putConstraint(SpringLayout.WEST, tfObergrenze, 200, SpringLayout.WEST, this.getContentPane());
 
-		layout.putConstraint(SpringLayout.NORTH, tfObergrenze, 0, SpringLayout.NORTH, lbObergrenze);
-		layout.putConstraint(SpringLayout.WEST, tfObergrenze, 200, SpringLayout.WEST, this.getContentPane());
+        layout.putConstraint(SpringLayout.NORTH, tfNetzmaske, 0, SpringLayout.NORTH, lbNetzmaske);
+        layout.putConstraint(SpringLayout.WEST, tfNetzmaske, 200, SpringLayout.WEST, this.getContentPane());
 
-		layout.putConstraint(SpringLayout.NORTH, tfNetzmaske, 0, SpringLayout.NORTH, lbNetzmaske);
-		layout.putConstraint(SpringLayout.WEST, tfNetzmaske, 200, SpringLayout.WEST, this.getContentPane());
+        layout.putConstraint(SpringLayout.NORTH, tfGateway, 0, SpringLayout.NORTH, lbGateway);
+        layout.putConstraint(SpringLayout.WEST, tfGateway, 195, SpringLayout.WEST, this.getContentPane());
 
-		layout.putConstraint(SpringLayout.NORTH, tfGateway, 0, SpringLayout.NORTH, lbGateway);
-		layout.putConstraint(SpringLayout.WEST, tfGateway, 195, SpringLayout.WEST, this.getContentPane());
+        layout.putConstraint(SpringLayout.NORTH, tfDNSServer, 0, SpringLayout.NORTH, lbDNSServer);
+        layout.putConstraint(SpringLayout.WEST, tfDNSServer, 195, SpringLayout.WEST, this.getContentPane());
 
-		layout.putConstraint(SpringLayout.NORTH, tfDNSServer, 0, SpringLayout.NORTH, lbDNSServer);
-		layout.putConstraint(SpringLayout.WEST, tfDNSServer, 195, SpringLayout.WEST, this.getContentPane());
+        layout.putConstraint(SpringLayout.EAST, lbUseInternal, 0, SpringLayout.EAST, tfDNSServer);
+        layout.putConstraint(SpringLayout.NORTH, lbUseInternal, 10, SpringLayout.SOUTH, tfDNSServer);
+        layout.putConstraint(SpringLayout.EAST, cbUseInternal, 0, SpringLayout.WEST, lbUseInternal);
+        layout.putConstraint(SpringLayout.SOUTH, cbUseInternal, 4, SpringLayout.SOUTH, lbUseInternal);
 
-		layout.putConstraint(SpringLayout.EAST, lbUseInternal, 0, SpringLayout.EAST, tfDNSServer);
-		layout.putConstraint(SpringLayout.NORTH, lbUseInternal, 10, SpringLayout.SOUTH, tfDNSServer);
-		layout.putConstraint(SpringLayout.EAST, cbUseInternal, 0, SpringLayout.WEST, lbUseInternal);
-		layout.putConstraint(SpringLayout.SOUTH, cbUseInternal, 4, SpringLayout.SOUTH, lbUseInternal);
+        /* Layout */
+        layout.putConstraint(SpringLayout.NORTH, cbAktiv, 30, SpringLayout.SOUTH, lbUseInternal);
+        layout.putConstraint(SpringLayout.WEST, cbAktiv, 25, SpringLayout.WEST, this.getContentPane());
 
-		/* Layout */
-		layout.putConstraint(SpringLayout.NORTH, cbAktiv, 30, SpringLayout.SOUTH, lbUseInternal);
-		layout.putConstraint(SpringLayout.WEST, cbAktiv, 25, SpringLayout.WEST, this.getContentPane());
+        layout.putConstraint(SpringLayout.NORTH, lbAktiv, 4, SpringLayout.NORTH, cbAktiv);
+        layout.putConstraint(SpringLayout.WEST, lbAktiv, 4, SpringLayout.EAST, cbAktiv);
 
-		layout.putConstraint(SpringLayout.NORTH, lbAktiv, 4, SpringLayout.NORTH, cbAktiv);
-		layout.putConstraint(SpringLayout.WEST, lbAktiv, 4, SpringLayout.EAST, cbAktiv);
+        layout.putConstraint(SpringLayout.NORTH, btUebernehmen, 10, SpringLayout.SOUTH, lbAktiv);
+        layout.putConstraint(SpringLayout.WEST, btUebernehmen, 25, SpringLayout.WEST, this.getContentPane());
 
-		layout.putConstraint(SpringLayout.NORTH, btUebernehmen, 10, SpringLayout.SOUTH, lbAktiv);
-		layout.putConstraint(SpringLayout.WEST, btUebernehmen, 25, SpringLayout.WEST, this.getContentPane());
+        layout.putConstraint(SpringLayout.NORTH, borderPanel, 10, SpringLayout.SOUTH, tfNetzmaske);
+        layout.putConstraint(SpringLayout.WEST, borderPanel, 25, SpringLayout.WEST, this.getContentPane());
 
-		layout.putConstraint(SpringLayout.NORTH, borderPanel, 10, SpringLayout.SOUTH, tfNetzmaske);
-		layout.putConstraint(SpringLayout.WEST, borderPanel, 25, SpringLayout.WEST, this.getContentPane());
+        borderPanel.setPreferredSize(new Dimension(325, 105));
+        getContentPane().add(jpDhcp);
 
-		borderPanel.setPreferredSize(new Dimension(325, 105));
-		getContentPane().add(jpDhcp);
+        update();
+    }
 
-		update();
-	}
+    /** Listens to the check boxes. */
+    public void itemStateChanged(java.awt.event.ItemEvent e) {
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
+                + " (JDHCPKonfiguration) itemStateChanged(" + e + "); source=" + e.getItemSelectable());
+        Object source = e.getItemSelectable();
 
-	/** Listens to the check boxes. */
-	public void itemStateChanged(java.awt.event.ItemEvent e) {
-		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
-		        + " (JDHCPKonfiguration) itemStateChanged(" + e + "); source=" + e.getItemSelectable());
-		Object source = e.getItemSelectable();
+        if (source == cbUseInternal) {
+            // Main.debug.println("\titemStateChanged; source==cbUseInternal");
+            if (e.getStateChange() == java.awt.event.ItemEvent.SELECTED) {
+                server.setOwnSettings(true);
+                tfGateway.setText(server.getGatewayip());
+                tfGateway.setEditable(true);
+                tfDNSServer.setText(server.getDnsserverip());
+                tfDNSServer.setEditable(true);
+            } else {
+                server.setOwnSettings(false);
+                tfGateway.setText(server.getGatewayip());
+                tfGateway.setEditable(false);
+                tfDNSServer.setText(server.getDnsserverip());
+                tfDNSServer.setEditable(false);
+            }
+        } else {
+            // Main.debug.println("\titemStateChanged; source ("+source+") != cbUseInternal ("+cbUseInternal+")");
+        }
+    }
 
-		if (source == cbUseInternal) {
-			// Main.debug.println("\titemStateChanged; source==cbUseInternal");
-			if (e.getStateChange() == java.awt.event.ItemEvent.SELECTED) {
-				server.setOwnSettings(true);
-				tfGateway.setText(server.getGatewayip());
-				tfGateway.setEditable(true);
-				tfDNSServer.setText(server.getDnsserverip());
-				tfDNSServer.setEditable(true);
-			} else {
-				server.setOwnSettings(false);
-				tfGateway.setText(server.getGatewayip());
-				tfGateway.setEditable(false);
-				tfDNSServer.setText(server.getDnsserverip());
-				tfDNSServer.setEditable(false);
-			}
-		} else {
-			// Main.debug.println("\titemStateChanged; source ("+source+") != cbUseInternal ("+cbUseInternal+")");
-		}
-	}
+    private void update() {
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (JDHCPKonfiguration), update()");
+        tfObergrenze.setText(server.getObergrenze());
+        tfUntergrenze.setText(server.getUntergrenze());
+        tfNetzmaske.setText(server.getSubnetzmaske());
+        tfGateway.setText(server.getGatewayip());
+        tfDNSServer.setText(server.getDnsserverip());
+        cbUseInternal.setSelected(server.isOwnSettings());
+        cbAktiv.setSelected(server.isAktiv());
+    }
 
-	private void update() {
-		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (JDHCPKonfiguration), update()");
-		tfObergrenze.setText(server.getObergrenze());
-		tfUntergrenze.setText(server.getUntergrenze());
-		tfNetzmaske.setText(server.getSubnetzmaske());
-		tfGateway.setText(server.getGatewayip());
-		tfDNSServer.setText(server.getDnsserverip());
-		cbUseInternal.setSelected(server.useInternal());
-		cbAktiv.setSelected(server.isAktiv());
-	}
+    public boolean ueberpruefen(Pattern pruefRegel, JTextField feld) {
+        if (EingabenUeberpruefung.isGueltig(feld.getText(), pruefRegel)) {
+            feld.setForeground(EingabenUeberpruefung.farbeRichtig);
+            JTextField test = new JTextField();
+            feld.setBorder(test.getBorder());
+            return true;
+        } else {
+            feld.setForeground(EingabenUeberpruefung.farbeFalsch);
 
-	public boolean ueberpruefen(Pattern pruefRegel, JTextField feld) {
-		if (EingabenUeberpruefung.isGueltig(feld.getText(), pruefRegel)) {
-			feld.setForeground(EingabenUeberpruefung.farbeRichtig);
-			JTextField test = new JTextField();
-			feld.setBorder(test.getBorder());
-			return true;
-		} else {
-			feld.setForeground(EingabenUeberpruefung.farbeFalsch);
+            feld.setForeground(EingabenUeberpruefung.farbeFalsch);
+            feld.setBorder(BorderFactory.createLineBorder(EingabenUeberpruefung.farbeFalsch, 1));
+            return false;
+        }
 
-			feld.setForeground(EingabenUeberpruefung.farbeFalsch);
-			feld.setBorder(BorderFactory.createLineBorder(EingabenUeberpruefung.farbeFalsch, 1));
-			return false;
-		}
-
-	}
+    }
 
 }

@@ -85,7 +85,8 @@ public abstract class VermittlungsProtokoll extends Protokoll {
         int addressAsInt = ipAddressToInt(zielIpAdresse);
         int netmaskAsInt = ipAddressToInt(netzmaske);
         boolean isGenericBroadcast = addressAsInt == 0xffffffff;
-        boolean isNetworkBroadcast = (addressAsInt & ~netmaskAsInt) == (0xffffffff & ~netmaskAsInt) && gleichesRechnernetz(zielIpAdresse, sendeIpAdresse, netzmaske);
+        boolean isNetworkBroadcast = (addressAsInt & ~netmaskAsInt) == (0xffffffff & ~netmaskAsInt)
+                && gleichesRechnernetz(zielIpAdresse, sendeIpAdresse, netzmaske);
         return isGenericBroadcast || isNetworkBroadcast;
     }
 
