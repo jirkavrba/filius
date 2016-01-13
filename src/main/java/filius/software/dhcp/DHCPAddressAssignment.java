@@ -32,38 +32,54 @@ import filius.rahmenprogramm.I18n;
  * @author Johannes Klebert
  * 
  */
-public class IPEintrag implements I18n {
+public class DHCPAddressAssignment implements I18n {
 
-	private String ip;
-	private String mac; // hiermit ist die mac-adresse gemeint.
-	private long ttl; // time to life in miliseks.
+    private String ip;
+    private String mac;
+    /**
+     * Lease time of an address assignment as unix timestamp (in millis). If the lease time is '0' the assignment does
+     * not expire.
+     */
+    private long leaseTime;
 
-	public String getIp() {
-		return ip;
-	}
+    public DHCPAddressAssignment(String mac, String ip, long leaseTime) {
+        this.ip = ip;
+        this.mac = mac;
+        this.leaseTime = leaseTime;
+    }
 
-	public void setIp(String ip) {
-		this.ip = ip;
-	}
+    public DHCPAddressAssignment() {}
 
-	public long getTtl() {
-		return ttl;
-	}
+    public String getIp() {
+        return ip;
+    }
 
-	public void setTtl(long ttl) {
-		this.ttl = ttl;
-	}
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
 
-	public String getMAC() {
-		return mac;
-	}
+    public long getLeaseTime() {
+        return leaseTime;
+    }
 
-	public void setMAC(String owner) {
-		this.mac = owner;
-	}
+    public void setLeaseTime(long leaseTime) {
+        this.leaseTime = leaseTime;
+    }
 
-	public String toString() {
-		return messages.getString("sw_ipeintrag_msg1") + mac + messages.getString("sw_ipeintrag_msg2") + ip;
-	}
+    public String getMAC() {
+        return mac;
+    }
+
+    public void setMAC(String owner) {
+        this.mac = owner;
+    }
+
+    public boolean isExpired() {
+        return leaseTime != 0 && leaseTime < System.currentTimeMillis();
+    }
+
+    public String toString() {
+        return messages.getString("sw_ipeintrag_msg1") + mac + messages.getString("sw_ipeintrag_msg2") + ip;
+    }
 
 }

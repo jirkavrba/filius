@@ -47,6 +47,8 @@ import filius.software.transportschicht.UdpSegment;
  */
 public class IP extends VermittlungsProtokoll implements I18n {
 
+    private static final String CURRENT_NETWORK = "0.0.0.0";
+
     /** String-Konstante fuer die IP-Adresse Localhost (127.0.0.1) */
     public static final String LOCALHOST = "127.0.0.1";
 
@@ -143,7 +145,8 @@ public class IP extends VermittlungsProtokoll implements I18n {
         ipPaket.setTtl(1);
 
         InternetKnotenBetriebssystem bs = (InternetKnotenBetriebssystem) holeSystemSoftware();
-        if (gleichesRechnernetz(ipPaket.getSender(), nic.getIp(), nic.getSubnetzMaske())) {
+        if (CURRENT_NETWORK.equals(ipPaket.getSender())
+                || gleichesRechnernetz(ipPaket.getSender(), nic.getIp(), nic.getSubnetzMaske())) {
             bs.holeEthernet().senden(ipPaket, nic.getMac(), ETHERNET_BROADCAST, EthernetFrame.IP);
         }
     }
@@ -252,10 +255,11 @@ public class IP extends VermittlungsProtokoll implements I18n {
 
     /**
      * Methode zum Weiterleiten eines IP-Pakets. Zunaechst wird geprueft, ob das Feld Time-to-Live-Feld (TTL) noch nicht
-     * abgelaufen ist (d. h. TTL groesser 0). Wenn diese Bedingung erfuellt ist, wird die Weiterleitungstabelle nach einem 
-     * passenden Eintrag abgefragt und entsprechend verschickt.
+     * abgelaufen ist (d. h. TTL groesser 0). Wenn diese Bedingung erfuellt ist, wird die Weiterleitungstabelle nach
+     * einem passenden Eintrag abgefragt und entsprechend verschickt.
      * 
-     * @param ipPaket das zu versendende IP-Paket
+     * @param ipPaket
+     *            das zu versendende IP-Paket
      */
     public void weiterleitenPaket(IpPaket paket) {
         InternetKnotenBetriebssystem bs = (InternetKnotenBetriebssystem) holeSystemSoftware();

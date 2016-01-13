@@ -25,46 +25,62 @@
  */
 package filius.software.dhcp;
 
-import java.util.StringTokenizer;
+bbbbbbbbbbbbbbbbbbbbbbbbbbbbbimport static filius.software.dhcp.DHCPClient.State.ASSIGN_IP;
+import static filius.software.dhcp.DHCPClient.State.DECLINE;
+import static filius.software.dhcp.DHCPClient.State.DISCOVER;
+import static filius.software.dhcp.DHCPClient.State.FINISH;
+import static filius.software.dhcp.DHCPClient.State.INIT;
+import static filius.software.dhcp.DHCPClient.State.REQUEST;
+import static filius.software.dhcp.DHCPClient.State.VALIDATE;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.ArrayUtils;
 
 import filius.Main;
+import filius.exception.NoValidDhcpResponseException;
+import filius.exception.TimeOutException;
 import filius.exception.VerbindungsException;
 import filius.gui.GUIContainer;
+import filius.gui.netzwerksicht.GUIKnotenItem;
 import filius.hardware.Verbindung;
 import filius.hardware.knoten.Host;
 import filius.software.clientserver.ClientAnwendung;
+import filius.software.system.Betriebssystem;
+import filius.software.system.InternetKnotenBetriebssystem;
+import filius.software.system.SystemSoftware;
 import filius.software.transportschicht.UDPSocket;
+import filius.software.vermittlungsschicht.ARP;
 
 public class DHCPClient extends ClientAnwendung {
+    enum State {
+        ASSIGN_IP, FINISH, DISCOVER, REQUEST, VALIDATE, DECLINE, INIT
+    }
 
-    private int zustand;
+    private static final String IP_ADDRESS_CURRENT_NETWORK = "0.0.0.0";
+    private static final int MAX_ERROR_COUNT = 10;
 
-    private String dhcpserverIP = "255.255.255.255";
-
-    public static final int IP_ZUGEWIESEN = 99;
-
-    public static final int ABBRUCH = -1, INIT_DHCP = 2, CONFIG = 3;
+    private State zustand;
 
     public void starten() {
         Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
                 + " (DHCPClient), starten()");
         super.starten();
 
-        ausfuehren("konfiguriere", null);
+        ausfuehren("configure", null);
     }
 
-    public void konfiguriere() {
-        Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
-                + " (DHCPClient), konfiguriere()");
-        boolean activeDHCPserversStarted;
-
-        // es muss gewaehrleistet werden, dass der DHCP-Server bereits
-        // gestartet worden ist! (sofern denn einer als "aktiv" gekennzeichnet
-        // ist!)
+    /**
+     * es muss gewaehrleistet werden, dass der DHCP-Server bereits gestartet worden ist! (sofern denn einer als "aktiv"
+     * gekennzeichnet ist!)
+     */
+    void waitUntilDhcpServerStarted() {
+        boolean activeDHCPserversStarted = false;
         try {
-            do {
+            while (!activeDHCPserversStarted && running) {
                 activeDHCPserversStarted = true;
-                for (DHCPServer dhcpServer : GUIContainer.getGUIContainer().getMenu().getDHCPServers()) {
+                for (DHCPServer dhcpServer : getDHCPServers()) {
                     if (dhcpServer.isAktiv() && !dhcpServer.isStarted()) {
                         activeDHCPserversStarted = false;
                         Main.debug.println("WARNING (" + this.hashCode() + "): DHCP server on '"
@@ -77,160 +93,156 @@ public class DHCPClient extends ClientAnwendung {
                     }
                 }
                 Thread.sleep(100);
-            } while (!activeDHCPserversStarted && running);
+            }
         } catch (InterruptedException e) {
             e.printStackTrace(Main.debug);
         }
-
-        // Main.debug.println("DHCP-Client wurde gestartet.");
-        starteDatenaustausch();
     }
 
-    private void starteDatenaustausch() {
-        Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
-                + " (DHCPClient), starteDatenaustausch()");
-        String antwort = "";
-        String angeboteneIP = "";
-        String typ = null;
-        String mac;
-        boolean erfolg;
-        long start;
-        int fehlerzaehler = 0;
-        StringTokenizer st = null;
-        UDPSocket socket = (UDPSocket) this.socket;
-        int maxFehler = 5;
-
-        zustand = INIT_DHCP;
-        try {
-            socket = new UDPSocket(getSystemSoftware(), "255.255.255.255", 67, 68);
-            socket.verbinden();
-
-            // Main.debug.println(getClass() +
-            // "\n\tkonfiguriere() -> zustand = "
-            // + zustand);
-
-            while (zustand != IP_ZUGEWIESEN && zustand != ABBRUCH && fehlerzaehler < maxFehler && running) {
-                if (zustand == INIT_DHCP) {
-                    String oldIPAddress = getSystemSoftware().holeIPAdresse();
-                    socket.sendeBroadcast("DHCPDISCOVER " + oldIPAddress + " " + getSystemSoftware().holeMACAdresse()
-                            + " " + dhcpserverIP, "0.0.0.0");
-
-                    start = System.currentTimeMillis();
-                    do {
-                        mac = null;
-                        typ = null;
-                        erfolg = false;
-
-                        antwort = socket.empfangen(Verbindung.holeRTT());
-
-                        if (antwort != null) {
-                            st = new StringTokenizer(antwort, " ");
-
-                            typ = st.nextToken().trim();
-                            st.nextToken();
-                            mac = st.nextToken().trim();
-
-                            erfolg = mac.equalsIgnoreCase(getSystemSoftware().holeMACAdresse())
-                                    && typ.equalsIgnoreCase("DHCPOFFER");
-                        }
-                    } while (!erfolg && System.currentTimeMillis() - start <= Verbindung.holeRTT());
-
-                    // if(!erfolg) {
-                    // Main.debug.println(getClass()+"\n\tTimeOut! (>"+Verbindung.holeRTT());
-                    // }
-
-                    if (erfolg && st != null) {
-                        dhcpserverIP = st.nextToken();
-                        angeboteneIP = st.nextToken();
-
-                        // Main.debug.println(getClass()
-                        // + "\n\tangebotene IP-Adresse: " + angeboteneIP);
-
-                        zustand = CONFIG;
-                        // zustand = ABBRUCH;
-                    } else {
-                        fehlerzaehler++;
-                        Main.debug.println("ERROR (" + this.hashCode() + "): DHCPOFFER erwartet, erhalten: " + typ);
-                    }
-                } else if (zustand == CONFIG) {
-                    if (socket != null)
-                        socket.schliessen();
-                    socket = new UDPSocket(getSystemSoftware(), dhcpserverIP, 67, 68);
-                    socket.verbinden();
-
-                    socket.sendeBroadcast("DHCPREQUEST " + getSystemSoftware().holeIPAdresse() + " "
-                            + getSystemSoftware().holeMACAdresse() + " " + dhcpserverIP + " " + angeboteneIP, "0.0.0.0");
-
-                    start = System.currentTimeMillis();
-                    do {
-                        mac = null;
-                        typ = null;
-                        erfolg = false;
-
-                        antwort = socket.empfangen(Verbindung.holeRTT());
-
-                        if (antwort != null) {
-                            // Main.debug.println("DHCPClient, received response from DHCP Server:\n\t"
-                            // + "'"+antwort+"'" );
-                            st = new StringTokenizer(antwort, " ");
-
-                            typ = st.nextToken();
-                            st.nextToken();
-                            mac = st.nextToken();
-
-                            erfolg = mac.equalsIgnoreCase(getSystemSoftware().holeMACAdresse())
-                                    && (typ.equalsIgnoreCase("DHCPACK") || typ.equalsIgnoreCase("DHCPNAK"));
-                        }
-                    } while (!erfolg && System.currentTimeMillis() - start <= Verbindung.holeRTT());
-
-                    if (erfolg && st != null) {
-                        if (typ.equalsIgnoreCase("DHCPNAK")) {
-                            zustand = INIT_DHCP;
-                        } else {
-                            st.nextToken();
-                            st.nextToken();
-
-                            getSystemSoftware().setzeIPAdresse(angeboteneIP);
-                            if (st.hasMoreTokens()) { // set netmask
-                                getSystemSoftware().setzeNetzmaske(st.nextToken());
-                                if (st.hasMoreTokens()) { // set DNS server
-                                    getSystemSoftware().setStandardGateway(st.nextToken()); // set
-                                                                                            // Gateway
-                                    if (st.hasMoreTokens()) { // set DNS server
-                                        getSystemSoftware().setDNSServer(st.nextToken());
-                                    }
-                                }
-                            }
-                            zustand = IP_ZUGEWIESEN;
-                        }
-                    } else {
-                        fehlerzaehler++;
-                    }
-                }
-                if (fehlerzaehler == maxFehler && running) {
-                    zustand = ABBRUCH;
-                    Main.debug.println("ERROR (" + this.hashCode() + "): kein DHCPACK erhalten");
-
-                    // set own value 169.254.x.x; resp. delete values
-                    int block3 = (new java.util.Random()).nextInt(253) + 1;
-                    int block4 = (new java.util.Random()).nextInt(253) + 1;
-                    getSystemSoftware().setzeIPAdresse("169.254." + block3 + "." + block4);
-                    getSystemSoftware().setzeNetzmaske("255.255.0.0");
-                    getSystemSoftware().setStandardGateway(""); // set Gateway
-                    getSystemSoftware().setDNSServer("");
-
-                    fehlerzaehler = 0;
+    private List<DHCPServer> getDHCPServers() {
+        SystemSoftware syssoft;
+        List<DHCPServer> activeDHCPServers = new ArrayList<DHCPServer>();
+        for (GUIKnotenItem knotenItem : GUIContainer.getGUIContainer().getKnotenItems()) {
+            syssoft = knotenItem.getKnoten().getSystemSoftware();
+            if (syssoft instanceof Betriebssystem) {
+                if (((Betriebssystem) syssoft).getDHCPServer().isAktiv()) {
+                    activeDHCPServers.add(((Betriebssystem) syssoft).getDHCPServer());
                 }
             }
-            socket.schliessen();
-        } catch (VerbindungsException e1) {
-            e1.printStackTrace(Main.debug);
         }
+        return activeDHCPServers;
+    }
 
-        Host host = ((Host) this.getSystemSoftware().getKnoten());
+    public void configure() {
+        Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
+                + " (DHCPClient), starteDatenaustausch()");
+        int fehlerzaehler = 0;
+        zustand = INIT;
+
+        InternetKnotenBetriebssystem operatingSystem = (InternetKnotenBetriebssystem) getSystemSoftware();
+        String oldIpAddress = resetIpConfig();
+        IpConfig config = null;
+        UDPSocket udpSocket = null;
+        while (zustand != FINISH && fehlerzaehler < MAX_ERROR_COUNT && running) {
+            try {
+                switch (zustand) {
+                case INIT:
+                    waitUntilDhcpServerStarted();
+                    udpSocket = initUdpSocket();
+                    zustand = DISCOVER;
+                    break;
+                case DISCOVER:
+                    config = discover(udpSocket, operatingSystem.holeMACAdresse(), Verbindung.holeRTT());
+                    zustand = VALIDATE;
+                    break;
+                case VALIDATE:
+                    boolean validAddress = validateOfferedAddress(getSystemSoftware().holeARP(), config.getIpAddress());
+                    zustand = validAddress ? REQUEST : DECLINE;
+                    break;
+                case DECLINE:
+                    decline(udpSocket, operatingSystem.holeMACAdresse(), config, Verbindung.holeRTT());
+                    zustand = DISCOVER;
+                    break;
+                case REQUEST:
+                    boolean acknowledged = request(udpSocket, operatingSystem.holeMACAdresse(), config,
+                            Verbindung.holeRTT());
+                    zustand = acknowledged ? ASSIGN_IP : DISCOVER;
+                    break;
+                case ASSIGN_IP:
+                    operatingSystem.setzeIPAdresse(config.getIpAddress());
+                    operatingSystem.setzeNetzmaske(config.getSubnetMask());
+                    operatingSystem.setStandardGateway(config.getRouter());
+                    operatingSystem.setDNSServer(config.getDnsServer());
+                default:
+                    zustand = FINISH;
+                }
+            } catch (NoValidDhcpResponseException | TimeOutException | VerbindungsException e) {
+                fehlerzaehler++;
+            }
+        }
+        if (fehlerzaehler == MAX_ERROR_COUNT && running) {
+            Main.debug.println("ERROR (" + this.hashCode() + "): kein DHCPACK erhalten");
+            operatingSystem.setzeIPAdresse(oldIpAddress);
+        }
+        udpSocket.schliessen();
+
+        Host host = ((Host) getSystemSoftware().getKnoten());
         host.benachrichtigeBeobachter();
-        this.getSystemSoftware().benachrichtigeBeobacher(host);
+        getSystemSoftware().benachrichtigeBeobacher(host);
+    }
 
-        beenden();
+    private String resetIpConfig() {
+        InternetKnotenBetriebssystem operatingSystem = (InternetKnotenBetriebssystem) getSystemSoftware();
+        String oldIpAddress = operatingSystem.holeIPAdresse();
+        operatingSystem.setzeIPAdresse("0.0.0.0");
+        return oldIpAddress;
+    }
+
+    UDPSocket initUdpSocket() throws VerbindungsException {
+        socket = new UDPSocket(getSystemSoftware(), "255.255.255.255", 67, 68);
+        ((UDPSocket) socket).verbinden();
+        return (UDPSocket) socket;
+    }
+
+    boolean request(UDPSocket socket, String clientMacAddress, IpConfig config, long socketTimeoutMillis)
+            throws NoValidDhcpResponseException, TimeOutException {
+        socket.sendeBroadcast(IP_ADDRESS_CURRENT_NETWORK,
+                DHCPMessage.createRequestMessage(clientMacAddress, config.getIpAddress(), config.getDhcpServer())
+                        .toString());
+
+        DHCPMessage result = receiveResponse(socket, socketTimeoutMillis, clientMacAddress, config.getDhcpServer(),
+                DHCPMessageType.ACK, DHCPMessageType.NACK);
+
+        return null != result && result.getType() == DHCPMessageType.ACK;
+    }
+
+    void decline(UDPSocket socket, String clientMacAddress, IpConfig config, long socketTimeoutMillis)
+            throws NoValidDhcpResponseException {
+        socket.sendeBroadcast(IP_ADDRESS_CURRENT_NETWORK,
+                DHCPMessage.createDeclineMessage(clientMacAddress, config.getIpAddress(), config.getDhcpServer())
+                        .toString());
+    }
+
+    IpConfig discover(UDPSocket socket, String clientMacAddress, long socketTimeoutMillis)
+            throws NoValidDhcpResponseException, TimeOutException {
+        socket.sendeBroadcast(IP_ADDRESS_CURRENT_NETWORK, DHCPMessage.createDiscoverMessage(clientMacAddress)
+                .toString());
+
+        DHCPMessage offer = receiveResponse(socket, socketTimeoutMillis, clientMacAddress, null, DHCPMessageType.OFFER);
+
+        return new IpConfig(offer.getYiaddr(), offer.getRouter(), offer.getSubnetMask(), offer.getDnsServer(),
+                offer.getServerIdentifier());
+    }
+
+    private DHCPMessage receiveResponse(UDPSocket socket, long socketTimeoutMillis, String clientMacAddress,
+            String serverIdentifier, DHCPMessageType... messageTypes) throws NoValidDhcpResponseException,
+            TimeOutException {
+        DHCPMessage responseMessage = null;
+        long start = System.currentTimeMillis();
+        long duration = 0;
+        do {
+            String response = socket.empfangen(socketTimeoutMillis - duration);
+            if (null == response) {
+                throw new TimeOutException("No response from DHCP server received.");
+            }
+            responseMessage = DHCPMessage.fromString(response);
+            boolean invalidMessageType = !ArrayUtils.contains(messageTypes, responseMessage.getType());
+            boolean forOtherClient = !clientMacAddress.equalsIgnoreCase(responseMessage.getChaddr());
+            boolean fromOtherServer = null != serverIdentifier
+                    && !serverIdentifier.equals(responseMessage.getServerIdentifier());
+            if (invalidMessageType || forOtherClient || fromOtherServer) {
+                responseMessage = null;
+            }
+            duration = System.currentTimeMillis() - start;
+        } while (null == responseMessage && duration < socketTimeoutMillis);
+        if (null == responseMessage) {
+            throw new NoValidDhcpResponseException("No valid server response received");
+        }
+        return responseMessage;
+    }
+
+    boolean validateOfferedAddress(ARP arp, String offeredAddress) {
+        String macAddress = arp.holeARPTabellenEintrag(offeredAddress);
+        return null == macAddress;
     }
 }

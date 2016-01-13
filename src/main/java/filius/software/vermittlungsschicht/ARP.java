@@ -26,8 +26,6 @@
 package filius.software.vermittlungsschicht;
 
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -99,23 +97,14 @@ public class ARP extends VermittlungsProtokoll {
             arpTabelle.put(ipAdresse, tmpString);
             arpTabelle.notify();
         }
-
-        // printARPTabelle();
     }
 
-    /**
-     * Hilfsmethode fuer Debugging zur Ausgabe der ARP-Tabelle auf die Standardausgabe
-     */
-    private void printARPTabelle() {
-        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (ARP), printARPTabelle()");
-        Iterator it = arpTabelle.entrySet().iterator();
-        Entry entry;
-
-        Main.debug.println("ARP: ARP-Tabelle wurde aktualisiert.");
-        while (it.hasNext()) {
-            entry = (Entry) it.next();
-            Main.debug.println("\t" + entry.getKey() + " \t " + ((String[]) entry.getValue())[0]);
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        for (Entry<String, String[]> entry : arpTabelle.entrySet()) {
+            builder.append("\t").append(entry.getKey()).append(" \t ").append(entry.getValue()[0]).append("\n");
         }
+        return builder.toString();
     }
 
     public Map<String, String> holeARPTabelle() {
@@ -196,17 +185,11 @@ public class ARP extends VermittlungsProtokoll {
 
     public NetzwerkInterface getBroadcastNic(String zielStr) {
         long netAddr, maskAddr, zielAddr = IP.inetAton(zielStr);
-        NetzwerkInterface nic;
 
         long bestMask = -1;
         NetzwerkInterface bestNic = null;
 
-        SystemSoftware firmware = holeSystemSoftware();
-        InternetKnoten knoten = (InternetKnoten) firmware.getKnoten();
-        ListIterator it = knoten.getNetzwerkInterfaces().listIterator();
-        while (it.hasNext()) {
-            nic = (NetzwerkInterface) it.next();
-
+        for (NetzwerkInterface nic : ((InternetKnoten) holeSystemSoftware().getKnoten()).getNetzwerkInterfaces()) {
             maskAddr = IP.inetAton(nic.getSubnetzMaske());
             if (maskAddr <= bestMask) {
                 continue;
@@ -216,6 +199,10 @@ public class ARP extends VermittlungsProtokoll {
                 bestMask = maskAddr;
                 bestNic = nic;
             }
+        }
+        if (null == bestNic) {
+            bestMask = IP.inetAton(((InternetKnotenBetriebssystem) holeSystemSoftware()).holeNetzmaske());
+            bestNic = ((InternetKnoten) holeSystemSoftware().getKnoten()).getNetzwerkInterfaces().get(0);
         }
         return bestNic;
     }

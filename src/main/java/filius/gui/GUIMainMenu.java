@@ -32,8 +32,6 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -55,8 +53,6 @@ import filius.hardware.Verbindung;
 import filius.rahmenprogramm.I18n;
 import filius.rahmenprogramm.Information;
 import filius.rahmenprogramm.SzenarioVerwaltung;
-import filius.software.dhcp.DHCPServer;
-import filius.software.system.Betriebssystem;
 import filius.software.system.SystemSoftware;
 
 public class GUIMainMenu implements Serializable, I18n {
@@ -463,20 +459,6 @@ public class GUIMainMenu implements Serializable, I18n {
             } catch (Exception e) {}
         }
         ((JDialog) GUIContainer.getGUIContainer().getExchangeDialog()).setVisible(false);
-    }
-
-    public List<DHCPServer> getDHCPServers() {
-        SystemSoftware syssoft;
-        List<DHCPServer> activeDHCPServers = new ArrayList<DHCPServer>();
-        for (GUIKnotenItem knotenItem : GUIContainer.getGUIContainer().getKnotenItems()) {
-            syssoft = knotenItem.getKnoten().getSystemSoftware();
-            if (syssoft instanceof Betriebssystem) {
-                if (((Betriebssystem) syssoft).getDHCPServer().isAktiv()) {
-                    activeDHCPServers.add(((Betriebssystem) syssoft).getDHCPServer());
-                }
-            }
-        }
-        return activeDHCPServers;
     }
 
     public JBackgroundPanel getMenupanel() {

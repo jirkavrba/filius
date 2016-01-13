@@ -175,10 +175,10 @@ public class UDPSocket extends Socket {
 
     /** Methode zum senden eines Broadcast Datagramms mit UDP */
     public synchronized void sendeBroadcast(String nachricht) {
-        sendeBroadcast(nachricht, null);
+        sendeBroadcast(null, nachricht);
     }
 
-    public synchronized void sendeBroadcast(String nachricht, String quellIp) {
+    public synchronized void sendeBroadcast(String quellIp, String nachricht) {
         Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (UDPSocket), sendeBroadcast("
                 + nachricht + ")");
         UdpSegment segment;
@@ -231,7 +231,6 @@ public class UDPSocket extends Socket {
 
             try {
                 eintragenPort();
-
                 verbunden = true;
             } catch (SocketException e) {
                 Main.debug.println("EXCEPTION (" + this.hashCode() + "): verbinden() NICHT erfolgreich");

@@ -38,94 +38,94 @@ import filius.software.vermittlungsschicht.IpPaket;
  */
 public class EthernetThread extends ProtokollThread {
 
-	/** die Netzwerkkarte, deren Anschluss ueberwacht wird */
-	private NetzwerkInterface netzwerkInterface;
+    /** die Netzwerkkarte, deren Anschluss ueberwacht wird */
+    private NetzwerkInterface netzwerkInterface;
 
-	/** die Ethernet-Schicht */
-	private Ethernet ethernet;
+    /** die Ethernet-Schicht */
+    private Ethernet ethernet;
 
-	/**
-	 * Der Konstruktor zur Initialisierung des zu ueberwachenden Puffers und der
-	 * Ethernet-Schicht und der Netzwerkkarte
-	 */
-	public EthernetThread(Ethernet ethernet, NetzwerkInterface nic) {
-		super(nic.getPort().holeEingangsPuffer());
-		Main.debug.println("INVOKED-2 (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
-		        + " (EthernetThread), constr: EthernetThread(" + ethernet + "," + nic + ")");
+    /**
+     * Der Konstruktor zur Initialisierung des zu ueberwachenden Puffers und der Ethernet-Schicht und der Netzwerkkarte
+     */
+    public EthernetThread(Ethernet ethernet, NetzwerkInterface nic) {
+        super(nic.getPort().holeEingangsPuffer());
+        Main.debug.println("INVOKED-2 (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
+                + " (EthernetThread), constr: EthernetThread(" + ethernet + "," + nic + ")");
 
-		this.ethernet = ethernet;
-		this.netzwerkInterface = nic;
-	}
+        this.ethernet = ethernet;
+        this.netzwerkInterface = nic;
+    }
 
-	/**
-	 * Hier werden die Nutzdaten des ankommenden Frames entweder in den Puffer
-	 * fuer IP-Pakete oder fuer ARP-Pakete geschrieben.
-	 */
-	protected void verarbeiteDatenEinheit(Object datenEinheit) {
-		Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
-		        + " (EthernetThread), verarbeiteDateneinheit(" + datenEinheit.toString() + ")");
-		EthernetFrame etp;
+    /**
+     * Hier werden die Nutzdaten des ankommenden Frames entweder in den Puffer fuer IP-Pakete oder fuer ARP-Pakete
+     * geschrieben.
+     */
+    protected void verarbeiteDatenEinheit(Object datenEinheit) {
+        Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
+                + " (EthernetThread), verarbeiteDateneinheit(" + datenEinheit.toString() + ")");
+        EthernetFrame etp;
 
-		etp = (EthernetFrame) datenEinheit;
+        etp = (EthernetFrame) datenEinheit;
 
-		// record receipt (independent of further processing)
-		Lauscher.getLauscher().addDatenEinheit(netzwerkInterface.getMac(), etp);
+        // record receipt (independent of further processing)
+        Lauscher.getLauscher().addDatenEinheit(netzwerkInterface.getMac(), etp);
 
-		// only process in case of correct MAC address, i.e., this packet is
-		// addressed for this NIC (or broadcast)
-		// otherwise stop processing:
-		if (!etp.getZielMacAdresse().equalsIgnoreCase("FF:FF:FF:FF:FF:FF") // broadcast
-		        && !etp.getZielMacAdresse().equals(this.netzwerkInterface.getMac()))
-			return;
-		// //
+        // only process in case of correct MAC address, i.e., this packet is
+        // addressed for this NIC (or broadcast)
+        // otherwise stop processing:
+        if (!etp.getZielMacAdresse().equalsIgnoreCase("FF:FF:FF:FF:FF:FF") // broadcast
+                && !etp.getZielMacAdresse().equals(this.netzwerkInterface.getMac()))
+            return;
+        // //
 
-		// Main.debug.println(getClass().toString()
-		// +"\n\tverareiteDatenEinheit() wurde aufgerufen"
-		// +"\n\t"+etp.getQuellMacAdresse()+" -> "+etp.getZielMacAdresse()
-		// +", Protokoll: "+etp.getTyp()
-		// +", ICMP? "+(etp.isICMP()));
+        // Main.debug.println(getClass().toString()
+        // +"\n\tverareiteDatenEinheit() wurde aufgerufen"
+        // +"\n\t"+etp.getQuellMacAdresse()+" -> "+etp.getZielMacAdresse()
+        // +", Protokoll: "+etp.getTyp()
+        // +", ICMP? "+(etp.isICMP()));
 
-		if (etp.getTyp().equals(EthernetFrame.IP)) {
-			if (etp.isICMP()) {
-				synchronized (ethernet.holeICMPPuffer()) {
-					ethernet.holeICMPPuffer().add((IcmpPaket) etp.getDaten());
-					// Main.debug.println("DEBUG ("+this.hashCode()+", T"+this.getId()+") "+getClass()+" (EthernetThread), verarbeiteDateneinheit, ICMPPuffer="+ethernet.holeICMPPuffer().getFirst().toString());
-					ethernet.holeICMPPuffer().notifyAll(); // 'all' means:
-					                                       // Terminal ping
-					                                       // command (if any in
-					                                       // this instance) and
-					                                       // default network
-					                                       // packet processing
-				}
-			} else {
-				synchronized (ethernet.holeIPPuffer()) {
-					ethernet.holeIPPuffer().add((IpPaket) etp.getDaten());
-					ethernet.holeIPPuffer().notify();
-				}
-			}
-		} else if (etp.getTyp().equals(EthernetFrame.ARP)) {
-			// if ARP packet is not addressed to this specific NIC, but possibly
-			// another NIC of this node, then return
-			// (this is meant to prevent routers from responding to all ARP
-			// packets meant for some of their NICs
-			// without even having received the packet on this specific NIC,
-			// i.e., without physical connection)
-			if (!((ArpPaket) etp.getDaten()).getZielIp().equals(netzwerkInterface.getIp())) {
-				Main.debug.println("ERROR (" + this.hashCode() + "):  ARP packet seems to be sent from a NIC ("
-				        + ((ArpPaket) etp.getDaten()).getQuellIp() + ","
-				        + ((ArpPaket) etp.getDaten()).getQuellMacAdresse()
-				        + ") not connected to the currently considered NIC (" + netzwerkInterface.getIp() + ","
-				        + netzwerkInterface.getMac() + ")");
-				return;
-			}
-			// otherwise process ARP packet
-			synchronized (ethernet.holeARPPuffer()) {
-				ethernet.holeARPPuffer().add((ArpPaket) etp.getDaten());
-				ethernet.holeARPPuffer().notify();
-			}
-		} else {
-			Main.debug.println("ERROR (" + this.hashCode() + "): Paket konnte nicht zugeordnet werden");
-		}
-	}
+        if (etp.getTyp().equals(EthernetFrame.IP)) {
+            if (etp.isICMP()) {
+                synchronized (ethernet.holeICMPPuffer()) {
+                    ethernet.holeICMPPuffer().add((IcmpPaket) etp.getDaten());
+                    // Main.debug.println("DEBUG ("+this.hashCode()+", T"+this.getId()+") "+getClass()+" (EthernetThread), verarbeiteDateneinheit, ICMPPuffer="+ethernet.holeICMPPuffer().getFirst().toString());
+                    ethernet.holeICMPPuffer().notifyAll(); // 'all' means:
+                                                           // Terminal ping
+                                                           // command (if any in
+                                                           // this instance) and
+                                                           // default network
+                                                           // packet processing
+                }
+            } else {
+                synchronized (ethernet.holeIPPuffer()) {
+                    ethernet.holeIPPuffer().add((IpPaket) etp.getDaten());
+                    ethernet.holeIPPuffer().notify();
+                }
+            }
+        } else if (etp.getTyp().equals(EthernetFrame.ARP)) {
+            // if ARP packet is not addressed to this specific NIC, but possibly
+            // another NIC of this node, then return
+            // (this is meant to prevent routers from responding to all ARP
+            // packets meant for some of their NICs
+            // without even having received the packet on this specific NIC,
+            // i.e., without physical connection)
+            String zielIp = ((ArpPaket) etp.getDaten()).getZielIp();
+            if (!zielIp.equals(netzwerkInterface.getIp()) && !"0.0.0.0".equals(netzwerkInterface.getIp())) {
+                Main.debug.println("ERROR (" + this.hashCode() + "):  ARP packet seems to be sent from a NIC ("
+                        + ((ArpPaket) etp.getDaten()).getQuellIp() + ","
+                        + ((ArpPaket) etp.getDaten()).getQuellMacAdresse()
+                        + ") not connected to the currently considered NIC (" + netzwerkInterface.getIp() + ","
+                        + netzwerkInterface.getMac() + ")");
+                return;
+            }
+            // otherwise process ARP packet
+            synchronized (ethernet.holeARPPuffer()) {
+                ethernet.holeARPPuffer().add((ArpPaket) etp.getDaten());
+                ethernet.holeARPPuffer().notify();
+            }
+        } else {
+            Main.debug.println("ERROR (" + this.hashCode() + "): Paket konnte nicht zugeordnet werden");
+        }
+    }
 
 }

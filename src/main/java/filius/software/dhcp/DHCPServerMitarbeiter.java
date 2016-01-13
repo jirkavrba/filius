@@ -25,10 +25,10 @@
  */
 package filius.software.dhcp;
 
-import java.util.Hashtable;
-import java.util.StringTokenizer;
+import org.apache.commons.lang3.StringUtils;
 
-import filius.Main;
+import filius.exception.AddressRequestNotAcceptedException;
+import filius.exception.NoAvailableAddressException;
 import filius.software.clientserver.ServerMitarbeiter;
 import filius.software.transportschicht.Socket;
 import filius.software.transportschicht.UDPSocket;
@@ -75,10 +75,6 @@ import filius.software.transportschicht.UDPSocket;
  */
 public class DHCPServerMitarbeiter extends ServerMitarbeiter {
 
-    private String angeboteneAdresse = "";
-
-    Hashtable<String, String> macIPAdresse = new Hashtable<String, String>();
-
     public DHCPServerMitarbeiter(DHCPServer server, Socket socket) {
         super(server, socket);
     }
@@ -112,65 +108,42 @@ public class DHCPServerMitarbeiter extends ServerMitarbeiter {
      * </p>
      */
     protected void verarbeiteNachricht(String nachricht) {
-        Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
-                + " (DHCPServerMitarbeiter), verarbeiteNachricht(" + nachricht + ")");
-        String body;
-        StringTokenizer st;
-        String caddr;
-        String maddr;
-        String saddr;
-        String befehl;
-        DHCPServer dhcpServer;
-
-        dhcpServer = (DHCPServer) server;
-
-        st = new StringTokenizer(nachricht, " ");
-
-        befehl = st.nextToken();
-        caddr = st.nextToken();
-        maddr = st.nextToken();
-        saddr = st.nextToken();
-
-        // der Client sucht einen DHCP-Server
-        if (befehl.equalsIgnoreCase("DHCPDISCOVER")) {
-            angeboteneAdresse = dhcpServer.reserviereFreieIP(maddr, caddr);
-            // if (angeboteneAdresse == null)
-            // Main.debug.println("Adresse null");
-            // else if (maddr == null) Main.debug.println("MAC null");
-            macIPAdresse.put(maddr, angeboteneAdresse);
-
-            ((UDPSocket) socket).sendeBroadcast("DHCPOFFER " + caddr + " " + maddr + " " + saddr + " "
-                    + angeboteneAdresse);
+        DHCPMessage dhcpMessage = DHCPMessage.fromString(nachricht);
+        if (DHCPMessageType.DISCOVER.equals(dhcpMessage.getType())) {
+            processDiscover(dhcpMessage.getChaddr());
+        } else if (DHCPMessageType.REQUEST.equals(dhcpMessage.getType())) {
+            processRequest(dhcpMessage.getChaddr(), dhcpMessage.getRequestedAddress(),
+                    dhcpMessage.getServerIdentifier());
         }
-        // der Client fordert die angebotene IP-Adresse an
-        else if ((befehl.equalsIgnoreCase("DHCPREQUEST"))) {
-            angeboteneAdresse = macIPAdresse.get(maddr);
-            body = st.nextToken();
-            if (angeboteneAdresse != null && body.trim().equalsIgnoreCase(angeboteneAdresse)) {
-                dhcpServer.reserviereIPAdresse(maddr, body, 0);
-                ((UDPSocket) socket).sendeBroadcast("DHCPACK " + caddr + " " + maddr + " " + saddr + " " + body + " "
-                        + dhcpServer.getSubnetzmaske() + " " + dhcpServer.getGatewayip() + " "
-                        + dhcpServer.getDnsserverip());
-            } else {
-                ((UDPSocket) socket).sendeBroadcast("DHCPNAK " + caddr + " " + maddr + " " + saddr + " " + body);
+    }
+
+    void processDiscover(String mac) {
+        DHCPServer dhcpServer = (DHCPServer) server;
+        UDPSocket udpSocket = (UDPSocket) socket;
+        try {
+            String serverIpAddress = dhcpServer.holeServerIpAddress();
+            DHCPMessage response = DHCPMessage.createOfferMessage(mac, dhcpServer.offerAddress(mac),
+                    dhcpServer.getSubnetzmaske(), dhcpServer.getGatewayip(), dhcpServer.getDnsserverip(),
+                    serverIpAddress);
+            udpSocket.sendeBroadcast(serverIpAddress, response.toString());
+        } catch (NoAvailableAddressException e) {}
+    }
+
+    void processRequest(String mac, String ip, String serverIdentifier) {
+        DHCPServer dhcpServer = (DHCPServer) server;
+        UDPSocket udpSocket = (UDPSocket) socket;
+        String serverIpAddress = dhcpServer.holeServerIpAddress();
+        if (StringUtils.equalsIgnoreCase(serverIdentifier, serverIpAddress)) {
+            DHCPMessage response;
+            try {
+                response = DHCPMessage.createAckMessage(mac, dhcpServer.requestAddress(mac, ip).getIp(),
+                        serverIpAddress);
+            } catch (AddressRequestNotAcceptedException e) {
+                response = DHCPMessage.createNackMessage(mac, ip, serverIpAddress);
             }
-            macIPAdresse.remove(maddr);
-        }
-        // Die zugewiesene IP-Adresse eines Rechner wird wieder freigegeben
-        else if (befehl.equalsIgnoreCase("DHCPRELEASE")) {
-            dhcpServer.gibMACFrei(maddr);
-        }
-        // Abfrage der Standardeinstellungen (ohne neue IP-Adresse)
-        else if (befehl.equalsIgnoreCase("DHCPINFORM")) {
-            ((UDPSocket) socket).sendeBroadcast(caddr + " " + maddr + " " + saddr + " " + dhcpServer.getDnsserverip()
-                    + " " + dhcpServer.getGatewayip() + " " + dhcpServer.getSubnetzmaske());
-        }
-        // Client hat IP-Adresse abgelehnt
-        else if (befehl.equalsIgnoreCase("DHCPDECLINE")) {
-            dhcpServer.gibMACFrei(maddr);
-            macIPAdresse.remove(maddr);
+            udpSocket.sendeBroadcast(serverIpAddress, response.toString());
         } else {
-            Main.debug.println("ERROR (" + this.hashCode() + "): unbekannten DHCP-Nachrichtentyp empfangen: " + befehl);
+            dhcpServer.blacklistAddress(ip);
         }
     }
 }
