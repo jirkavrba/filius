@@ -25,7 +25,7 @@
  */
 package filius.software.dhcp;
 
-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbimport static filius.software.dhcp.DHCPClient.State.ASSIGN_IP;
+import static filius.software.dhcp.DHCPClient.State.ASSIGN_IP;
 import static filius.software.dhcp.DHCPClient.State.DECLINE;
 import static filius.software.dhcp.DHCPClient.State.DISCOVER;
 import static filius.software.dhcp.DHCPClient.State.FINISH;
