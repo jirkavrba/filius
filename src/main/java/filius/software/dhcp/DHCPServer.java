@@ -368,13 +368,24 @@ public class DHCPServer extends UDPServerAnwendung {
         return getSystemSoftware().holeNetzmaske();
     }
 
-    public List<DHCPAddressAssignment> getStaticAssignedAddresses() {
+    public List<DHCPAddressAssignment> holeStaticAssignedAddresses() {
         return Collections.unmodifiableList(staticAssignedAddresses);
     }
 
-    public void setStaticAssignedAddresses(List<DHCPAddressAssignment> assignedAddresses) {
+    public List<String> getStaticAssignedAddresses() {
+        List<String> entries = new ArrayList<>();
+        for (DHCPAddressAssignment entry : staticAssignedAddresses) {
+            entries.add(String.format("%s %s", entry.getMAC(), entry.getIp()));
+        }
+        return entries;
+    }
+
+    public void setStaticAssignedAddresses(List<String> assignedAddresses) {
         staticAssignedAddresses.clear();
-        staticAssignedAddresses.addAll(assignedAddresses);
+        for (String entry : assignedAddresses) {
+            String[] pair = StringUtils.split(entry);
+            staticAssignedAddresses.add(new DHCPAddressAssignment(pair[0], pair[1], 0));
+        }
     }
 
     public void addStaticAssignment(String mac, String ip) {
@@ -391,12 +402,7 @@ public class DHCPServer extends UDPServerAnwendung {
         }
     }
 
-    public void removeStaticAssignment(String macAddress) {
-        for (DHCPAddressAssignment entry : staticAssignedAddresses) {
-            if (StringUtils.equalsIgnoreCase(macAddress, entry.getMAC())) {
-                staticAssignedAddresses.remove(entry);
-                break;
-            }
-        }
+    public void clearStaticAssignments() {
+        staticAssignedAddresses.clear();
     }
 }
