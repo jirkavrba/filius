@@ -100,7 +100,16 @@ public class DHCPServer extends UDPServerAnwendung {
     }
 
     public synchronized String offerAddress(String mac) throws NoAvailableAddressException {
-        String addressToOffer = nextAddress();
+        String addressToOffer = findStaticOffer(mac);
+        if (addressToOffer == null) {
+            addressToOffer = findDynamicOffer(mac);
+        }
+        return addressToOffer;
+    }
+
+    private String findDynamicOffer(String mac) throws NoAvailableAddressException {
+        String addressToOffer;
+        addressToOffer = nextAddress();
         String firstOffer = addressToOffer;
         while (!checkAddressAvailable(addressToOffer)) {
             addressToOffer = nextAddress();
@@ -110,6 +119,17 @@ public class DHCPServer extends UDPServerAnwendung {
         }
         long leaseTime = System.currentTimeMillis() + 4 * Verbindung.holeRTT();
         offeredAddresses.add(new DHCPAddressAssignment(mac, addressToOffer, leaseTime));
+        return addressToOffer;
+    }
+
+    private String findStaticOffer(String mac) {
+        String addressToOffer = null;
+        for (DHCPAddressAssignment entry : staticAssignedAddresses) {
+            if (StringUtils.equalsIgnoreCase(mac, entry.getMAC())) {
+                addressToOffer = entry.getIp();
+                break;
+            }
+        }
         return addressToOffer;
     }
 
@@ -123,6 +143,26 @@ public class DHCPServer extends UDPServerAnwendung {
         if (assignmentListContains(blacklist, ip)) {
             throw new AddressRequestNotAcceptedException();
         }
+        DHCPAddressAssignment assignment = requestStaticAssignment(mac, ip);
+        if (assignment == null) {
+            assignment = requestDynamicAssignment(mac, ip);
+        }
+        return assignment;
+    }
+
+    private DHCPAddressAssignment requestStaticAssignment(String mac, String ip) {
+        DHCPAddressAssignment assignment = null;
+        for (DHCPAddressAssignment entry : staticAssignedAddresses) {
+            if (StringUtils.equalsIgnoreCase(mac, entry.getMAC()) && StringUtils.equalsIgnoreCase(ip, entry.getIp())) {
+                assignment = entry;
+                break;
+            }
+        }
+        return assignment;
+    }
+
+    private DHCPAddressAssignment requestDynamicAssignment(String mac, String ip)
+            throws AddressRequestNotAcceptedException {
         boolean success = false;
         for (DHCPAddressAssignment assignment : offeredAddresses) {
             if (StringUtils.equalsIgnoreCase(ip, assignment.getIp())) {
@@ -338,6 +378,25 @@ public class DHCPServer extends UDPServerAnwendung {
     }
 
     public void addStaticAssignment(String mac, String ip) {
-        staticAssignedAddresses.add(new DHCPAddressAssignment(mac, ip, 0));
+        boolean alreadyExisting = false;
+        for (DHCPAddressAssignment entry : staticAssignedAddresses) {
+            if (StringUtils.equalsIgnoreCase(entry.getMAC(), mac)) {
+                alreadyExisting = true;
+                break;
+            }
+        }
+        if (!alreadyExisting && EingabenUeberpruefung.isGueltig(mac, EingabenUeberpruefung.musterMacAddress)
+                && EingabenUeberpruefung.isGueltig(ip, EingabenUeberpruefung.musterIpAdresse)) {
+            staticAssignedAddresses.add(new DHCPAddressAssignment(mac, ip, 0));
+        }
+    }
+
+    public void removeStaticAssignment(String macAddress) {
+        for (DHCPAddressAssignment entry : staticAssignedAddresses) {
+            if (StringUtils.equalsIgnoreCase(macAddress, entry.getMAC())) {
+                staticAssignedAddresses.remove(entry);
+                break;
+            }
+        }
     }
 }

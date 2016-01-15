@@ -56,13 +56,13 @@ import filius.software.system.Betriebssystem;
 public class JHostKonfiguration extends JKonfiguration implements I18n {
 
     private static final int LABEL_WIDTH = 160;
-    private JTextField name; 
-    private JTextField macAdresse; 
-    private JTextField ipAdresse; 
-    private JTextField netzmaske; 
-    private JTextField gateway; 
-    private JTextField dns; 
-    private JCheckBox dhcp; 
+    private JTextField name;
+    private JTextField macAdresse;
+    private JTextField ipAdresse;
+    private JTextField netzmaske;
+    private JTextField gateway;
+    private JTextField dns;
+    private JCheckBox dhcp;
     private JButton btDhcp;
     private JCheckBox useIpAsName;
 
@@ -102,7 +102,7 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
             if (dhcp.isSelected()) {
                 bs.getDHCPServer().setAktiv(false);
             }
-            
+
         } else {
             Main.debug.println("GUIRechnerKonfiguration: Aenderungen konnten nicht uebernommen werden.");
         }
@@ -161,7 +161,7 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
         tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
         macAdresse = new JTextField("");
-        macAdresse.setEnabled(false);
+        macAdresse.setEditable(false);
 
         tempBox = Box.createHorizontalBox();
         tempBox.setOpaque(false);

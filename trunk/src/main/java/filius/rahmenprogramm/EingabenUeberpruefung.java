@@ -66,6 +66,7 @@ public class EingabenUeberpruefung implements I18n {
     public static final Pattern musterDomain = Pattern
             .compile("^([a-zA-Z][a-zA-Z0-9\\-_]*(\\.[a-zA-Z0-9][a-zA-Z0-9\\-_]*)*){0,1}\\.{0,1}$");
     public static final Pattern musterSubnetBinary = Pattern.compile("^11*0*$");
+    public static final Pattern musterMacAddress = Pattern.compile("^[0-9a-fA-f]{2}(:[0-9a-fA-f]{2}){5}$");
 
     public static final Color farbeFalsch = new Color(255, 20, 20);
     public static final Color farbeRichtig = new Color(0, 0, 0);
