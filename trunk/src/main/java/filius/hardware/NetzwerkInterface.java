@@ -25,10 +25,6 @@
  */
 package filius.hardware;
 
-import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
 import java.io.Serializable;
 
 import filius.Main;
@@ -36,139 +32,130 @@ import filius.rahmenprogramm.Information;
 
 public class NetzwerkInterface implements Serializable {
 
-	private static final long serialVersionUID = 1L;
-	private String mac;
-	private String ip;
-	private String subnetzMaske;
-	private String gateway;
-	private String dns;
-	private Port anschluss;
+    private static final long serialVersionUID = 1L;
+    private String mac;
+    private String ip;
+    private String subnetzMaske;
+    private String gateway;
+    private String dns;
+    private Port anschluss;
 
-	public NetzwerkInterface() {
-		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
-		        + " (NetzwerkInterface), constr: NetzwerkInterface()");
-		setMac(Information.getInformation().holeFreieMACAdresse());
-		// set initial IP address to the same value for all new devices
-		// QUESTION: Is this actually wanted for educational reasons?
-		// Or is it rather annoying to be enforced to change this address for
-		// each device?
-		setIp("192.168.0.10");
-		setSubnetzMaske("255.255.255.0");
-		setGateway("");
-		setDns("");
-		anschluss = new Port(this);
+    public NetzwerkInterface() {
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
+                + " (NetzwerkInterface), constr: NetzwerkInterface()");
+        setMac(Information.getInformation().holeFreieMACAdresse());
+        // set initial IP address to the same value for all new devices
+        // QUESTION: Is this actually wanted for educational reasons?
+        // Or is it rather annoying to be enforced to change this address for
+        // each device?
+        setIp("192.168.0.10");
+        setSubnetzMaske("255.255.255.0");
+        setGateway("");
+        setDns("");
+        anschluss = new Port(this);
 
-		this.initPersistenceAttributes();
-	}
+        // this.initPersistenceAttributes();
+    }
 
-	/**
-	 * This method is used to mark the MAC address as transient property in
-	 * order to avoid use of the same MAC address if the same project is opened
-	 * twice.
-	 */
-	private void initPersistenceAttributes() {
-		BeanInfo info;
-		try {
-			info = Introspector.getBeanInfo(NetzwerkInterface.class);
-			PropertyDescriptor[] propertyDescriptors = info.getPropertyDescriptors();
-			for (PropertyDescriptor descriptor : propertyDescriptors) {
+    /**
+     * This method is used to mark the MAC address as transient property in order to avoid use of the same MAC address
+     * if the same project is opened twice.
+     */
+    // private void initPersistenceAttributes() {
+    // BeanInfo info;
+    // try {
+    // info = Introspector.getBeanInfo(NetzwerkInterface.class);
+    // PropertyDescriptor[] propertyDescriptors = info.getPropertyDescriptors();
+    // for (PropertyDescriptor descriptor : propertyDescriptors) {
+    //
+    // if (descriptor.getName().equals("mac")) {
+    // descriptor.setValue("transient", Boolean.TRUE);
+    // break;
+    // }
+    // }
+    // } catch (IntrospectionException e) {
+    // e.printStackTrace();
+    // }
+    // }
 
-				if (descriptor.getName().equals("mac")) {
-					descriptor.setValue("transient", Boolean.TRUE);
-					break;
-				}
-			}
-		} catch (IntrospectionException e) {
-			e.printStackTrace();
-		}
-	}
+    public Port getPort() {
+        return anschluss;
+    }
 
-	public Port getPort() {
-		return anschluss;
-	}
+    public void setPort(Port port) {
+        this.anschluss = port;
+    }
 
-	public void setPort(Port port) {
-		this.anschluss = port;
-	}
+    /**
+     * IP-Adresse des DNS-Servers, der zur Aufloesung von Domainnamen verwendet wird.
+     * 
+     * NOTE: die IP-Adresse des DNS-Servers ist kein Parameter des Netzwerk-Interfaces, wird aber aus Gruenden der
+     * Kompatibilitaet hier verwaltet. Jedes Netzwerk-Interface der gleichen Komponente sollte hier den gleichen Wert
+     * haben!
+     */
+    public String getDns() {
+        return dns;
+    }
 
-	/**
-	 * IP-Adresse des DNS-Servers, der zur Aufloesung von Domainnamen verwendet
-	 * wird.
-	 * 
-	 * NOTE: die IP-Adresse des DNS-Servers ist kein Parameter des
-	 * Netzwerk-Interfaces, wird aber aus Gruenden der Kompatibilitaet hier
-	 * verwaltet. Jedes Netzwerk-Interface der gleichen Komponente sollte hier
-	 * den gleichen Wert haben!
-	 */
-	public String getDns() {
-		return dns;
-	}
+    /**
+     * IP-Adresse des DNS-Servers, der zur Aufloesung von Domainnamen verwendet wird.
+     * 
+     * @deprecated die IP-Adresse des DNS-Servers ist kein Parameter des Netzwerk-Interfaces, wird aber aus Gruenden der
+     *             Kompatibilitaet hier verwaltet. Jedes Netzwerk-Interface der gleichen Komponente sollte hier den
+     *             gleichen Wert haben!
+     */
+    public void setDns(String dns) {
+        this.dns = dns;
+    }
 
-	/**
-	 * IP-Adresse des DNS-Servers, der zur Aufloesung von Domainnamen verwendet
-	 * wird.
-	 * 
-	 * @deprecated die IP-Adresse des DNS-Servers ist kein Parameter des
-	 *             Netzwerk-Interfaces, wird aber aus Gruenden der
-	 *             Kompatibilitaet hier verwaltet. Jedes Netzwerk-Interface der
-	 *             gleichen Komponente sollte hier den gleichen Wert haben!
-	 */
-	public void setDns(String dns) {
-		this.dns = dns;
-	}
+    public String getIp() {
+        return ip;
+    }
 
-	public String getIp() {
-		return ip;
-	}
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
 
-	public void setIp(String ip) {
-		this.ip = ip;
-	}
+    public String getMac() {
+        return mac.toUpperCase();
+    }
 
-	public String getMac() {
-		return mac.toUpperCase();
-	}
+    public void setMac(String mac) {
+        if (mac != null) {
+            Information.getInformation().macHinzufuegen(mac);
+            this.mac = mac;
+        }
+    }
 
-	public void setMac(String mac) {
-		if (mac != null) {
-			Information.getInformation().macHinzufuegen(mac);
-			this.mac = mac;
-		}
-	}
+    public String getSubnetzMaske() {
+        return subnetzMaske;
+    }
 
-	public String getSubnetzMaske() {
-		return subnetzMaske;
-	}
+    public void setSubnetzMaske(String subnetzMaske) {
+        this.subnetzMaske = subnetzMaske;
+    }
 
-	public void setSubnetzMaske(String subnetzMaske) {
-		this.subnetzMaske = subnetzMaske;
-	}
+    /**
+     * IP-Adresse des Standard-Gateways. Dorthin werden alle Pakete gesendet, fuer dessen Zieladresse kein anderer
+     * Eintrag in der Weiterleitungstabelle vorhanden ist.
+     * 
+     * NOTE: die IP-Adresse des Standard-Gateways ist kein Parameter des Netzwerk-Interfaces, wird aber aus Gruenden der
+     * Kompatibilitaet hier verwaltet. Jedes Netzwerk-Interface der gleichen Komponente sollte hier den gleichen Wert
+     * haben!
+     */
+    public String getGateway() {
+        return gateway;
+    }
 
-	/**
-	 * IP-Adresse des Standard-Gateways. Dorthin werden alle Pakete gesendet,
-	 * fuer dessen Zieladresse kein anderer Eintrag in der Weiterleitungstabelle
-	 * vorhanden ist.
-	 * 
-	 * NOTE: die IP-Adresse des Standard-Gateways ist kein Parameter des
-	 * Netzwerk-Interfaces, wird aber aus Gruenden der Kompatibilitaet hier
-	 * verwaltet. Jedes Netzwerk-Interface der gleichen Komponente sollte hier
-	 * den gleichen Wert haben!
-	 */
-	public String getGateway() {
-		return gateway;
-	}
-
-	/**
-	 * IP-Adresse des Standard-Gateways. Dorthin werden alle Pakete gesendet,
-	 * fuer dessen Zieladresse kein anderer Eintrag in der Weiterleitungstabelle
-	 * vorhanden ist.
-	 * 
-	 * @deprecated die IP-Adresse des Standard-Gateways ist kein Parameter des
-	 *             Netzwerk-Interfaces, wird aber aus Gruenden der
-	 *             Kompatibilitaet hier verwaltet. Jedes Netzwerk-Interface der
-	 *             gleichen Komponente sollte hier den gleichen Wert haben!
-	 */
-	public void setGateway(String gateway) {
-		this.gateway = gateway;
-	}
+    /**
+     * IP-Adresse des Standard-Gateways. Dorthin werden alle Pakete gesendet, fuer dessen Zieladresse kein anderer
+     * Eintrag in der Weiterleitungstabelle vorhanden ist.
+     * 
+     * @deprecated die IP-Adresse des Standard-Gateways ist kein Parameter des Netzwerk-Interfaces, wird aber aus
+     *             Gruenden der Kompatibilitaet hier verwaltet. Jedes Netzwerk-Interface der gleichen Komponente sollte
+     *             hier den gleichen Wert haben!
+     */
+    public void setGateway(String gateway) {
+        this.gateway = gateway;
+    }
 }

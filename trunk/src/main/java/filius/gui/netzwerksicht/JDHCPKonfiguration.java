@@ -249,7 +249,7 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         borderPanel.setPreferredSize(new Dimension(325, 105));
 
         tabbedPane = new JTabbedPane();
-        tabbedPane.add("Standard", jpDhcp);
+        tabbedPane.add(messages.getString("jdhcpkonfiguration_msg10"), jpDhcp);
         tabbedPane.setPreferredSize(new Dimension(360, 320));
         getContentPane().add(tabbedPane, BorderLayout.CENTER);
         JPanel buttonPanel = new JPanel();
@@ -257,7 +257,7 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         buttonPanel.add(btUebernehmen, BorderLayout.CENTER);
         getContentPane().add(buttonPanel, BorderLayout.SOUTH);
 
-        tabbedPane.add("Statische Adressvergabe", createStaticConfigPanel());
+        tabbedPane.add(messages.getString("jdhcpkonfiguration_msg11"), createStaticConfigPanel());
 
         update();
     }
@@ -276,7 +276,7 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         hBox = Box.createHorizontalBox();
         hBox.add(Box.createHorizontalStrut(5));
 
-        JLabel macAddressLabel = new JLabel(messages.getString("dnsserver_msg4"));
+        JLabel macAddressLabel = new JLabel(messages.getString("jdhcpkonfiguration_msg12"));
         macAddressLabel.setPreferredSize(new Dimension(170, 25));
         hBox.add(macAddressLabel);
         hBox.add(Box.createHorizontalStrut(5));
@@ -296,7 +296,7 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         hBox = Box.createHorizontalBox();
         hBox.add(Box.createHorizontalStrut(5));
 
-        JLabel ipAddressLabel = new JLabel(messages.getString("dnsserver_msg5"));
+        JLabel ipAddressLabel = new JLabel(messages.getString("jdhcpkonfiguration_msg13"));
         ipAddressLabel.setPreferredSize(new Dimension(170, 25));
         hBox.add(ipAddressLabel);
         hBox.add(Box.createHorizontalStrut(5));
@@ -316,7 +316,7 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         hBox = Box.createHorizontalBox();
         hBox.add(Box.createHorizontalStrut(5));
 
-        JButton addButton = new JButton(messages.getString("dnsserver_msg6"));
+        JButton addButton = new JButton(messages.getString("jdhcpkonfiguration_msg14"));
         addButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
                 if (ueberpruefen(EingabenUeberpruefung.musterMacAddress, macAddressTextField)
@@ -331,7 +331,7 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         hBox.add(addButton);
         hBox.add(Box.createHorizontalStrut(5));
 
-        JButton removeButton = new JButton(messages.getString("dnsserver_msg7"));
+        JButton removeButton = new JButton(messages.getString("jdhcpkonfiguration_msg15"));
         removeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 int zeilenNummer = staticAddressTable.getSelectedRow();
@@ -358,7 +358,7 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         vBox.add(Box.createVerticalStrut(5));
 
         tabellenModell = new DefaultTableModel(0, 2);
-        staticAddressTable = new JTableEditable(tabellenModell, true, "A");
+        staticAddressTable = new JTableEditable(tabellenModell, false);
         staticAddressTable.setIntercellSpacing(new Dimension(5, 5));
         staticAddressTable.setRowHeight(30);
         staticAddressTable.setShowGrid(false);
@@ -367,8 +367,8 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         staticAddressTable.setShowHorizontalLines(true);
 
         tcm = staticAddressTable.getColumnModel();
-        tcm.getColumn(0).setHeaderValue(messages.getString("dnsserver_msg8"));
-        tcm.getColumn(1).setHeaderValue(messages.getString("dnsserver_msg9"));
+        tcm.getColumn(0).setHeaderValue(messages.getString("jdhcpkonfiguration_msg12"));
+        tcm.getColumn(1).setHeaderValue(messages.getString("jdhcpkonfiguration_msg13"));
         scrollPane = new JScrollPane(staticAddressTable);
 
         vBox.add(scrollPane);
@@ -411,11 +411,9 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         tfDNSServer.setText(server.getDnsserverip());
         cbUseInternal.setSelected(server.isOwnSettings());
         cbAktiv.setSelected(server.isAktiv());
-        int i = 0;
         ((DefaultTableModel) staticAddressTable.getModel()).setRowCount(0);
-        for (DHCPAddressAssignment entry : server.getStaticAssignedAddresses()) {
+        for (DHCPAddressAssignment entry : server.holeStaticAssignedAddresses()) {
             ((DefaultTableModel) staticAddressTable.getModel()).addRow(new Object[] { entry.getMAC(), entry.getIp() });
-            i++;
         }
     }
 
@@ -454,6 +452,7 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
 
         server.setAktiv(cbAktiv.isSelected());
 
+        server.clearStaticAssignments();
         for (int i = 0; i < staticAddressTable.getRowCount(); i++) {
             server.addStaticAssignment((String) staticAddressTable.getValueAt(i, 0),
                     (String) staticAddressTable.getValueAt(i, 1));
