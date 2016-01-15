@@ -25,6 +25,7 @@
  */
 package filius.gui.netzwerksicht;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -34,21 +35,31 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
 
 import filius.Main;
+import filius.gui.anwendungssicht.JTableEditable;
 import filius.rahmenprogramm.EingabenUeberpruefung;
 import filius.rahmenprogramm.I18n;
+import filius.software.dhcp.DHCPAddressAssignment;
 import filius.software.dhcp.DHCPServer;
 import filius.software.system.Betriebssystem;
 
@@ -63,18 +74,18 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
     private JTextField tfDNSServer;
     private JCheckBox cbAktiv;
     private JCheckBox cbUseInternal;
+    private JTabbedPane tabbedPane;
+    protected JTable staticAddressTable;
 
     public JDHCPKonfiguration(JFrame owner, String titel, Betriebssystem bs) {
         super(owner, titel, true);
         this.server = bs.getDHCPServer();
 
-        this.setSize(380, 360);
+        this.setSize(380, 380);
         this.setResizable(false);
 
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-
         Point location = new Point((screen.width / 2) - 190, (screen.height / 2) - 140);
-
         this.setLocation(location);
 
         initComponents();
@@ -149,41 +160,25 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         borderPanel.setOpaque(false);
         jpDhcp.add(borderPanel);
 
-        jpDhcp.add(lbGateway);
-        jpDhcp.add(lbDNSServer);
-
         jpDhcp.add(tfUntergrenze);
         jpDhcp.add(tfObergrenze);
         jpDhcp.add(tfNetzmaske);
 
+        jpDhcp.add(lbGateway);
+        jpDhcp.add(lbDNSServer);
         jpDhcp.add(tfGateway);
         jpDhcp.add(tfDNSServer);
 
         btUebernehmen = new JButton(messages.getString("jdhcpkonfiguration_msg7"));
         btUebernehmen.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
-                if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfObergrenze))
-                    server.setObergrenze(tfObergrenze.getText());
-
-                if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfUntergrenze))
-                    server.setUntergrenze(tfUntergrenze.getText());
-
-                if (cbUseInternal.isSelected()) {
-                    server.setOwnSettings(true);
-                    if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfGateway))
-                        server.setGatewayip(tfGateway.getText());
-                    if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfDNSServer))
-                        server.setDnsserverip(tfDNSServer.getText());
-                } else {
-                    server.setOwnSettings(false);
-                }
-
-                server.setAktiv(cbAktiv.isSelected());
+                speichern();
 
                 update();
                 config.setVisible(false);
             }
         });
+        btUebernehmen.setSize(new Dimension(50, 30));
 
         lbAktiv = new JLabel(messages.getString("jdhcpkonfiguration_msg6"));
         lbAktiv.setPreferredSize(new Dimension(200, 15));
@@ -202,7 +197,6 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
 
         jpDhcp.add(lbAktiv);
         jpDhcp.add(cbAktiv);
-        jpDhcp.add(btUebernehmen);
 
         /* Layout. Set positions with Constraints. */
         // Labels:
@@ -243,22 +237,143 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         layout.putConstraint(SpringLayout.SOUTH, cbUseInternal, 4, SpringLayout.SOUTH, lbUseInternal);
 
         /* Layout */
-        layout.putConstraint(SpringLayout.NORTH, cbAktiv, 30, SpringLayout.SOUTH, lbUseInternal);
+        layout.putConstraint(SpringLayout.NORTH, cbAktiv, 25, SpringLayout.SOUTH, lbUseInternal);
         layout.putConstraint(SpringLayout.WEST, cbAktiv, 25, SpringLayout.WEST, this.getContentPane());
 
         layout.putConstraint(SpringLayout.NORTH, lbAktiv, 4, SpringLayout.NORTH, cbAktiv);
         layout.putConstraint(SpringLayout.WEST, lbAktiv, 4, SpringLayout.EAST, cbAktiv);
 
-        layout.putConstraint(SpringLayout.NORTH, btUebernehmen, 10, SpringLayout.SOUTH, lbAktiv);
-        layout.putConstraint(SpringLayout.WEST, btUebernehmen, 25, SpringLayout.WEST, this.getContentPane());
-
         layout.putConstraint(SpringLayout.NORTH, borderPanel, 10, SpringLayout.SOUTH, tfNetzmaske);
         layout.putConstraint(SpringLayout.WEST, borderPanel, 25, SpringLayout.WEST, this.getContentPane());
 
         borderPanel.setPreferredSize(new Dimension(325, 105));
-        getContentPane().add(jpDhcp);
+
+        tabbedPane = new JTabbedPane();
+        tabbedPane.add("Standard", jpDhcp);
+        tabbedPane.setPreferredSize(new Dimension(360, 320));
+        getContentPane().add(tabbedPane, BorderLayout.CENTER);
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setSize(360, 40);
+        buttonPanel.add(btUebernehmen, BorderLayout.CENTER);
+        getContentPane().add(buttonPanel, BorderLayout.SOUTH);
+
+        tabbedPane.add("Statische Adressvergabe", createStaticConfigPanel());
 
         update();
+    }
+
+    private JPanel createStaticConfigPanel() {
+        Box vBox, hBox;
+        DefaultTableModel tabellenModell;
+        TableColumnModel tcm;
+        JScrollPane scrollPane;
+
+        JPanel staticConfigPanel = new JPanel(new BorderLayout());
+
+        vBox = Box.createVerticalBox();
+        vBox.add(Box.createVerticalStrut(5));
+
+        hBox = Box.createHorizontalBox();
+        hBox.add(Box.createHorizontalStrut(5));
+
+        JLabel macAddressLabel = new JLabel(messages.getString("dnsserver_msg4"));
+        macAddressLabel.setPreferredSize(new Dimension(170, 25));
+        hBox.add(macAddressLabel);
+        hBox.add(Box.createHorizontalStrut(5));
+
+        JTextField macAddressTextField = new JTextField();
+        macAddressTextField.setPreferredSize(new Dimension(275, 25));
+        macAddressTextField.addKeyListener(new KeyAdapter() {
+            public void keyReleased(KeyEvent e) {
+                ueberpruefen(EingabenUeberpruefung.musterMacAddress, macAddressTextField);
+            }
+        });
+        hBox.add(macAddressTextField);
+
+        vBox.add(hBox);
+        vBox.add(Box.createVerticalStrut(5));
+
+        hBox = Box.createHorizontalBox();
+        hBox.add(Box.createHorizontalStrut(5));
+
+        JLabel ipAddressLabel = new JLabel(messages.getString("dnsserver_msg5"));
+        ipAddressLabel.setPreferredSize(new Dimension(170, 25));
+        hBox.add(ipAddressLabel);
+        hBox.add(Box.createHorizontalStrut(5));
+
+        JTextField ipAddressTextField = new JTextField();
+        ipAddressTextField.setPreferredSize(new Dimension(275, 25));
+        ipAddressTextField.addKeyListener(new KeyAdapter() {
+            public void keyReleased(KeyEvent e) {
+                ueberpruefen(EingabenUeberpruefung.musterIpAdresse, ipAddressTextField);
+            }
+        });
+        hBox.add(ipAddressTextField);
+
+        vBox.add(hBox);
+        vBox.add(Box.createVerticalStrut(5));
+
+        hBox = Box.createHorizontalBox();
+        hBox.add(Box.createHorizontalStrut(5));
+
+        JButton addButton = new JButton(messages.getString("dnsserver_msg6"));
+        addButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent arg0) {
+                if (ueberpruefen(EingabenUeberpruefung.musterMacAddress, macAddressTextField)
+                        && ueberpruefen(EingabenUeberpruefung.musterIpAdresse, ipAddressTextField)) {
+                    ((DefaultTableModel) staticAddressTable.getModel()).addRow(new Object[] {
+                            macAddressTextField.getText(), ipAddressTextField.getText() });
+                    macAddressTextField.setText("");
+                    ipAddressTextField.setText("");
+                }
+            }
+        });
+        hBox.add(addButton);
+        hBox.add(Box.createHorizontalStrut(5));
+
+        JButton removeButton = new JButton(messages.getString("dnsserver_msg7"));
+        removeButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int zeilenNummer = staticAddressTable.getSelectedRow();
+                if (zeilenNummer != -1) {
+                    List<String> macAddresses = new ArrayList<>();
+                    List<String> ipAddresses = new ArrayList<>();
+                    for (int i = 0; i < staticAddressTable.getModel().getRowCount(); i++) {
+                        if (i != zeilenNummer) {
+                            macAddresses.add((String) staticAddressTable.getModel().getValueAt(i, 0));
+                            ipAddresses.add((String) staticAddressTable.getModel().getValueAt(i, 1));
+                        }
+                    }
+                    ((DefaultTableModel) staticAddressTable.getModel()).setRowCount(0);
+                    for (int i = 0; i < macAddresses.size() && i < ipAddresses.size(); i++) {
+                        ((DefaultTableModel) staticAddressTable.getModel()).addRow(new Object[] { macAddresses.get(i),
+                                ipAddresses.get(i) });
+                    }
+                }
+            }
+        });
+        hBox.add(removeButton);
+
+        vBox.add(hBox);
+        vBox.add(Box.createVerticalStrut(5));
+
+        tabellenModell = new DefaultTableModel(0, 2);
+        staticAddressTable = new JTableEditable(tabellenModell, true, "A");
+        staticAddressTable.setIntercellSpacing(new Dimension(5, 5));
+        staticAddressTable.setRowHeight(30);
+        staticAddressTable.setShowGrid(false);
+        staticAddressTable.setFillsViewportHeight(true);
+        staticAddressTable.setBackground(Color.WHITE);
+        staticAddressTable.setShowHorizontalLines(true);
+
+        tcm = staticAddressTable.getColumnModel();
+        tcm.getColumn(0).setHeaderValue(messages.getString("dnsserver_msg8"));
+        tcm.getColumn(1).setHeaderValue(messages.getString("dnsserver_msg9"));
+        scrollPane = new JScrollPane(staticAddressTable);
+
+        vBox.add(scrollPane);
+        staticConfigPanel.add(vBox, BorderLayout.CENTER);
+        return staticConfigPanel;
     }
 
     /** Listens to the check boxes. */
@@ -296,6 +411,12 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         tfDNSServer.setText(server.getDnsserverip());
         cbUseInternal.setSelected(server.isOwnSettings());
         cbAktiv.setSelected(server.isAktiv());
+        int i = 0;
+        ((DefaultTableModel) staticAddressTable.getModel()).setRowCount(0);
+        for (DHCPAddressAssignment entry : server.getStaticAssignedAddresses()) {
+            ((DefaultTableModel) staticAddressTable.getModel()).addRow(new Object[] { entry.getMAC(), entry.getIp() });
+            i++;
+        }
     }
 
     public boolean ueberpruefen(Pattern pruefRegel, JTextField feld) {
@@ -312,6 +433,31 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
             return false;
         }
 
+    }
+
+    private void speichern() {
+        if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfObergrenze))
+            server.setObergrenze(tfObergrenze.getText());
+
+        if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfUntergrenze))
+            server.setUntergrenze(tfUntergrenze.getText());
+
+        if (cbUseInternal.isSelected()) {
+            server.setOwnSettings(true);
+            if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfGateway))
+                server.setGatewayip(tfGateway.getText());
+            if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfDNSServer))
+                server.setDnsserverip(tfDNSServer.getText());
+        } else {
+            server.setOwnSettings(false);
+        }
+
+        server.setAktiv(cbAktiv.isSelected());
+
+        for (int i = 0; i < staticAddressTable.getRowCount(); i++) {
+            server.addStaticAssignment((String) staticAddressTable.getValueAt(i, 0),
+                    (String) staticAddressTable.getValueAt(i, 1));
+        }
     }
 
 }
