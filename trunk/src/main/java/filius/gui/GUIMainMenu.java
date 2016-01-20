@@ -43,6 +43,7 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
+import javax.tools.ToolProvider;
 
 import filius.Main;
 import filius.gui.netzwerksicht.GUIKabelItem;
@@ -124,11 +125,13 @@ public class GUIMainMenu implements Serializable, I18n {
         btDokumodus.setActionCommand("dokumodus");
         btDokumodus.setToolTipText(messages.getString("guimainmemu_msg14"));
 
-        btWizard = new JButton();
-        btWizard.setIcon(new ImageIcon(getClass().getResource("/gfx/allgemein/button_wizard.png")));
-        btWizard.setBounds(660, 5, btWizard.getIcon().getIconWidth(), btWizard.getIcon().getIconHeight());
-        btWizard.setActionCommand("wizard");
-        btWizard.setToolTipText(messages.getString("guimainmemu_msg6"));
+        if (null != ToolProvider.getSystemJavaCompiler()) {
+            btWizard = new JButton();
+            btWizard.setIcon(new ImageIcon(getClass().getResource("/gfx/allgemein/button_wizard.png")));
+            btWizard.setBounds(660, 5, btWizard.getIcon().getIconWidth(), btWizard.getIcon().getIconHeight());
+            btWizard.setActionCommand("wizard");
+            btWizard.setToolTipText(messages.getString("guimainmemu_msg6"));
+        }
 
         btHilfe = new JButton();
         btHilfe.setIcon(new ImageIcon(getClass().getResource("/gfx/allgemein/hilfe.png")));
@@ -148,7 +151,7 @@ public class GUIMainMenu implements Serializable, I18n {
                 int entscheidung = JOptionPane.YES_OPTION;
                 boolean erfolg;
 
-                if (e.getActionCommand().equals(btWizard.getActionCommand())) {
+                if (btWizard != null && e.getActionCommand().equals(btWizard.getActionCommand())) {
                     FrameSoftwareWizard gsw = new FrameSoftwareWizard();
                     gsw.setVisible(true);
                 }
@@ -282,7 +285,9 @@ public class GUIMainMenu implements Serializable, I18n {
         btEntwurfsmodus.addActionListener(al);
         btAktionsmodus.addActionListener(al);
         btDokumodus.addActionListener(al);
-        btWizard.addActionListener(al);
+        if (btWizard != null) {
+            btWizard.addActionListener(al);
+        }
         btInfo.addActionListener(al);
         btHilfe.addActionListener(al);
 
@@ -317,7 +322,9 @@ public class GUIMainMenu implements Serializable, I18n {
         menupanel.add(btSpeichern);
         menupanel.add(verzoegerung);
         menupanel.add(geschwindigkeit);
-        menupanel.add(btWizard);
+        if (btWizard != null) {
+            menupanel.add(btWizard);
+        }
         menupanel.add(btHilfe);
         menupanel.add(btInfo);
 
@@ -406,7 +413,9 @@ public class GUIMainMenu implements Serializable, I18n {
             btOeffnen.setEnabled(true);
             btNeu.setEnabled(true);
             btSpeichern.setEnabled(true);
-            btWizard.setEnabled(true);
+            if (btWizard != null) {
+                btWizard.setEnabled(true);
+            }
         } else if (mode == MODUS_DOKUMENTATION) {
             resetCableHighlighting(mode); // de-highlight cables
 
@@ -422,7 +431,9 @@ public class GUIMainMenu implements Serializable, I18n {
             btOeffnen.setEnabled(true);
             btNeu.setEnabled(true);
             btSpeichern.setEnabled(true);
-            btWizard.setEnabled(false);
+            if (btWizard != null) {
+                btWizard.setEnabled(false);
+            }
         } else if (mode == MODUS_AKTION && aktuellerModus != MODUS_AKTION) {
             // Main.debug.println("\tMode: MODUS_AKTION");
             resetCableHighlighting(mode); // de-highlight cables
@@ -442,7 +453,9 @@ public class GUIMainMenu implements Serializable, I18n {
             btOeffnen.setEnabled(false);
             btNeu.setEnabled(false);
             btSpeichern.setEnabled(false);
-            btWizard.setEnabled(false);
+            if (btWizard != null) {
+                btWizard.setEnabled(false);
+            }
 
             geschwindigkeit.setEnabled(true);
             verzoegerung.setEnabled(true);
