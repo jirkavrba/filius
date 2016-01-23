@@ -45,98 +45,100 @@ import filius.rahmenprogramm.Information;
 
 public class GUIHilfe implements I18n {
 
-	private JDialog jf;
-	private static GUIHilfe ref = null;
-	private JScrollPane spHtmlScroller;
-	private JEditorPane epHtml;
+    private JDialog jf;
+    private static GUIHilfe ref = null;
+    private JScrollPane spHtmlScroller;
+    private JEditorPane epHtml;
 
-	private GUIHilfe() {
-		JFrame hauptFrame = JMainFrame.getJMainFrame();
-		jf = new JDialog(hauptFrame, messages.getString("guihilfe_msg1"), false);
-		ImageIcon frameIcon = new ImageIcon(getClass().getResource("/gfx/allgemein/hilfe.png"));
-		jf.setIconImage(frameIcon.getImage());
+    private GUIHilfe() {
+        JFrame hauptFrame = JMainFrame.getJMainFrame();
+        jf = new JDialog(hauptFrame, messages.getString("guihilfe_msg1"), false);
+        ImageIcon frameIcon = new ImageIcon(getClass().getResource("/gfx/allgemein/hilfe.png"));
+        jf.setIconImage(frameIcon.getImage());
 
-		epHtml = new JEditorPane();
+        epHtml = new JEditorPane();
 
-		epHtml.setContentType("text/html");
-		epHtml.setText(messages.getString("guihilfe_msg2"));
-		laden("entwurfsmodus");
-		spHtmlScroller = new JScrollPane(epHtml);
+        epHtml.setContentType("text/html");
+        epHtml.setText(messages.getString("guihilfe_msg2"));
+        laden("entwurfsmodus");
+        spHtmlScroller = new JScrollPane(epHtml);
 
-		jf.getContentPane().add(spHtmlScroller, BorderLayout.CENTER);
-	}
+        jf.getContentPane().add(spHtmlScroller, BorderLayout.CENTER);
+    }
 
-	public static GUIHilfe getGUIHilfe() {
-		if (ref == null) {
-			ref = new GUIHilfe();
-		}
+    public static GUIHilfe getGUIHilfe() {
+        if (ref == null) {
+            ref = new GUIHilfe();
+        }
 
-		return ref;
-	}
+        return ref;
+    }
 
-	public void anzeigen() {
-		int breite = 350, hoehe = 600, x, y;
-		int absBreite, absHoehe;
+    public void anzeigen() {
+        int breite = 350, hoehe = 600, x, y;
+        int absBreite, absHoehe;
 
-		absBreite = (int) Toolkit.getDefaultToolkit().getScreenSize().getWidth();
-		absHoehe = (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight();
+        absBreite = (int) Toolkit.getDefaultToolkit().getScreenSize().getWidth();
+        absHoehe = (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight();
 
-		JFrame hauptFrame = JMainFrame.getJMainFrame();
-		x = hauptFrame.getX() + hauptFrame.getWidth();
-		y = hauptFrame.getY();
+        JFrame hauptFrame = JMainFrame.getJMainFrame();
+        x = hauptFrame.getX() + hauptFrame.getWidth();
+        y = hauptFrame.getY();
 
-		if (y + hoehe > absHoehe)
-			y = 0;
-		if (x + breite > absBreite && x + breite - 50 < absBreite) {
-			breite = absBreite - x;
-		} else if (x + breite > absBreite) {
-			breite = breite - 50;
-			x = absBreite - breite;
-		}
+        if (y + hoehe > absHoehe)
+            y = 0;
+        if (x + breite > absBreite && x + breite - 50 < absBreite) {
+            breite = absBreite - x;
+        } else if (x + breite > absBreite) {
+            breite = breite - 50;
+            x = absBreite - breite;
+        }
 
-		jf.setBounds(x, y, breite, hoehe);
+        jf.setBounds(x, y, breite, hoehe);
 
-		jf.setVisible(true);
+        jf.setVisible(true);
 
-	}
+    }
 
-	public void laden(String modus) {
-		File file;
-		if (modus.equalsIgnoreCase("entwurfsmodus")) {
-			file = new File(Information.getInformation().getProgrammPfad() + "hilfe" + File.separator
-			        + messages.getString("hilfedatei_entwurf"));
-		} else {
-			file = new File(Information.getInformation().getProgrammPfad() + "hilfe" + File.separator
-			        + messages.getString("hilfedatei_simulation"));
-		}
-		try {
-			StringBuffer sb = new StringBuffer((int) file.length() + 5);
-			BufferedReader reader = new BufferedReader(new FileReader(file));
-			char[] chars = new char[(int) file.length() + 5];
-			int numRead = 0;
-			while ((numRead = reader.read(chars)) > -1) {
-				sb.append(String.valueOf(chars));
-			}
-			reader.close();
-			String newText = sb.toString();
-			// newText = newText.replaceAll("hilfe/gfx",
-			// Information.getInformation().getRelativePathToProgramDir()+"hilfe/gfx");
-			String newPath = Information.getInformation().getRelativePathToProgramDir();
-			// Main.debug.println("DEBUG: Hilfe, laden:   (1) newPath='"+newPath+"'");
-			if (File.separator.equals("\\")) {
-				newPath = newPath.replace('\\', '/');
-				// newPath = newPath.replaceAll("/", "\\\\\\\\");
-			}
-			// Main.debug.println("DEBUG: Hilfe, laden:   (2) newPath='"+newPath+"'");
-			newText = newText.replaceAll("hilfe/gfx/", newPath + "hilfe/gfx/");
-			epHtml.read(new java.io.StringReader(newText), null);
+    public void laden(String modus) {
+        File file;
+        if (modus.equalsIgnoreCase("entwurfsmodus")) {
+            file = new File(ClassLoader.getSystemResource("hilfe/" + messages.getString("hilfedatei_entwurf"))
+                    .getFile());
+        } else {
+            file = new File(ClassLoader.getSystemResource("hilfe/" + messages.getString("hilfedatei_simulation"))
+                    .getFile());
+        }
+        try {
+            StringBuffer sb = new StringBuffer((int) file.length() + 5);
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+            char[] chars = new char[(int) file.length() + 5];
+            int numRead = 0;
+            while ((numRead = reader.read(chars)) > -1) {
+                sb.append(String.valueOf(chars));
+            }
+            reader.close();
+            String newText = sb.toString();
+            // newText = newText.replaceAll("hilfe/gfx",
+            // Information.getInformation().getRelativePathToProgramDir()+"hilfe/gfx");
+            String newPath = Information.getInformation().getRelativePathToProgramDir();
+            newPath = "file:" + file.getParentFile().getAbsolutePath() + "/gfx/";
+            // Main.debug.println("DEBUG: Hilfe, laden:   (1) newPath='"+newPath+"'");
+            if (File.separator.equals("\\")) {
+                newPath = newPath.replace('\\', '/');
+                // newPath = newPath.replaceAll("/", "\\\\\\\\");
+            }
+            // Main.debug.println("DEBUG: Hilfe, laden:   (2) newPath='"+newPath+"'");
+            newText = newText.replaceAll("hilfe/gfx/", newPath);
+            System.out.println(newText);
+            epHtml.read(new java.io.StringReader(newText), null);
 
-			epHtml.setCaretPosition(0);
-			// Main.debug.println("DEBUG: Hilfe, laden:\n"+epHtml.getText());
-		} catch (FileNotFoundException e) {
-			e.printStackTrace(Main.debug);
-		} catch (IOException e) {
-			e.printStackTrace(Main.debug);
-		}
-	}
+            epHtml.setCaretPosition(0);
+            // Main.debug.println("DEBUG: Hilfe, laden:\n"+epHtml.getText());
+        } catch (FileNotFoundException e) {
+            e.printStackTrace(Main.debug);
+        } catch (IOException e) {
+            e.printStackTrace(Main.debug);
+        }
+    }
 }
