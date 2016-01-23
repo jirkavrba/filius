@@ -20,12 +20,6 @@
 		<launch4j.version>1.5.2</launch4j.version>
 		<launch4j.starterName>Filius.exe</launch4j.starterName>
 		<launch4j.setupStarterName>Filius-Setup-${project.version}.exe</launch4j.setupStarterName>
-		<izpack.version>5.0.0-beta11</izpack.version>
-		<izpack.staging>${project.build.directory}/izpack</izpack.staging>
-		<izpack.appName>Filius</izpack.appName>
-		<izpack.url>http://www.lernsoftware-filius.de</izpack.url>
-		<izpack.installDir>Filius</izpack.installDir>
-		<izpack.appVersion>${project.version}</izpack.appVersion>
 		<commons-lang3.version>3.3.2</commons-lang3.version>
 		<commons-io.version>2.4</commons-io.version>
 	</properties>
@@ -85,7 +79,18 @@
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
+				<filtering>false</filtering>
+				<excludes>
+					<exclude>**/Thumbs.db</exclude>
+					<exclude>application.properties</exclude>
+				</excludes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
 				<filtering>true</filtering>
+				<includes>
+					<include>application.properties</include>
+				</includes>
 			</resource>
 		</resources>
 
@@ -110,10 +115,67 @@
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>lib/</classpathPrefix>
 						</manifest>
+						<manifestEntries>
+							<Class-Path>.b</Class-Path>
+						</manifestEntries>
 					</archive>
 				</configuration>
 			</plugin>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.7</version>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<!-- here the phase you need -->
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/nsis</directory>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</resource>
+								<resource>
+									<directory>src/info</directory>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</resource>
+								<resource>
+									<directory>src/scripts</directory>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
+			<plugin>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-product-dependencies</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<excludeArtifactIds>junit,mockito-all,fest-assert</excludeArtifactIds>
+							<excludeTransitive>true</excludeTransitive>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 	<profiles>
@@ -167,99 +229,6 @@
 									</versionInfo>
 								</configuration>
 							</execution>
-							<execution>
-								<id>filius-setup-exe</id>
-								<phase>install</phase>
-								<goals>
-									<goal>launch4j</goal>
-								</goals>
-								<configuration>
-									<headerType>gui</headerType>
-									<outfile>target/${launch4j.setupStarterName}</outfile>
-									<errTitle>Filius Installation - Error</errTitle>
-									<jar>target/${project.build.finalName}-setup.jar</jar>
-									<icon>src/main/resources/gfx/filius32.ico</icon>
-									<chdir>.</chdir>
-									<jre>
-										<minVersion>${execJre.version}</minVersion>
-										<jdkPreference>preferJdk</jdkPreference>
-									</jre>
-									<versionInfo>
-										<fileVersion>${project.version}.0</fileVersion>
-										<txtFileVersion>txt file version</txtFileVersion>
-										<fileDescription>${project.name}-Setup</fileDescription>
-										<copyright>Stefan Freischlad, Christian Eibl</copyright>
-										<productVersion>${project.version}.0</productVersion>
-										<txtProductVersion>${project.description}</txtProductVersion>
-										<productName>${project.name}</productName>
-										<internalName>${project.artifactId}</internalName>
-										<originalFilename>${launch4j.setupStarterName}</originalFilename>
-									</versionInfo>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-
-					<!-- Prepare Windows Installer Resources -->
-					<plugin>
-						<artifactId>maven-dependency-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>copy-product-dependencies</id>
-								<phase>package</phase>
-								<goals>
-									<goal>copy-dependencies</goal>
-								</goals>
-								<configuration>
-									<excludeArtifactIds>junit,mockito-all,fest-assert</excludeArtifactIds>
-									<excludeTransitive>true</excludeTransitive>
-									<outputDirectory>${izpack.staging}/lib</outputDirectory>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>create-staging-area</id>
-								<phase>package</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-								<configuration>
-									<tasks>
-										<copy todir="${izpack.staging}">
-											<fileset dir="${basedir}/src/izpack" />
-										</copy>
-										<copy
-											file="${project.build.directory}/${project.build.finalName}.jar"
-											todir="${izpack.staging}" />
-										<copy file="${project.build.directory}/${launch4j.starterName}"
-											todir="${izpack.staging}" />
-										<copy todir="${izpack.staging}/config">
-											<fileset dir="${basedir}/src/main/assembly/config"
-												includes="**/*" />
-										</copy>
-										<copy todir="${izpack.staging}/hilfe">
-											<fileset dir="${basedir}/src/main/assembly/hilfe"
-												includes="**/*" />
-										</copy>
-										<copy todir="${izpack.staging}/info">
-											<fileset dir="${basedir}/src/main/assembly/info"
-												includes="**/*" />
-										</copy>
-										<copy todir="${izpack.staging}/img">
-											<fileset dir="${basedir}/src/main/assembly/img"
-												includes="**/*" />
-										</copy>
-										<copy todir="${izpack.staging}/tmpl">
-											<fileset dir="${basedir}/src/main/assembly/tmpl"
-												includes="**/*" />
-										</copy>
-									</tasks>
-								</configuration>
-							</execution>
 						</executions>
 					</plugin>
 
@@ -270,7 +239,7 @@
 						<version>2.3</version>
 						<configuration>
 							<descriptors>
-								<descriptor>assembly.xml</descriptor>
+								<descriptor>src/assembly/assembly.xml</descriptor>
 							</descriptors>
 						</configuration>
 						<executions>
@@ -283,26 +252,22 @@
 						</executions>
 					</plugin>
 
-					<!-- Create a Windows Installer -->
 					<plugin>
-						<groupId>org.codehaus.izpack</groupId>
-						<artifactId>izpack-maven-plugin</artifactId>
-						<version>${izpack.version}</version>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>1.2</version>
 						<executions>
 							<execution>
-								<phase>package</phase>
+								<id>create installer</id>
+								<phase>install</phase>
 								<goals>
-									<goal>izpack</goal>
+									<goal>exec</goal>
 								</goals>
 								<configuration>
-									<baseDir>${izpack.staging}</baseDir>
-									<installFile>${izpack.staging}/install.xml</installFile>
-									<installerFile>${project.build.directory}/${project.build.finalName}-setup.jar</installerFile>
-									<outputDirectory>${project.build.directory}</outputDirectory>
-									<finalName>${project.build.finalName}-setup</finalName>
-									<enableAttachArtifact>false</enableAttachArtifact>
-									<autoIncludeUrl>true</autoIncludeUrl>
-									<autoIncludeDevelopers>true</autoIncludeDevelopers>
+									<executable>nsis/makensis</executable>
+									<arguments>
+										<argument>target/filius.nsi</argument>
+									</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -321,23 +286,6 @@
 				<plugins>
 
 					<plugin>
-						<artifactId>maven-dependency-plugin</artifactId>
-						<executions>
-							<execution>
-								<phase>prepare-package</phase>
-								<goals>
-									<goal>copy-dependencies</goal>
-								</goals>
-								<configuration>
-									<excludeArtifactIds>junit,mockito-all,fest-assert</excludeArtifactIds>
-									<excludeTransitive>true</excludeTransitive>
-									<outputDirectory>${project.build.directory}/lib</outputDirectory>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-
-					<plugin>
 						<artifactId>maven-antrun-plugin</artifactId>
 						<version>1.7</version>
 						<executions>
@@ -346,7 +294,7 @@
 								<configuration>
 									<target>
 										<gzip destfile="${project.build.directory}/changelog.gz"
-											src="${project.basedir}/src/main/assembly/info/Changelog.txt" />
+											src="${project.basedir}/src/info/Changelog.txt" />
 									</target>
 								</configuration>
 								<goals>
@@ -363,7 +311,7 @@
 						<version>1.0.1</version>
 						<executions>
 							<execution>
-								<phase>package</phase>
+								<phase>install</phase>
 								<goals>
 									<goal>jdeb</goal>
 								</goals>
@@ -413,7 +361,7 @@
 											<dst>/usr/share/doc/filius/changelog.gz</dst>
 										</data>
 										<data>
-											<src>${project.basedir}/src/main/assembly/info</src>
+											<src>${project.basedir}/src/info</src>
 											<type>directory</type>
 											<excludes>.svn</excludes>
 											<includes>*.*</includes>
@@ -424,7 +372,7 @@
 											</mapper>
 										</data>
 										<data>
-											<src>${project.basedir}/src/main/assembly/config</src>
+											<src>${project.basedir}/src/main/resources/config</src>
 											<type>directory</type>
 											<excludes>.svn</excludes>
 											<includes>*.*</includes>
@@ -441,7 +389,7 @@
 											<symlink>true</symlink>
 										</data>
 										<data>
-											<src>${project.basedir}/src/main/assembly/tmpl</src>
+											<src>${project.basedir}/src/main/resources/tmpl</src>
 											<type>directory</type>
 											<excludes>**/.svn</excludes>
 											<includes>*.*</includes>
@@ -452,7 +400,7 @@
 											</mapper>
 										</data>
 										<data>
-											<src>${project.basedir}/src/main/assembly/tmpl/quelltext_vorlagen</src>
+											<src>${project.basedir}/src/main/resources/tmpl/quelltext_vorlagen</src>
 											<type>directory</type>
 											<excludes>**/.svn</excludes>
 											<includes>*.*</includes>
@@ -463,7 +411,7 @@
 											</mapper>
 										</data>
 										<data>
-											<src>${project.basedir}/src/main/assembly/img</src>
+											<src>${project.basedir}/src/main/resources/img</src>
 											<type>directory</type>
 											<excludes>**/.svn</excludes>
 											<includes>*.*</includes>
@@ -474,7 +422,7 @@
 											</mapper>
 										</data>
 										<data>
-											<src>${project.basedir}/src/main/assembly/hilfe</src>
+											<src>${project.basedir}/src/main/resources/hilfe</src>
 											<type>directory</type>
 											<excludes>**/.svn</excludes>
 											<includes>*.*</includes>
@@ -485,7 +433,7 @@
 											</mapper>
 										</data>
 										<data>
-											<src>${project.basedir}/src/main/assembly/hilfe/gfx</src>
+											<src>${project.basedir}/src/main/resources/hilfe/gfx</src>
 											<type>directory</type>
 											<excludes>**/.svn</excludes>
 											<includes>*.*</includes>

@@ -408,13 +408,12 @@ public class Information implements Serializable {
 
     private String holeAnwendungenDateipfad() {
         StringBuffer pfad = new StringBuffer();
-        String fs = System.getProperty("file.separator");
+        String fs = "/";
         File tmpFile;
 
-        pfad.append(getProgrammPfad());
         pfad.append("config" + fs + "Desktop");
 
-        tmpFile = new File(pfad.toString() + "_" + locale.toString() + ".txt");
+        tmpFile = new File(ClassLoader.getSystemResource(pfad.toString() + "_" + locale.toString() + ".txt").getFile());
         if (tmpFile.exists()) {
             return tmpFile.getAbsolutePath();
         } else {

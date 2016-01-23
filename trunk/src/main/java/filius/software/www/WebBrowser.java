@@ -205,7 +205,7 @@ public class WebBrowser extends ClientAnwendung implements I18n {
         if (statusCode == 0) {
             quelltext = messages.getString("sw_webbrowser_msg1");
         } else {
-            dateipfad = Information.getInformation().getProgrammPfad() + "tmpl/http_fehler.txt";
+            dateipfad = ClassLoader.getSystemResource("tmpl/http_fehler.txt").getFile();
             try {
                 quelltext = einlesenTextdatei(dateipfad);
             } catch (Exception e) {

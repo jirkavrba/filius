@@ -41,151 +41,146 @@ import filius.software.vermittlungsschicht.VermittlungWeb;
 import filius.software.www.WebServer;
 
 /**
- * Diese Klasse stellt die Funktionalitaet eines Betriebssystems fuer
- * Vermittlungsrechner zur Verfuegung. Spezifisch ist die automatische
- * Installation einer Firewall und eines Webservers mit einer Erweiterung zur
- * Konfiguration der Firewall. Die weitere Funktionalitaet wird von der
- * Oberklasse (InternetKnotenBetriebssystem) zur Verfuegung gestellt.
+ * Diese Klasse stellt die Funktionalitaet eines Betriebssystems fuer Vermittlungsrechner zur Verfuegung. Spezifisch ist
+ * die automatische Installation einer Firewall und eines Webservers mit einer Erweiterung zur Konfiguration der
+ * Firewall. Die weitere Funktionalitaet wird von der Oberklasse (InternetKnotenBetriebssystem) zur Verfuegung gestellt.
  */
 public class VermittlungsrechnerBetriebssystem extends InternetKnotenBetriebssystem {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private boolean ripEnabled;
+    private boolean ripEnabled;
 
-	private RIPTable riptable;
-	private RIPBeacon ripbeacon;
-	private RIPServer ripserver;
+    private RIPTable riptable;
+    private RIPBeacon ripbeacon;
+    private RIPServer ripserver;
 
-	/** Konstruktor mit Initialisierung von Firewall und Webserver */
-	public VermittlungsrechnerBetriebssystem() {
-		super();
-		Main.debug.println("INVOKED-2 (" + this.hashCode() + ") " + getClass()
-		        + " (VermittlungsrechnerBetriebssystem), constr: VermittlungsrechnerBetriebssystem()");
+    /** Konstruktor mit Initialisierung von Firewall und Webserver */
+    public VermittlungsrechnerBetriebssystem() {
+        super();
+        Main.debug.println("INVOKED-2 (" + this.hashCode() + ") " + getClass()
+                + " (VermittlungsrechnerBetriebssystem), constr: VermittlungsrechnerBetriebssystem()");
 
-		initialisiereAnwendungen();
-	}
+        initialisiereAnwendungen();
+    }
 
-	public void setKnoten(Knoten vermittlungsrechner) {
-		super.setKnoten(vermittlungsrechner);
-	}
+    public void setKnoten(Knoten vermittlungsrechner) {
+        super.setKnoten(vermittlungsrechner);
+    }
 
-	/**
-	 * Methode zur initialisierung der Firewall und des Web-Servers mit den
-	 * Erweiterungen fuer den Zugriff auf die Firewall ueber eine
-	 * Web-Schnittstelle
-	 */
-	private void initialisiereAnwendungen() {
-		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
-		        + " (VermittlungsrechnerBetriebssystem), initialisiereFirewallUndWebserver()");
-		FirewallWebLog weblog;
-		FirewallWebKonfig webkonfig;
-		WebServer server = null;
-		Firewall firewall = null;
+    /**
+     * Methode zur initialisierung der Firewall und des Web-Servers mit den Erweiterungen fuer den Zugriff auf die
+     * Firewall ueber eine Web-Schnittstelle
+     */
+    private void initialisiereAnwendungen() {
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
+                + " (VermittlungsrechnerBetriebssystem), initialisiereFirewallUndWebserver()");
+        FirewallWebLog weblog;
+        FirewallWebKonfig webkonfig;
+        WebServer server = null;
+        Firewall firewall = null;
 
-		// Installation von Firewall und Webserver
-		installiereSoftware("filius.software.firewall.Firewall");
-		installiereSoftware("filius.software.www.WebServer");
-		firewall = this.holeFirewall();
-		server = this.holeWebServer();
-		firewall.setModus(Firewall.GATEWAY);
-		firewall.setDefaultPolicy(FirewallRule.DROP);
-		firewall.setActivated(false);
+        // Installation von Firewall und Webserver
+        installiereSoftware("filius.software.firewall.Firewall");
+        installiereSoftware("filius.software.www.WebServer");
+        firewall = this.holeFirewall();
+        server = this.holeWebServer();
+        firewall.setModus(Firewall.GATEWAY);
+        firewall.setDefaultPolicy(FirewallRule.DROP);
+        firewall.setActivated(false);
 
-		// Erweiterung des Webservers fuer die Anzeige der
-		// Log-Eintraege der Firewall
-		weblog = new FirewallWebLog();
-		weblog.setFirewall(firewall);
-		weblog.setPfad("log");
-		server.setzePlugIn(weblog);
+        // Erweiterung des Webservers fuer die Anzeige der
+        // Log-Eintraege der Firewall
+        weblog = new FirewallWebLog();
+        weblog.setFirewall(firewall);
+        weblog.setPfad("log");
+        server.setzePlugIn(weblog);
 
-		// Erweiterung des Webservers fuer die Konfiguration
-		// der Firewall
-		webkonfig = new FirewallWebKonfig();
-		webkonfig.setWebserver(server);
-		webkonfig.setFirewall(firewall);
-		webkonfig.setPfad("konfig");
-		server.setzePlugIn(webkonfig);
+        // Erweiterung des Webservers fuer die Konfiguration
+        // der Firewall
+        webkonfig = new FirewallWebKonfig();
+        webkonfig.setWebserver(server);
+        webkonfig.setFirewall(firewall);
+        webkonfig.setPfad("konfig");
+        server.setzePlugIn(webkonfig);
 
-		server.erzeugeIndexDatei(Information.getInformation().getProgrammPfad() + "tmpl/vermittlung_index_"
-		        + Information.getInformation().getLocale() + ".txt");
+        server.erzeugeIndexDatei(ClassLoader.getSystemResource(
+                "tmpl/vermittlung_index_" + Information.getInformation().getLocale() + ".txt").getFile());
 
-		// ------------- RIP ------------------
-		riptable = new RIPTable(this);
-		ripserver = new RIPServer();
-		ripserver.setSystemSoftware(this);
-		ripbeacon = new RIPBeacon();
-		ripbeacon.setSystemSoftware(this);
+        // ------------- RIP ------------------
+        riptable = new RIPTable(this);
+        ripserver = new RIPServer();
+        ripserver.setSystemSoftware(this);
+        ripbeacon = new RIPBeacon();
+        ripbeacon.setSystemSoftware(this);
 
-		VermittlungWeb ripweb = new VermittlungWeb(this);
-		ripweb.setPfad("routes");
-		server.setzePlugIn(ripweb);
-	}
+        VermittlungWeb ripweb = new VermittlungWeb(this);
+        ripweb.setPfad("routes");
+        server.setzePlugIn(ripweb);
+    }
 
-	/**
-	 * Starten des Webservers
-	 * 
-	 * @see filius.software.system.InternetKnotenBetriebssystem.starten()
-	 */
-	public void starten() {
-		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
-		        + " (VermittlungsrechnerBetriebssystem), starten()");
+    /**
+     * Starten des Webservers
+     * 
+     * @see filius.software.system.InternetKnotenBetriebssystem.starten()
+     */
+    public void starten() {
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
+                + " (VermittlungsrechnerBetriebssystem), starten()");
 
-		super.starten();
+        super.starten();
 
-		// Startet den Web-Server
-		holeWebServer().setAktiv(true);
+        // Startet den Web-Server
+        holeWebServer().setAktiv(true);
 
-		if (ripEnabled) {
-			riptable.reset();
-			riptable.addLocalRoutes((InternetKnoten) this.getKnoten());
-			ripserver.starten();
-			ripserver.setAktiv(true);
-			ripbeacon.starten();
-		}
-	}
+        if (ripEnabled) {
+            riptable.reset();
+            riptable.addLocalRoutes((InternetKnoten) this.getKnoten());
+            ripserver.starten();
+            ripserver.setAktiv(true);
+            ripbeacon.starten();
+        }
+    }
 
-	public void beenden() {
-		super.beenden();
-		if (ripEnabled) {
-			ripbeacon.beenden();
-			ripserver.beenden();
-		}
-	}
+    public void beenden() {
+        super.beenden();
+        if (ripEnabled) {
+            ripbeacon.beenden();
+            ripserver.beenden();
+        }
+    }
 
-	@Override
-	public RIPTable getRIPTable() {
-		if (ripEnabled) {
-			return riptable;
-		} else {
-			return null;
-		}
-	}
+    @Override
+    public RIPTable getRIPTable() {
+        if (ripEnabled) {
+            return riptable;
+        } else {
+            return null;
+        }
+    }
 
-	@Override
-	public boolean isRipEnabled() {
-		return ripEnabled;
-	}
+    @Override
+    public boolean isRipEnabled() {
+        return ripEnabled;
+    }
 
-	public void setRipEnabled(boolean state) {
-		ripEnabled = state;
-	}
+    public void setRipEnabled(boolean state) {
+        ripEnabled = state;
+    }
 
-	/**
-	 * Methode fuer den Zugriff auf die Firewall. Dieser Zugriff ist nicht
-	 * JavaBean-konform, weil die Speicherung der Firewall als eine Anwendung
-	 * durch die Oberklasse erfolgt.
-	 */
-	public Firewall holeFirewall() {
-		return (Firewall) holeSoftware("filius.software.firewall.Firewall");
-	}
+    /**
+     * Methode fuer den Zugriff auf die Firewall. Dieser Zugriff ist nicht JavaBean-konform, weil die Speicherung der
+     * Firewall als eine Anwendung durch die Oberklasse erfolgt.
+     */
+    public Firewall holeFirewall() {
+        return (Firewall) holeSoftware("filius.software.firewall.Firewall");
+    }
 
-	/**
-	 * Methode fuer den Zugriff auf den Webserver Dieser Zugriff ist nicht
-	 * JavaBean-konform, weil die Speicherung des Webservers als eine Anwendung
-	 * durch die Oberklasse erfolgt.
-	 */
-	public WebServer holeWebServer() {
-		return (WebServer) holeSoftware("filius.software.www.WebServer");
-	}
+    /**
+     * Methode fuer den Zugriff auf den Webserver Dieser Zugriff ist nicht JavaBean-konform, weil die Speicherung des
+     * Webservers als eine Anwendung durch die Oberklasse erfolgt.
+     */
+    public WebServer holeWebServer() {
+        return (WebServer) holeSoftware("filius.software.www.WebServer");
+    }
 }

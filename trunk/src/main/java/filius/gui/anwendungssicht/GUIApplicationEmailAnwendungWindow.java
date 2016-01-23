@@ -138,8 +138,8 @@ public class GUIApplicationEmailAnwendungWindow extends GUIApplicationWindow {
                 auswahlfuerloeschen = zeilenNummer;
                 paa = ListMode.INBOX;
                 if (zeilenNummer != -1) {
-                    Email tmpEmail = (Email) ((EmailAnwendung) holeAnwendung()).getEmpfangeneNachrichten()
-                            .get(zeilenNummer);
+                    Email tmpEmail = (Email) ((EmailAnwendung) holeAnwendung()).getEmpfangeneNachrichten().get(
+                            zeilenNummer);
                     emailVorschau.setContentType("text/plain");
                     emailVorschau.setText(tmpEmail.getText());
                     aktuelleMail = tmpEmail;
@@ -162,8 +162,8 @@ public class GUIApplicationEmailAnwendungWindow extends GUIApplicationWindow {
                 auswahlfuerloeschen = zeilenNummer;
                 paa = ListMode.OUTBOX;
                 if (zeilenNummer != -1) {
-                    Email tmpEmail = (Email) ((EmailAnwendung) holeAnwendung()).getGesendeteNachrichten()
-                            .get(zeilenNummer);
+                    Email tmpEmail = (Email) ((EmailAnwendung) holeAnwendung()).getGesendeteNachrichten().get(
+                            zeilenNummer);
                     emailVorschau.setContentType("text/plain");
                     emailVorschau.setText(tmpEmail.getText());
                     aktuelleMail = tmpEmail;
@@ -181,9 +181,11 @@ public class GUIApplicationEmailAnwendungWindow extends GUIApplicationWindow {
         emailVorschau.setBackground(new Color(255, 255, 255));
         emailVorschau.setContentType("text/html");
         emailVorschau.setEditable(false);
-        emailVorschau.setText("<html><head><base href=\"file:bilder\"></head><body>"
-                + "<img src=\"img/email_icon.png\" align=\"top\">" + "<font face=arial>"
-                + messages.getString("emailanwendung_msg4") + "!<br /></font>" + "</body></html>");
+        emailVorschau
+                .setText("<html><head><base href=\"file:bilder\"></head><body>" + "<img src=\"file:"
+                        + ClassLoader.getSystemResource("img/email_icon.png").getFile() + "\" align=\"top\">"
+                        + "<font face=arial>" + messages.getString("emailanwendung_msg4") + "!<br /></font>"
+                        + "</body></html>");
         JScrollPane vorschauScrollPane = new JScrollPane(emailVorschau);
         vorschauScrollPane.setPreferredSize(new Dimension(300, 200));
         vorschauBox.add(vorschauScrollPane);
@@ -309,8 +311,8 @@ public class GUIApplicationEmailAnwendungWindow extends GUIApplicationWindow {
             emailVorschau.setText(" ");
             emailVorschau.updateUI();
         } else {
-            Main.debug.println(
-                    "============================================GuiAppl. Emailloeschen: Email konnte nicht geloescht werden=======================================");
+            Main.debug
+                    .println("============================================GuiAppl. Emailloeschen: Email konnte nicht geloescht werden=======================================");
         }
     }
 
@@ -469,8 +471,8 @@ public class GUIApplicationEmailAnwendungWindow extends GUIApplicationWindow {
                     versendeKonto = (EmailKonto) ((EmailAnwendung) holeAnwendung()).holeKontoListe().get(kontoString);
 
                     mail.setAbsender(versendeKonto.getVorname()
-                            + (!versendeKonto.getNachname().isEmpty() ? (" " + versendeKonto.getNachname()) : "") + " <"
-                            + versendeKonto.getEmailAdresse() + ">");
+                            + (!versendeKonto.getNachname().isEmpty() ? (" " + versendeKonto.getNachname()) : "")
+                            + " <" + versendeKonto.getEmailAdresse() + ">");
 
                     if (!mailPruefen(anField)) {
                         eingabeFehler = true;
@@ -492,8 +494,8 @@ public class GUIApplicationEmailAnwendungWindow extends GUIApplicationWindow {
 
                     if (eingabeFehler) {
                         showMessageDialog(messages.getString("emailanwendung_msg20"));
-                    } else
-                        if (mail.getEmpfaenger().size() == 0 && mail.getCc().size() == 0 && mail.getBcc().size() == 0) {
+                    } else if (mail.getEmpfaenger().size() == 0 && mail.getCc().size() == 0
+                            && mail.getBcc().size() == 0) {
                         showMessageDialog(messages.getString("emailanwendung_msg21"));
                     } else {
                         mail.setBetreff(betreffszeile.getText());
@@ -545,8 +547,8 @@ public class GUIApplicationEmailAnwendungWindow extends GUIApplicationWindow {
             inFrAbholen.getContentPane().validate();
 
             for (EmailKonto aktuellesKonto : ((EmailAnwendung) holeAnwendung()).holeKontoListe().values()) {
-                progressBar
-                        .setString(messages.getString("emailanwendung_msg24") + aktuellesKonto.getEmailAdresse() + ")");
+                progressBar.setString(messages.getString("emailanwendung_msg24") + aktuellesKonto.getEmailAdresse()
+                        + ")");
                 ((EmailAnwendung) holeAnwendung()).emailsAbholenEmails(aktuellesKonto.getBenutzername(),
                         aktuellesKonto.getPasswort(), aktuellesKonto.getPop3port(), aktuellesKonto.getPop3server());
                 tabbedPane.setSelectedIndex(0);
