@@ -101,15 +101,15 @@ public class GUIMainMenu implements Serializable, I18n {
 
         btEntwurfsmodus = new JButton();
         btEntwurfsmodus.setIcon(new ImageIcon(getClass().getResource("/gfx/allgemein/entwurfsmodus_aktiv.png")));
-        btEntwurfsmodus.setBounds(290, 5, btEntwurfsmodus.getIcon().getIconWidth(), btEntwurfsmodus.getIcon()
-                .getIconHeight());
+        btEntwurfsmodus.setBounds(290, 5, btEntwurfsmodus.getIcon().getIconWidth(),
+                btEntwurfsmodus.getIcon().getIconHeight());
         btEntwurfsmodus.setActionCommand("entwurfsmodus");
         btEntwurfsmodus.setToolTipText(messages.getString("guimainmemu_msg3"));
 
         btAktionsmodus = new JButton();
         btAktionsmodus.setIcon(new ImageIcon(getClass().getResource("/gfx/allgemein/aktionsmodus.png")));
-        btAktionsmodus.setBounds(360, 5, btAktionsmodus.getIcon().getIconWidth(), btAktionsmodus.getIcon()
-                .getIconHeight());
+        btAktionsmodus.setBounds(360, 5, btAktionsmodus.getIcon().getIconWidth(),
+                btAktionsmodus.getIcon().getIconHeight());
         btAktionsmodus.setActionCommand("aktionsmodus");
         btAktionsmodus.setToolTipText(messages.getString("guimainmemu_msg4"));
 
@@ -125,7 +125,7 @@ public class GUIMainMenu implements Serializable, I18n {
         btDokumodus.setActionCommand("dokumodus");
         btDokumodus.setToolTipText(messages.getString("guimainmemu_msg14"));
 
-        if (null != ToolProvider.getSystemJavaCompiler()) {
+        if (isSoftwareWizardEnabled()) {
             btWizard = new JButton();
             btWizard.setIcon(new ImageIcon(getClass().getResource("/gfx/allgemein/button_wizard.png")));
             btWizard.setBounds(660, 5, btWizard.getIcon().getIconWidth(), btWizard.getIcon().getIconHeight());
@@ -151,7 +151,7 @@ public class GUIMainMenu implements Serializable, I18n {
                 int entscheidung = JOptionPane.YES_OPTION;
                 boolean erfolg;
 
-                if (btWizard != null && e.getActionCommand().equals(btWizard.getActionCommand())) {
+                if (isSoftwareWizardEnabled() && e.getActionCommand().equals(btWizard.getActionCommand())) {
                     FrameSoftwareWizard gsw = new FrameSoftwareWizard();
                     gsw.setVisible(true);
                 }
@@ -285,7 +285,7 @@ public class GUIMainMenu implements Serializable, I18n {
         btEntwurfsmodus.addActionListener(al);
         btAktionsmodus.addActionListener(al);
         btDokumodus.addActionListener(al);
-        if (btWizard != null) {
+        if (isSoftwareWizardEnabled()) {
             btWizard.addActionListener(al);
         }
         btInfo.addActionListener(al);
@@ -322,7 +322,7 @@ public class GUIMainMenu implements Serializable, I18n {
         menupanel.add(btSpeichern);
         menupanel.add(verzoegerung);
         menupanel.add(geschwindigkeit);
-        if (btWizard != null) {
+        if (isSoftwareWizardEnabled()) {
             menupanel.add(btWizard);
         }
         menupanel.add(btHilfe);
@@ -339,6 +339,11 @@ public class GUIMainMenu implements Serializable, I18n {
                 return messages.getString("guimainmemu_msg13");
             }
         };
+    }
+
+    private boolean isSoftwareWizardEnabled() {
+        return ( null != ToolProvider.getSystemJavaCompiler() && Information.getInformation().getSoftwareWizardMode() != Information.FeatureMode.FORCE_DISABLE)
+                || Information.getInformation().getSoftwareWizardMode() == Information.FeatureMode.FORCE_ENABLE;
     }
 
     public void changeSlider(int diff) {
@@ -379,8 +384,8 @@ public class GUIMainMenu implements Serializable, I18n {
     // simulation
     // and possibly highlight in development view
     private void resetCableHighlighting(int mode) {
-        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (GUIMainMenu), resetCableHL(" + mode
-                + ")");
+        Main.debug.println(
+                "INVOKED (" + this.hashCode() + ") " + getClass() + " (GUIMainMenu), resetCableHL(" + mode + ")");
         if (mode == MODUS_AKTION) { // change to simulation view: de-highlight
                                     // all cables
             for (GUIKabelItem cableItem : GUIContainer.getGUIContainer().getCableItems()) {
@@ -395,8 +400,8 @@ public class GUIMainMenu implements Serializable, I18n {
     }
 
     public synchronized void selectMode(int mode) {
-        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (GUIMainMenu), selectMode(" + mode
-                + ")");
+        Main.debug.println(
+                "INVOKED (" + this.hashCode() + ") " + getClass() + " (GUIMainMenu), selectMode(" + mode + ")");
 
         if (mode == MODUS_ENTWURF) {
             resetCableHighlighting(mode); // de-highlight cables
@@ -413,7 +418,7 @@ public class GUIMainMenu implements Serializable, I18n {
             btOeffnen.setEnabled(true);
             btNeu.setEnabled(true);
             btSpeichern.setEnabled(true);
-            if (btWizard != null) {
+            if (isSoftwareWizardEnabled()) {
                 btWizard.setEnabled(true);
             }
         } else if (mode == MODUS_DOKUMENTATION) {
@@ -431,7 +436,7 @@ public class GUIMainMenu implements Serializable, I18n {
             btOeffnen.setEnabled(true);
             btNeu.setEnabled(true);
             btSpeichern.setEnabled(true);
-            if (btWizard != null) {
+            if (isSoftwareWizardEnabled()) {
                 btWizard.setEnabled(false);
             }
         } else if (mode == MODUS_AKTION && aktuellerModus != MODUS_AKTION) {
@@ -453,7 +458,7 @@ public class GUIMainMenu implements Serializable, I18n {
             btOeffnen.setEnabled(false);
             btNeu.setEnabled(false);
             btSpeichern.setEnabled(false);
-            if (btWizard != null) {
+            if (isSoftwareWizardEnabled()) {
                 btWizard.setEnabled(false);
             }
 
