@@ -116,9 +116,15 @@
 							<classpathPrefix>lib/</classpathPrefix>
 						</manifest>
 						<manifestEntries>
-							<Class-Path>.b</Class-Path>
+							<Class-Path>.</Class-Path>
 						</manifestEntries>
 					</archive>
+					<excludes>
+						<exclude>tmpl/**</exclude>
+						<exclude>config/**</exclude>
+						<exclude>hilfe/**</exclude>
+						<exclude>img/**</exclude>
+					</excludes>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -324,7 +330,7 @@
 											<dst>/usr/share/filius/filius.jar</dst>
 										</data>
 										<data>
-											<src>${project.basedir}/src/main/assembly/scripts/Filius.sh</src>
+											<src>${project.basedir}/src/scripts/Filius.sh</src>
 											<type>file</type>
 											<dst>usr/share/filius/filius.sh</dst>
 											<mapper>
