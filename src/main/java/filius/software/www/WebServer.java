@@ -34,6 +34,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 import filius.Main;
 import filius.rahmenprogramm.Base64;
+import filius.rahmenprogramm.ResourceUtil;
 import filius.software.clientserver.TCPServerAnwendung;
 import filius.software.system.Datei;
 import filius.software.system.Dateisystem;
@@ -135,7 +136,7 @@ public class WebServer extends TCPServerAnwendung {
         try {
             if (!dateisystem.dateiVorhanden(verzeichnis, "index.html")) {
 
-                erzeugeIndexDatei(ClassLoader.getSystemResource("tmpl/webserver_index.txt").getFile());
+                erzeugeIndexDatei(ResourceUtil.getResourcePath("tmpl/webserver_index.txt"));
 
                 // this was used for externally stored file... no longer working
                 // erzeugeDatei("splashscreen-mini", "png", Base64

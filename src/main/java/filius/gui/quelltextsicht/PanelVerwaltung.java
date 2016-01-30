@@ -1,5 +1,5 @@
 /*
- ** This file is part of Filius, a network construction and simulation software.
+b ** This file is part of Filius, a network construction and simulation software.
  ** 
  ** Originally created at the University of Siegen, Institute "Didactics of
  ** Informatics and E-Learning" by a students' project group:
@@ -58,6 +58,7 @@ import javax.swing.table.TableColumnModel;
 import filius.Main;
 import filius.rahmenprogramm.I18n;
 import filius.rahmenprogramm.Information;
+import filius.rahmenprogramm.ResourceUtil;
 
 public class PanelVerwaltung extends JPanel implements I18n {
 
@@ -116,9 +117,6 @@ public class PanelVerwaltung extends JPanel implements I18n {
         String[] dateien = null;
         String klasse;
         File file;
-        String fs;
-
-        fs = "/";
 
         if (buttonGroupModus.getSelection().getActionCommand().equals("neu")) {
             klasse = klassenName.getText();
@@ -126,40 +124,36 @@ public class PanelVerwaltung extends JPanel implements I18n {
             if (buttonGroupAnwendungstyp.getSelection().getActionCommand().equals("client")) {
                 dateien = new String[2];
 
-                dateien[0] = Information.getInformation().getAnwendungenPfad() + "filius" + fs + "software" + fs
-                        + "clientserver" + fs + "" + klasse + ".java";
-                quelltext = ladeQuelltext(ClassLoader.getSystemResource(
-                        "tmpl/" + fs + "quelltext_vorlagen" + fs + "client.txt").getFile());
+                dateien[0] = Information.getInformation().getAnwendungenPfad() + "filius/software/clientserver/"
+                        + klasse + ".java";
+                quelltext = ladeQuelltext(ResourceUtil.getResourcePath("tmpl/quelltext_vorlagen/client.txt"));
                 quelltext = quelltext.replaceAll("ClientBaustein", klasse);
                 speicherQuelltext(quelltext, dateien[0]);
 
-                dateien[1] = Information.getInformation().getAnwendungenPfad() + "filius" + fs + "gui" + fs
-                        + "anwendungssicht" + fs + "GUIApplication" + klasse + "Window.java";
-                quelltext = ladeQuelltext(ClassLoader.getSystemResource(
-                        "tmpl" + fs + "quelltext_vorlagen" + fs + "client_gui.txt").getFile());
+                dateien[1] = Information.getInformation().getAnwendungenPfad()
+                        + "filius/gui/anwendungssicht/GUIApplication" + klasse + "Window.java";
+                quelltext = ladeQuelltext(ResourceUtil.getResourcePath("tmpl/quelltext_vorlagen/client_gui.txt"));
                 quelltext = quelltext.replaceAll("ClientBaustein", klasse);
                 speicherQuelltext(quelltext, dateien[1]);
             } else {
                 dateien = new String[3];
 
-                dateien[0] = Information.getInformation().getAnwendungenPfad() + "filius" + fs + "software" + fs
-                        + "clientserver" + fs + "" + klasse + "Mitarbeiter.java";
-                quelltext = ladeQuelltext(ClassLoader.getSystemResource(
-                        "tmpl" + fs + "quelltext_vorlagen" + fs + "server_mitarbeiter.txt").getFile());
+                dateien[0] = Information.getInformation().getAnwendungenPfad() + "filius/software/clientserver/"
+                        + klasse + "Mitarbeiter.java";
+                quelltext = ladeQuelltext(ResourceUtil
+                        .getResourcePath("tmpl/quelltext_vorlagen/server_mitarbeiter.txt"));
                 quelltext = quelltext.replaceAll("ServerBaustein", klasse);
                 speicherQuelltext(quelltext, dateien[0]);
 
-                dateien[1] = Information.getInformation().getAnwendungenPfad() + "filius" + fs + "software" + fs
-                        + "clientserver" + fs + "" + klasse + ".java";
-                quelltext = ladeQuelltext(ClassLoader.getSystemResource(
-                        "tmpl" + fs + "quelltext_vorlagen" + fs + "server.txt").getFile());
+                dateien[1] = Information.getInformation().getAnwendungenPfad() + "filius/software/clientserver/"
+                        + klasse + ".java";
+                quelltext = ladeQuelltext(ResourceUtil.getResourcePath("tmpl/quelltext_vorlagen/server.txt"));
                 quelltext = quelltext.replaceAll("ServerBaustein", klasse);
                 speicherQuelltext(quelltext, dateien[1]);
 
-                dateien[2] = Information.getInformation().getAnwendungenPfad() + "filius" + fs + "gui" + fs
-                        + "anwendungssicht" + fs + "GUIApplication" + klasse + "Window.java";
-                quelltext = ladeQuelltext(ClassLoader.getSystemResource(
-                        "tmpl" + fs + "quelltext_vorlagen" + fs + "server_gui.txt").getFile());
+                dateien[2] = Information.getInformation().getAnwendungenPfad()
+                        + "filius/gui/anwendungssicht/GUIApplication" + klasse + "Window.java";
+                quelltext = ladeQuelltext(ResourceUtil.getResourcePath("tmpl/quelltext_vorlagen/server_gui.txt"));
                 quelltext = quelltext.replaceAll("ServerBaustein", klasse);
                 speicherQuelltext(quelltext, dateien[2]);
             }
@@ -167,27 +161,27 @@ public class PanelVerwaltung extends JPanel implements I18n {
             klasse = (String) tabelle.getValueAt(tabelle.getSelectedRow(), 1);
             klasse = klasse.substring(klasse.lastIndexOf(".") + 1);
 
-            file = new File(Information.getInformation().getAnwendungenPfad() + "filius" + fs + "software" + fs
-                    + "clientserver" + fs + "" + klasse + "Mitarbeiter.java");
+            file = new File(Information.getInformation().getAnwendungenPfad() + "filius/software/clientserver/"
+                    + klasse + "Mitarbeiter.java");
 
             if (file.exists()) {
                 dateien = new String[3];
-                dateien[0] = Information.getInformation().getAnwendungenPfad() + "filius" + fs + "software" + fs
-                        + "clientserver" + fs + "" + klasse + "Mitarbeiter.java";
+                dateien[0] = Information.getInformation().getAnwendungenPfad() + "filius/software/clientserver/"
+                        + klasse + "Mitarbeiter.java";
 
-                dateien[1] = Information.getInformation().getAnwendungenPfad() + "filius" + fs + "software" + fs
-                        + "clientserver" + fs + "" + klasse + ".java";
+                dateien[1] = Information.getInformation().getAnwendungenPfad() + "filius/software/clientserver/"
+                        + klasse + ".java";
 
-                dateien[2] = Information.getInformation().getAnwendungenPfad() + "filius" + fs + "gui" + fs
-                        + "anwendungssicht" + fs + "GUIApplication" + klasse + "Window.java";
+                dateien[2] = Information.getInformation().getAnwendungenPfad()
+                        + "filius/gui/anwendungssicht/GUIApplication" + klasse + "Window.java";
             } else {
                 dateien = new String[2];
 
-                dateien[0] = Information.getInformation().getAnwendungenPfad() + "filius" + fs + "software" + fs
-                        + "clientserver" + fs + "" + klasse + ".java";
+                dateien[0] = Information.getInformation().getAnwendungenPfad() + "filius/software/clientserver/"
+                        + klasse + ".java";
 
-                dateien[1] = Information.getInformation().getAnwendungenPfad() + "filius" + fs + "gui" + fs
-                        + "anwendungssicht" + fs + "GUIApplication" + klasse + "Window.java";
+                dateien[1] = Information.getInformation().getAnwendungenPfad()
+                        + "filius/gui/anwendungssicht/GUIApplication" + klasse + "Window.java";
             }
         }
 

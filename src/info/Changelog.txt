@@ -1,3 +1,20 @@
+filius (1.7.0) unstable; urgency=low
+  * Neues Windowsinstallationsprogramm
+  * Systemvoraussetzung Java 8
+  * Aufrufparameter 'verbose' ergaenzt
+  * Grundlegende Ueberarbeitung DHCP
+  * DHCP unterstuetzt jetzt statisch zugewiesene IP-Adressen
+  * Der Software-Assistent steht jetzt nicht mehr zwingend zur Verfuegung (abhaengig von JDK/JRE und Konfiguration)
+  * Im Dateidialog zum Oeffnen eines neuen Projekts ist jetzt das zuletzt verwendete Verzeichnis vorselektiert
+  * Webserver erlaubt jetzt auch unbekannte Dateiendungen (Versand als text/plain) und erkennt Endung .htm auch als HTML
+  * Fehlerbehebung: Anwendung fuer Dateiaustausch (P2P) und Webserver funktioniert jetzt auch mit Leerzeichen in Dateinamen
+  * Fehlerbehebung: Mehrere DHCP-Server können jetzt im gleichen Rechnernetz vorhanden sein
+  * Fehlerbehebung: Selektion bei Löschen vorhandener Kabel korrigiert
+  * Fehlerbehebung: Validierung E-Mail-Adressen korrigiert (Reg. Ausdruck angepasst)
+  * Fehlerbehebung: DHCP funktioniert jetzt auch, wenn zwischendurch das Projekt gewechselt wurde
+  * Fehlerbehebung: Wenn ein Projekt ohne Dateiendung gespeichert wird, werden jetzt auch die Textelemente mit gespeichert
+ -- Stefan Freischlad <kontakt@lernsoftware-filius.de>  Sat, 30 Jan 2016 00:00:00 +0000
+  
 filius (1.6.1) unstable; urgency=low
   * Fehlerbehebung: Fehlerhafte Bestimmung von IP-Adressen als Broadcast behoben
   * Fehlerbehebung: TTL wird jetzt nicht mehr fuer lokal adressierte Pakete dekrementiert

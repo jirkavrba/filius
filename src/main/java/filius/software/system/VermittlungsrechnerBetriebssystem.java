@@ -30,6 +30,7 @@ import filius.Main;
 import filius.hardware.knoten.InternetKnoten;
 import filius.hardware.knoten.Knoten;
 import filius.rahmenprogramm.Information;
+import filius.rahmenprogramm.ResourceUtil;
 import filius.software.firewall.Firewall;
 import filius.software.firewall.FirewallRule;
 import filius.software.firewall.FirewallWebKonfig;
@@ -104,8 +105,8 @@ public class VermittlungsrechnerBetriebssystem extends InternetKnotenBetriebssys
         webkonfig.setPfad("konfig");
         server.setzePlugIn(webkonfig);
 
-        server.erzeugeIndexDatei(ClassLoader.getSystemResource(
-                "tmpl/vermittlung_index_" + Information.getInformation().getLocale() + ".txt").getFile());
+        server.erzeugeIndexDatei(ResourceUtil.getResourcePath("tmpl/vermittlung_index_"
+                + Information.getInformation().getLocale() + ".txt"));
 
         // ------------- RIP ------------------
         riptable = new RIPTable(this);

@@ -42,6 +42,7 @@ import javax.swing.JScrollPane;
 import filius.Main;
 import filius.rahmenprogramm.I18n;
 import filius.rahmenprogramm.Information;
+import filius.rahmenprogramm.ResourceUtil;
 
 public class GUIHilfe implements I18n {
 
@@ -103,18 +104,15 @@ public class GUIHilfe implements I18n {
     public void laden(String modus) {
         File file;
         if (modus.equalsIgnoreCase("entwurfsmodus")) {
-            file = new File(ClassLoader.getSystemResource("hilfe/" + messages.getString("hilfedatei_entwurf"))
-                    .getFile());
+            file = ResourceUtil.getResourceFile("hilfe/" + messages.getString("hilfedatei_entwurf"));
         } else {
-            file = new File(ClassLoader.getSystemResource("hilfe/" + messages.getString("hilfedatei_simulation"))
-                    .getFile());
+            file = ResourceUtil.getResourceFile("hilfe/" + messages.getString("hilfedatei_simulation"));
         }
         try {
             StringBuffer sb = new StringBuffer((int) file.length() + 5);
             BufferedReader reader = new BufferedReader(new FileReader(file));
             char[] chars = new char[(int) file.length() + 5];
-            int numRead = 0;
-            while ((numRead = reader.read(chars)) > -1) {
+            while (reader.read(chars) > -1) {
                 sb.append(String.valueOf(chars));
             }
             reader.close();

@@ -101,15 +101,15 @@ public class GUIMainMenu implements Serializable, I18n {
 
         btEntwurfsmodus = new JButton();
         btEntwurfsmodus.setIcon(new ImageIcon(getClass().getResource("/gfx/allgemein/entwurfsmodus_aktiv.png")));
-        btEntwurfsmodus.setBounds(290, 5, btEntwurfsmodus.getIcon().getIconWidth(),
-                btEntwurfsmodus.getIcon().getIconHeight());
+        btEntwurfsmodus.setBounds(290, 5, btEntwurfsmodus.getIcon().getIconWidth(), btEntwurfsmodus.getIcon()
+                .getIconHeight());
         btEntwurfsmodus.setActionCommand("entwurfsmodus");
         btEntwurfsmodus.setToolTipText(messages.getString("guimainmemu_msg3"));
 
         btAktionsmodus = new JButton();
         btAktionsmodus.setIcon(new ImageIcon(getClass().getResource("/gfx/allgemein/aktionsmodus.png")));
-        btAktionsmodus.setBounds(360, 5, btAktionsmodus.getIcon().getIconWidth(),
-                btAktionsmodus.getIcon().getIconHeight());
+        btAktionsmodus.setBounds(360, 5, btAktionsmodus.getIcon().getIconWidth(), btAktionsmodus.getIcon()
+                .getIconHeight());
         btAktionsmodus.setActionCommand("aktionsmodus");
         btAktionsmodus.setToolTipText(messages.getString("guimainmemu_msg4"));
 
@@ -183,31 +183,24 @@ public class GUIMainMenu implements Serializable, I18n {
                 if (e.getActionCommand().equals(btSpeichern.getActionCommand())) {
                     if (GUIContainer.getGUIContainer().getActiveSite() != MODUS_AKTION) {
                         JFileChooser fcSpeichern = new JFileChooser();
-                        String path;
-                        File file;
 
                         fcSpeichern.setFileFilter(filiusFileFilter);
-                        path = SzenarioVerwaltung.getInstance().holePfad();
-                        if (path != null) {
-                            file = new File(path);
-                            if (file.exists())
-                                fcSpeichern.setSelectedFile(file);
-                        }
+                        initCurrentFileOrDirSelection(fcSpeichern);
 
                         if (fcSpeichern.showSaveDialog(JMainFrame.getJMainFrame()) == JFileChooser.APPROVE_OPTION) {
                             if (fcSpeichern.getSelectedFile() != null) {
+                                Information.getInformation().setLastOpenedDirectory(
+                                        fcSpeichern.getSelectedFile().getParent());
+                                String targetFilePath;
                                 if (fcSpeichern.getSelectedFile().getName().endsWith(".fls")) {
-                                    erfolg = SzenarioVerwaltung.getInstance().speichern(
-                                            fcSpeichern.getSelectedFile().getPath(),
-                                            GUIContainer.getGUIContainer().getKnotenItems(),
-                                            GUIContainer.getGUIContainer().getCableItems(),
-                                            GUIContainer.getGUIContainer().getDocuItems());
+                                    targetFilePath = fcSpeichern.getSelectedFile().getPath();
                                 } else {
-                                    erfolg = SzenarioVerwaltung.getInstance().speichern(
-                                            fcSpeichern.getSelectedFile().getPath() + ".fls",
-                                            GUIContainer.getGUIContainer().getKnotenItems(),
-                                            GUIContainer.getGUIContainer().getCableItems(), null);
+                                    targetFilePath = fcSpeichern.getSelectedFile().getPath() + ".fls";
                                 }
+                                erfolg = SzenarioVerwaltung.getInstance().speichern(targetFilePath,
+                                        GUIContainer.getGUIContainer().getKnotenItems(),
+                                        GUIContainer.getGUIContainer().getCableItems(),
+                                        GUIContainer.getGUIContainer().getDocuItems());
                                 if (!erfolg) {
                                     JOptionPane.showMessageDialog(JMainFrame.getJMainFrame(),
                                             messages.getString("guimainmemu_msg11"));
@@ -232,20 +225,13 @@ public class GUIMainMenu implements Serializable, I18n {
                     if (entscheidung == JOptionPane.YES_OPTION
                             && GUIContainer.getGUIContainer().getActiveSite() == MODUS_ENTWURF) {
                         JFileChooser fcLaden = new JFileChooser();
-                        String path;
-                        File file;
                         fcLaden.setFileFilter(filiusFileFilter);
-                        path = SzenarioVerwaltung.getInstance().holePfad();
-                        if (path != null) {
-                            file = new File(path);
-                            if (file.exists())
-                                fcLaden.setSelectedFile(file);
-                        }
+                        initCurrentFileOrDirSelection(fcLaden);
 
                         if (fcLaden.showOpenDialog(JMainFrame.getJMainFrame()) == JFileChooser.APPROVE_OPTION) {
-
                             if (fcLaden.getSelectedFile() != null) {
-
+                                Information.getInformation().setLastOpenedDirectory(
+                                        fcLaden.getSelectedFile().getParent());
                                 try {
                                     Information.getInformation().reset();
                                     SzenarioVerwaltung.getInstance().laden(fcLaden.getSelectedFile().getPath(),
@@ -262,7 +248,6 @@ public class GUIMainMenu implements Serializable, I18n {
                                     e2.printStackTrace(Main.debug);
                                 }
                             }
-
                         }
                     }
                 }
@@ -341,8 +326,25 @@ public class GUIMainMenu implements Serializable, I18n {
         };
     }
 
+    private void initCurrentFileOrDirSelection(JFileChooser fcLaden) {
+        String scenarioPath = SzenarioVerwaltung.getInstance().holePfad();
+        String lastOpenedDir = Information.getInformation().getLastOpenedDirectory();
+        File file = null;
+        if (scenarioPath != null) {
+            file = new File(scenarioPath);
+        }
+        if (null != file && file.exists()) {
+            fcLaden.setSelectedFile(file);
+        } else if (null != lastOpenedDir) {
+            file = new File(lastOpenedDir);
+            if (file.exists()) {
+                fcLaden.setCurrentDirectory(file);
+            }
+        }
+    }
+
     private boolean isSoftwareWizardEnabled() {
-        return ( null != ToolProvider.getSystemJavaCompiler() && Information.getInformation().getSoftwareWizardMode() != Information.FeatureMode.FORCE_DISABLE)
+        return (null != ToolProvider.getSystemJavaCompiler() && Information.getInformation().getSoftwareWizardMode() != Information.FeatureMode.FORCE_DISABLE)
                 || Information.getInformation().getSoftwareWizardMode() == Information.FeatureMode.FORCE_ENABLE;
     }
 
@@ -384,8 +386,8 @@ public class GUIMainMenu implements Serializable, I18n {
     // simulation
     // and possibly highlight in development view
     private void resetCableHighlighting(int mode) {
-        Main.debug.println(
-                "INVOKED (" + this.hashCode() + ") " + getClass() + " (GUIMainMenu), resetCableHL(" + mode + ")");
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (GUIMainMenu), resetCableHL(" + mode
+                + ")");
         if (mode == MODUS_AKTION) { // change to simulation view: de-highlight
                                     // all cables
             for (GUIKabelItem cableItem : GUIContainer.getGUIContainer().getCableItems()) {
@@ -400,8 +402,8 @@ public class GUIMainMenu implements Serializable, I18n {
     }
 
     public synchronized void selectMode(int mode) {
-        Main.debug.println(
-                "INVOKED (" + this.hashCode() + ") " + getClass() + " (GUIMainMenu), selectMode(" + mode + ")");
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (GUIMainMenu), selectMode(" + mode
+                + ")");
 
         if (mode == MODUS_ENTWURF) {
             resetCableHighlighting(mode); // de-highlight cables
