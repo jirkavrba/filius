@@ -102,20 +102,23 @@ public class Main implements I18n {
                 Information.getInformation().setLocale(new Locale("en", "GB"));
         } else {
             try {
-
                 xmldec = new XMLDecoder(new BufferedInputStream(new FileInputStream(konfigPfad)));
-
                 programmKonfig = (Object[]) xmldec.readObject();
-
-                if (programmKonfig != null && programmKonfig.length == 4) {
-                    JMainFrame.getJMainFrame().setBounds((Rectangle) programmKonfig[0]);
-
-                    if (szenarioDatei == null)
-                        szenarioDatei = (String) programmKonfig[1];
-                    if (programmKonfig[2] != null && programmKonfig[3] != null
-                            && null == Information.getInformation().getLocale())
-                        Information.getInformation().setLocale(
-                                new Locale((String) programmKonfig[2], (String) programmKonfig[3]));
+                if (programmKonfig != null) {
+                    if (programmKonfig.length >= 4) {
+                        JMainFrame.getJMainFrame().setBounds((Rectangle) programmKonfig[0]);
+                        if (szenarioDatei == null) {
+                            szenarioDatei = (String) programmKonfig[1];
+                        }
+                        if (programmKonfig[2] != null && programmKonfig[3] != null
+                                && null == Information.getInformation().getLocale()) {
+                            Information.getInformation().setLocale(
+                                    new Locale((String) programmKonfig[2], (String) programmKonfig[3]));
+                        }
+                    }
+                    if (programmKonfig.length >= 5) {
+                        Information.getInformation().setLastOpenedDirectory((String) programmKonfig[4]);
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace(Main.debug);
@@ -144,7 +147,6 @@ public class Main implements I18n {
                 e.printStackTrace(Main.debug);
             }
         }
-
         GUIContainer.getGUIContainer().setProperty(null);
         GUIContainer.getGUIContainer().updateViewport();
         try {
@@ -184,8 +186,6 @@ public class Main implements I18n {
     public static void beenden() {
         Main.debug.println("INVOKED (static) filius.Main, beenden()");
         Object[] programmKonfig;
-        XMLEncoder encoder = null;
-        FileOutputStream fos = null;
         int entscheidung;
         boolean abbruch = false;
 
@@ -201,31 +201,22 @@ public class Main implements I18n {
             }
         }
         if (!abbruch) {
-            programmKonfig = new Object[4];
+            programmKonfig = new Object[5];
             programmKonfig[0] = JMainFrame.getJMainFrame().getBounds();
             programmKonfig[1] = SzenarioVerwaltung.getInstance().holePfad();
             programmKonfig[2] = Information.getInformation().getLocale().getLanguage();
             programmKonfig[3] = Information.getInformation().getLocale().getCountry();
+            programmKonfig[4] = Information.getInformation().getLastOpenedDirectory();
 
-            try {
-                fos = new FileOutputStream(Information.getInformation().getArbeitsbereichPfad() + "konfig.xml");
-                encoder = new XMLEncoder(new BufferedOutputStream(fos));
-
+            String applicationConfigPath = Information.getInformation().getArbeitsbereichPfad() + "konfig.xml";
+            try (FileOutputStream fos = new FileOutputStream(applicationConfigPath);
+                    XMLEncoder encoder = new XMLEncoder(new BufferedOutputStream(fos))) {
                 encoder.writeObject(programmKonfig);
             } catch (Exception e) {
                 e.printStackTrace(Main.debug);
-            } finally {
-                if (encoder != null)
-                    encoder.close();
-                if (fos != null) {
-                    try {
-                        fos.close();
-                    } catch (IOException e) {}
-                }
             }
             SzenarioVerwaltung.loescheVerzeichnisInhalt(Information.getInformation().getTempPfad());
             System.exit(0);
-
         }
     }
 
@@ -261,7 +252,7 @@ public class Main implements I18n {
      * zum Start geladen werden soll.
      */
     public static void main(String[] args) {
-        String currWD = filius.rahmenprogramm.Information.initArbeitsbereichPfad;
+        String currWD = Information.initArbeitsbereichPfad;
         File file;
         boolean log = false;
         String newWD = null;
@@ -282,7 +273,7 @@ public class Main implements I18n {
                         currWD = newWD; // set working directory (not yet set in
                         // Information class, otherwise an
                         // Exception would emerge!)
-                        // filius.rahmenprogramm.Information.getInformation().setArbeitsbereichPfad(newWD);
+                        // Information.getInformation().setArbeitsbereichPfad(newWD);
                     } else {
                         System.err
                                 .println("Parameter '-wd' ohne Argument verwendet! Korrekte Verwendung (Beispiel):  '-wd /home/user'\n");
@@ -330,21 +321,20 @@ public class Main implements I18n {
                 // check, whether working directory is
                 // usable... else provide dialog for correct
                 // paths
-                if (filius.rahmenprogramm.Information.getInformation(currWD + System.getProperty("file.separator")) == null)
+                if (Information.getInformation(currWD + System.getProperty("file.separator")) == null)
                     System.exit(6);
-                else if (filius.rahmenprogramm.Information.getInformation(currWD) == null)
+                else if (Information.getInformation(currWD) == null)
                     System.exit(6);
             }
             // if no logging specified on command line or logging to file
             // fails, then set logging to null
             if (log) {
-                log = loggen(filius.rahmenprogramm.Information.getInformation().getArbeitsbereichPfad() + "filius.log",
-                        verbose);
+                log = loggen(Information.getInformation().getArbeitsbereichPfad() + "filius.log", verbose);
             } else {
                 loggen(null, verbose);
             }
         } else {
-            if (filius.rahmenprogramm.Information.getInformation(currWD) == null) {
+            if (Information.getInformation(currWD) == null) {
                 System.exit(6);
             }
             loggen(null, false);
@@ -355,15 +345,12 @@ public class Main implements I18n {
         Main.debug.println("------------------------------------------------------");
         Main.debug.println("\tJava Version: " + System.getProperty("java.version"));
         Main.debug.println("\tJava Directory: " + System.getProperty("java.home"));
-        Main.debug.println("\tFILIUS Version: " + filius.rahmenprogramm.Information.getVersion());
+        Main.debug.println("\tFILIUS Version: " + Information.getVersion());
         Main.debug.println("\tParameters: '" + argsString.trim() + "'");
         // +"\n\tWD Base: "+newWD
-        Main.debug.println("\tFILIUS Installation: "
-                + filius.rahmenprogramm.Information.getInformation().getProgrammPfad());
-        Main.debug.println("\tFILIUS Working Directory: "
-                + filius.rahmenprogramm.Information.getInformation().getArbeitsbereichPfad());
-        Main.debug.println("\tFILIUS Temp Directory: "
-                + filius.rahmenprogramm.Information.getInformation().getTempPfad());
+        Main.debug.println("\tFILIUS Installation: " + Information.getInformation().getProgrammPfad());
+        Main.debug.println("\tFILIUS Working Directory: " + Information.getInformation().getArbeitsbereichPfad());
+        Main.debug.println("\tFILIUS Temp Directory: " + Information.getInformation().getTempPfad());
         Main.debug.println("------------------------------------------------------\n");
 
         if (nativeLookAndFeel) {

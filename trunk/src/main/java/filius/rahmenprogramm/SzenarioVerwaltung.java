@@ -54,14 +54,10 @@ import filius.gui.netzwerksicht.JSidebarButton;
 public class SzenarioVerwaltung extends Observable implements I18n {
 
     private boolean geaendert = false;
-
     private String pfad = null;
-
     private static SzenarioVerwaltung verwaltung = null;
 
-    private SzenarioVerwaltung() {
-
-    }
+    private SzenarioVerwaltung() {}
 
     public static SzenarioVerwaltung getInstance() {
         Main.debug.println("INVOKED (static) filius.rahmenprogramm.SzenarioVerwaltung, getInstance()");
@@ -94,14 +90,6 @@ public class SzenarioVerwaltung extends Observable implements I18n {
 
     public String holePfad() {
         return pfad;
-    }
-
-    public void setzePfad(String pfad) {
-        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + ", setzePfad(" + pfad + ")");
-        this.pfad = pfad;
-
-        this.setChanged();
-        this.notifyObservers();
     }
 
     /**
@@ -248,7 +236,6 @@ public class SzenarioVerwaltung extends Observable implements I18n {
             List<GUIKabelItem> kabelItems, List<GUIDocuItem> docuItems) {
         Main.debug.println("INVOKED (static) filius.rahmenprogramm.SzenarioVerwaltung, netzwerkLaden(" + datei + ","
                 + hardwareItems + "," + kabelItems + ")");
-        XMLDecoder xmldec;
         Object tmpObject = null;
 
         if (Thread.currentThread().getContextClassLoader() != FiliusClassLoader.getInstance(Thread.currentThread()
@@ -256,8 +243,8 @@ public class SzenarioVerwaltung extends Observable implements I18n {
             Thread.currentThread().setContextClassLoader(
                     FiliusClassLoader.getInstance(Thread.currentThread().getContextClassLoader()));
 
-        try {
-            xmldec = new XMLDecoder(new BufferedInputStream(new FileInputStream(datei)));
+        boolean success = false;
+        try (XMLDecoder xmldec = new XMLDecoder(new BufferedInputStream(new FileInputStream(datei)))) {
             xmldec.setExceptionListener(new ExceptionListener() {
                 public void exceptionThrown(Exception arg0) {
                     arg0.printStackTrace(Main.debug);
@@ -265,7 +252,6 @@ public class SzenarioVerwaltung extends Observable implements I18n {
             });
 
             Information.getInformation().reset();
-
             tmpObject = xmldec.readObject();
 
             // in newer versions of Filius the version information is put into
@@ -303,8 +289,9 @@ public class SzenarioVerwaltung extends Observable implements I18n {
             kabelItems.clear();
             docuItems.clear();
 
-            if (tmpObject == null)
+            if (tmpObject == null) {
                 tmpObject = xmldec.readObject();
+            }
             if (tmpObject instanceof List && !((List) tmpObject).isEmpty()
                     && ((List) tmpObject).get(0) instanceof GUIKnotenItem) {
                 List<GUIKnotenItem> tempList = (List<GUIKnotenItem>) tmpObject;
@@ -319,8 +306,8 @@ public class SzenarioVerwaltung extends Observable implements I18n {
             }
 
             tmpObject = xmldec.readObject();
-            if (tmpObject instanceof List && !((List) tmpObject).isEmpty()
-                    && ((List) tmpObject).get(0) instanceof GUIKabelItem) {
+            if (tmpObject instanceof List && !((List<?>) tmpObject).isEmpty()
+                    && ((List<?>) tmpObject).get(0) instanceof GUIKabelItem) {
                 List<GUIKabelItem> tempList = (List<GUIKabelItem>) tmpObject;
                 for (GUIKabelItem cable : tempList) {
                     kabelItems.add(cable);
@@ -335,18 +322,16 @@ public class SzenarioVerwaltung extends Observable implements I18n {
                     docuItems.add(docuItem);
                 }
             }
-
-            return true;
+            success = true;
         } catch (FileNotFoundException e) {
             GUIErrorHandler.getGUIErrorHandler().DisplayError(messages.getString("rp_szenarioverwaltung_msg5"));
-
             e.printStackTrace(Main.debug);
-            return false;
+            success = false;
         } catch (ArrayIndexOutOfBoundsException e) {
             Main.debug.println("Incomplete project file " + datei);
-            return true;
+            success = true;
         }
-
+        return success;
     }
 
     public static boolean erzeugeZipArchiv(String datenOrdner, String archivDatei) {
@@ -419,7 +404,6 @@ public class SzenarioVerwaltung extends Observable implements I18n {
                 + relPfad + "," + datei + ")");
         ZipEntry zipEntry;
         byte[] buffer = new byte[0xFFFF];
-        FileInputStream fis;
         File quelldatei;
 
         quelldatei = new File(datei);
@@ -427,13 +411,11 @@ public class SzenarioVerwaltung extends Observable implements I18n {
             return false;
 
         zipEntry = new ZipEntry(relPfad);
-        try {
+        try (FileInputStream fis = new FileInputStream(quelldatei)) {
             out.putNextEntry(zipEntry);
-
-            fis = new FileInputStream(quelldatei);
-            for (int len; (len = fis.read(buffer)) != -1;)
+            for (int len; (len = fis.read(buffer)) != -1;) {
                 out.write(buffer, 0, len);
-
+            }
             out.closeEntry();
         } catch (Exception e) {
             Main.debug.println("ERROR (static): Datei " + datei + " konnte nicht zu zip-Archiv hinzugefuegt werden.");

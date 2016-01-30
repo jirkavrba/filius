@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.io.Serializable;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -122,6 +121,7 @@ public class Information implements Serializable {
 
     /** Lokalisierungsobjekt fuer Standard-Spracheinstellung */
     private Locale locale = Locale.GERMANY;
+    private String lastOpenedDirectory;
 
     private boolean oldExchangeDialog = true;
 
@@ -416,18 +416,12 @@ public class Information implements Serializable {
     }
 
     private String holeAnwendungenDateipfad() {
-        StringBuffer pfad = new StringBuffer();
-        String fs = "/";
-        File tmpFile;
-
-        pfad.append("config" + fs + "Desktop");
-
-        URL desktopResource = ClassLoader.getSystemResource(pfad.toString() + "_" + locale.toString() + ".txt");
+        String pfad = "config/Desktop";
+        File desktopResource = ResourceUtil.getResourceFile(pfad + "_" + locale.toString() + ".txt");
         if (desktopResource == null) {
-            desktopResource = ClassLoader.getSystemResource(pfad.toString() + ".txt");
+            desktopResource = ResourceUtil.getResourceFile(pfad + ".txt");
         }
-        tmpFile = new File(desktopResource.getFile());
-        return tmpFile.getAbsolutePath();
+        return desktopResource.getAbsolutePath();
     }
 
     /**
@@ -626,16 +620,7 @@ public class Information implements Serializable {
     }
 
     public void loadIni() throws IOException {
-        StringBuffer pfad = new StringBuffer();
-
-        pfad.append(getProgrammPfad());
-        pfad.append("config" + File.separator + "filius.ini");
-
-        File tmpFile = new File(pfad.toString());
-        if (!tmpFile.exists()) {
-            URL configURL = ClassLoader.getSystemResource("config/filius.ini");
-            tmpFile = new File(configURL.getPath());
-        }
+        File tmpFile = ResourceUtil.getResourceFile("config/filius.ini");
         if (tmpFile.exists()) {
             RandomAccessFile iniFile = null;
 
@@ -663,10 +648,10 @@ public class Information implements Serializable {
                                     }
                                 } else if (configKey.equalsIgnoreCase("posix-behaviour")) {
                                     if (configValue.trim().equals("1")) {
-                                        this.posixCommandLineToolBehaviour = true;
+                                        posixCommandLineToolBehaviour = true;
                                     }
                                 } else if (configKey.equalsIgnoreCase("desktop-mode")) {
-                                    this.desktopWindowMode = GUIDesktopWindow.Mode.getMode(Integer.parseInt(configValue
+                                    desktopWindowMode = GUIDesktopWindow.Mode.getMode(Integer.parseInt(configValue
                                             .trim()));
                                 } else if (configKey.equalsIgnoreCase("old-exchange-dialog")) {
                                     if (configValue.trim().equals("1")) {
@@ -691,5 +676,13 @@ public class Information implements Serializable {
                     iniFile.close();
             }
         }
+    }
+
+    public String getLastOpenedDirectory() {
+        return lastOpenedDirectory;
+    }
+
+    public void setLastOpenedDirectory(String lastOpenedDirectory) {
+        this.lastOpenedDirectory = lastOpenedDirectory;
     }
 }

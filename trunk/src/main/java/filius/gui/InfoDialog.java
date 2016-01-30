@@ -44,115 +44,113 @@ import filius.rahmenprogramm.Information;
 
 public class InfoDialog extends JDialog implements I18n {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private JBackgroundPanel jContentPane = null;
+    private JBackgroundPanel jContentPane = null;
 
-	private JLabel version = null;
+    private JLabel version = null;
 
-	private JLabel personen = null;
-	private JLabel maintainer = null;
+    private JLabel personen = null;
+    private JLabel maintainer = null;
 
-	private JLabel erlaeuterung = null;
+    private JLabel erlaeuterung = null;
 
-	/**
-	 * @param owner
-	 */
-	public InfoDialog(Frame owner) {
-		super(owner);
-		this.setIconImage(owner.getIconImage());
-		initialize();
-	}
+    /**
+     * @param owner
+     */
+    public InfoDialog(Frame owner) {
+        super(owner);
+        this.setIconImage(owner.getIconImage());
+        initialize();
+    }
 
-	/**
-	 * This method initializes this
-	 * 
-	 * @return void
-	 */
-	private void initialize() {
-		this.setSize(350, 550);
-		setLocation((getToolkit().getScreenSize().width - getWidth()) / 2,
-		        (getToolkit().getScreenSize().height - getHeight()) / 2);
-		this.setForeground(Color.blue);
-		this.setTitle(messages.getString("infodialog_msg1"));
-		this.setResizable(false);
-		this.setContentPane(getJContentPane());
-	}
+    /**
+     * This method initializes this
+     * 
+     * @return void
+     */
+    private void initialize() {
+        this.setSize(350, 550);
+        setLocation((getToolkit().getScreenSize().width - getWidth()) / 2,
+                (getToolkit().getScreenSize().height - getHeight()) / 2);
+        this.setForeground(Color.blue);
+        this.setTitle(messages.getString("infodialog_msg1"));
+        this.setResizable(false);
+        this.setContentPane(getJContentPane());
+    }
 
-	/**
-	 * This method initializes jContentPane
-	 * 
-	 * @return javax.swing.JPanel
-	 */
-	private JPanel getJContentPane() {
-		if (jContentPane == null) {
-			GridBagConstraints gridBagConstraints3 = new GridBagConstraints();
-			gridBagConstraints3.insets = new Insets(10, 10, 10, 10);
-			gridBagConstraints3.gridx = 0;
-			gridBagConstraints3.gridy = 1;
+    /**
+     * This method initializes jContentPane
+     * 
+     * @return javax.swing.JPanel
+     */
+    private JPanel getJContentPane() {
+        if (jContentPane == null) {
+            GridBagConstraints gridBagConstraints3 = new GridBagConstraints();
+            gridBagConstraints3.insets = new Insets(10, 10, 10, 10);
+            gridBagConstraints3.gridx = 0;
+            gridBagConstraints3.gridy = 1;
 
-			GridBagConstraints gridBagConstraints2 = new GridBagConstraints();
-			gridBagConstraints2.insets = new Insets(10, 10, 10, 10);
-			gridBagConstraints2.gridx = 0;
-			gridBagConstraints2.gridy = 2;
+            GridBagConstraints gridBagConstraints2 = new GridBagConstraints();
+            gridBagConstraints2.insets = new Insets(10, 10, 10, 10);
+            gridBagConstraints2.gridx = 0;
+            gridBagConstraints2.gridy = 2;
 
-			GridBagConstraints gridBagConstraints1 = new GridBagConstraints();
-			gridBagConstraints1.insets = new Insets(10, 10, 10, 10);
-			gridBagConstraints1.gridx = 0;
-			gridBagConstraints1.gridy = 3;
+            GridBagConstraints gridBagConstraints1 = new GridBagConstraints();
+            gridBagConstraints1.insets = new Insets(10, 10, 10, 10);
+            gridBagConstraints1.gridx = 0;
+            gridBagConstraints1.gridy = 3;
 
-			GridBagConstraints gridBagConstraints = new GridBagConstraints();
-			gridBagConstraints.insets = new Insets(10, 10, 10, 10);
-			gridBagConstraints.gridx = 0;
-			gridBagConstraints.gridy = 4;
+            GridBagConstraints gridBagConstraints = new GridBagConstraints();
+            gridBagConstraints.insets = new Insets(10, 10, 10, 10);
+            gridBagConstraints.gridx = 0;
+            gridBagConstraints.gridy = 4;
 
-			erlaeuterung = new JLabel();
-			erlaeuterung.setText(messages.getString("infodialog_msg2"));
-			erlaeuterung.setPreferredSize(new Dimension(270, 50));
-			erlaeuterung.setBackground(SystemColor.activeCaption);
-			erlaeuterung.setForeground(Color.WHITE);
-			erlaeuterung.setFont(new Font("Dialog", Font.PLAIN, 12));
-			erlaeuterung.setVerticalAlignment(SwingConstants.TOP);
+            erlaeuterung = new JLabel();
+            erlaeuterung.setText(messages.getString("infodialog_msg2"));
+            erlaeuterung.setPreferredSize(new Dimension(270, 50));
+            erlaeuterung.setBackground(SystemColor.activeCaption);
+            erlaeuterung.setForeground(Color.WHITE);
+            erlaeuterung.setFont(new Font("Dialog", Font.PLAIN, 12));
+            erlaeuterung.setVerticalAlignment(SwingConstants.TOP);
 
-			personen = new JLabel();
-			personen.setText("<html>" + "<b>" + messages.getString("infodialog_msg3") + "</b>"
-			        + "<p> Andr&eacute; Asschoff, " + "Johannes Bade, " + "Carsten Dittich, " + "Thomas Gerding, "
-			        + "Nadja Ha&szlig;ler, " + "Ernst Johannes Klebert, " + "Michell Weyer <br /> &nbsp;</p>" + "<b>"
-			        + messages.getString("infodialog_msg4") + "</b>" + "<p> Stefan Freischlad, "
-			        + "Peer Stechert </p></html>");
-			personen.setVerticalAlignment(SwingConstants.TOP);
-			personen.setForeground(Color.WHITE);
-			personen.setFont(new Font("Dialog", Font.PLAIN, 12));
-			personen.setPreferredSize(new Dimension(270, 110));
-			maintainer = new JLabel();
-			maintainer.setText("<html>" + "<b>" + messages.getString("infodialog_msg5") + "</b>" + "<p>"
-			        + "Stefan Freischlad <br/> " + "Christian J. Eibl <br/>&nbsp;</p>" + "<p>"
-			        + messages.getString("infodialog_msg8") + "<br/>" + " http://www.lernsoftware-filius.de."
-			        + "</p></html>");
-			maintainer.setVerticalAlignment(SwingConstants.TOP);
-			maintainer.setForeground(Color.WHITE);
-			maintainer.setFont(new Font("Dialog", Font.PLAIN, 12));
-			maintainer.setPreferredSize(new Dimension(270, 150));
+            personen = new JLabel();
+            personen.setText("<html>" + "<b>" + messages.getString("infodialog_msg3") + "</b>"
+                    + "<p> Andr&eacute; Asschoff, " + "Johannes Bade, " + "Carsten Dittich, " + "Thomas Gerding, "
+                    + "Nadja Ha&szlig;ler, " + "Ernst Johannes Klebert, " + "Michell Weyer </p>" + "<b>"
+                    + messages.getString("infodialog_msg4") + "</b>" + "<p> Stefan Freischlad, " + "Peer Stechert </p>"
+                    + "<b>" + messages.getString("infodialog_msg11") + "</b><p>Christian Eibl</p>" + "</html>");
+            personen.setVerticalAlignment(SwingConstants.TOP);
+            personen.setForeground(Color.WHITE);
+            personen.setFont(new Font("Dialog", Font.PLAIN, 12));
+            personen.setPreferredSize(new Dimension(270, 150));
+            maintainer = new JLabel();
+            maintainer.setText("<html>" + "<b>" + messages.getString("infodialog_msg5") + "</b>" + "<p>"
+                    + "Stefan Freischlad <br/>&nbsp;</p>" + "<p>" + messages.getString("infodialog_msg8") + "<br/>"
+                    + " http://www.lernsoftware-filius.de." + "</p></html>");
+            maintainer.setVerticalAlignment(SwingConstants.TOP);
+            maintainer.setForeground(Color.WHITE);
+            maintainer.setFont(new Font("Dialog", Font.PLAIN, 12));
+            maintainer.setPreferredSize(new Dimension(270, 130));
 
-			version = new JLabel();
-			version.setText("<html><center><p><b>" + messages.getString("infodialog_msg6") + " "
-			        + Information.getVersion() + "</b></p><br/><p><small>" + messages.getString("infodialog_msg10")
-			        + "</small></p></center></html>");
-			version.setFont(new Font("Dialog", Font.PLAIN, 12));
-			version.setForeground(Color.WHITE);
-			version.setVerticalAlignment(SwingConstants.TOP);
-			version.setPreferredSize(new Dimension(270, 80));
+            version = new JLabel();
+            version.setText("<html><center><p><b>" + messages.getString("infodialog_msg6") + " "
+                    + Information.getVersion() + "</b></p><br/><p><small>" + messages.getString("infodialog_msg10")
+                    + "</small></p></center></html>");
+            version.setFont(new Font("Dialog", Font.PLAIN, 12));
+            version.setForeground(Color.WHITE);
+            version.setVerticalAlignment(SwingConstants.TOP);
+            version.setPreferredSize(new Dimension(270, 80));
 
-			jContentPane = new JBackgroundPanel();
-			jContentPane.setBackgroundImage("gfx/allgemein/info_hintergrund.png");
-			jContentPane.setLayout(new GridBagLayout());
-			jContentPane.setBackground(new Color(0.9f, 0.9f, 0.95f));
-			jContentPane.add(version, gridBagConstraints);
-			jContentPane.add(maintainer, gridBagConstraints1);
-			jContentPane.add(personen, gridBagConstraints2);
-			jContentPane.add(erlaeuterung, gridBagConstraints3);
-		}
-		return jContentPane;
-	}
-
+            jContentPane = new JBackgroundPanel();
+            jContentPane.setBackgroundImage("gfx/allgemein/info_hintergrund.png");
+            jContentPane.setLayout(new GridBagLayout());
+            jContentPane.setBackground(new Color(0.9f, 0.9f, 0.95f));
+            jContentPane.add(version, gridBagConstraints);
+            jContentPane.add(maintainer, gridBagConstraints1);
+            jContentPane.add(personen, gridBagConstraints2);
+            jContentPane.add(erlaeuterung, gridBagConstraints3);
+        }
+        return jContentPane;
+    }
 }

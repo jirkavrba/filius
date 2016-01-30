@@ -43,6 +43,7 @@ import filius.exception.VerbindungsException;
 import filius.rahmenprogramm.Base64;
 import filius.rahmenprogramm.I18n;
 import filius.rahmenprogramm.Information;
+import filius.rahmenprogramm.ResourceUtil;
 import filius.software.clientserver.ClientAnwendung;
 import filius.software.transportschicht.Socket;
 import filius.software.transportschicht.TCPSocket;
@@ -205,7 +206,7 @@ public class WebBrowser extends ClientAnwendung implements I18n {
         if (statusCode == 0) {
             quelltext = messages.getString("sw_webbrowser_msg1");
         } else {
-            dateipfad = ClassLoader.getSystemResource("tmpl/http_fehler.txt").getFile();
+            dateipfad = ResourceUtil.getResourcePath("tmpl/http_fehler.txt");
             try {
                 quelltext = einlesenTextdatei(dateipfad);
             } catch (Exception e) {
