@@ -25,7 +25,7 @@
  */
 package filius.software.dateiaustausch;
 
-import java.util.LinkedList;
+import java.util.List;
 
 import filius.Main;
 import filius.software.clientserver.ServerMitarbeiter;
@@ -35,209 +35,196 @@ import filius.software.transportschicht.Socket;
 import filius.software.www.HTTPNachricht;
 
 /**
- * In dieser Klasse wird ein Thread implementiert, der eingehende Anfragen an
- * eine Peer-to-Peer-Anwendung verarbeitet.
+ * In dieser Klasse wird ein Thread implementiert, der eingehende Anfragen an eine Peer-to-Peer-Anwendung verarbeitet.
  */
 public class PeerToPeerServerMitarbeiter extends ServerMitarbeiter {
 
-	private PeerToPeerAnwendung peerToPeerAnwendung;
+    private PeerToPeerAnwendung peerToPeerAnwendung;
 
-	/** die GUID der eingegangenen zu verarbeitenden Nachricht */
-	private int guid;
+    /** die GUID der eingegangenen zu verarbeitenden Nachricht */
+    private int guid;
 
-	/**
-	 * Aufruf des Konstruktors der Oberklasse und Initialisierung der
-	 * zugehoerigen Instanz von PeerToPeerAnwendung
-	 * 
-	 * @param server
-	 * @param socket
-	 * @param peerToPeerAnwendung
-	 */
-	PeerToPeerServerMitarbeiter(PeerToPeerServer server, Socket socket, PeerToPeerAnwendung peerToPeerAnwendung) {
-		super(server, socket);
-		Main.debug.println("INVOKED-2 (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
-		        + " (PeerToPeerServerMitarbeiter), constr: PeerToPeerServerMitarbeiter(" + server + "," + socket + ","
-		        + peerToPeerAnwendung + ")");
+    /**
+     * Aufruf des Konstruktors der Oberklasse und Initialisierung der zugehoerigen Instanz von PeerToPeerAnwendung
+     * 
+     * @param server
+     * @param socket
+     * @param peerToPeerAnwendung
+     */
+    PeerToPeerServerMitarbeiter(PeerToPeerServer server, Socket socket, PeerToPeerAnwendung peerToPeerAnwendung) {
+        super(server, socket);
+        Main.debug.println("INVOKED-2 (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
+                + " (PeerToPeerServerMitarbeiter), constr: PeerToPeerServerMitarbeiter(" + server + "," + socket + ","
+                + peerToPeerAnwendung + ")");
 
-		this.peerToPeerAnwendung = peerToPeerAnwendung;
-	}
+        this.peerToPeerAnwendung = peerToPeerAnwendung;
+    }
 
-	/** Methode zum versenden von Antwortnachrichten */
-	void senden(String nachricht) {
-		Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
-		        + " (PeerToPeerServerMitarbeiter), senden(" + nachricht + ")");
-		if (socket != null && socket.istVerbunden()) {
-			try {
-				socket.senden(nachricht);
-			} catch (Exception e) {
-				e.printStackTrace(Main.debug);
-			}
-		}
-	}
+    /** Methode zum versenden von Antwortnachrichten */
+    void senden(String nachricht) {
+        Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
+                + " (PeerToPeerServerMitarbeiter), senden(" + nachricht + ")");
+        if (socket != null && socket.istVerbunden()) {
+            try {
+                socket.senden(nachricht);
+            } catch (Exception e) {
+                e.printStackTrace(Main.debug);
+            }
+        }
+    }
 
-	/**
-	 * Zugriff auf die GUID der Anfrage-Nachricht, die durch diesen
-	 * Mitarbeiter-Thread verarbeitet wird.
-	 * 
-	 * @return
-	 */
-	int holeGuid() {
-		return guid;
-	}
+    /**
+     * Zugriff auf die GUID der Anfrage-Nachricht, die durch diesen Mitarbeiter-Thread verarbeitet wird.
+     * 
+     * @return
+     */
+    int holeGuid() {
+        return guid;
+    }
 
-	/**
-	 * Diese Operation verarbeitet eine eingegangene HTTP-Anfrage:
-	 * <ol>
-	 * <li>Lesen der gesuchten Datei aus lokalem Dateisystem</li>
-	 * <li>Wenn die Datei vorhanden ist, Versenden der Datei; wenn die Datei
-	 * nicht vorhanden ist, verschicken einer HTTP-Antwort mit dem
-	 * Fehler-Status-Code 404</li>
-	 * <li>Versenden der Antwort ueber den geoeffneten Socket</li>
-	 * </ol>
-	 * 
-	 * @param element
-	 *            die zu verarbeitende HTTP Anfrage in Form eines
-	 *            TcpPufferElements
-	 */
-	private void httpAnfrageVerarbeiten(String nachricht) {
-		Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
-		        + " (PeerToPeerServerMitarbeiter), httpAnfrageVerarbeiten(" + nachricht + ")");
-		HTTPNachricht http, antwort;
-		Datei datei;
+    /**
+     * Diese Operation verarbeitet eine eingegangene HTTP-Anfrage:
+     * <ol>
+     * <li>Lesen der gesuchten Datei aus lokalem Dateisystem</li>
+     * <li>Wenn die Datei vorhanden ist, Versenden der Datei; wenn die Datei nicht vorhanden ist, verschicken einer
+     * HTTP-Antwort mit dem Fehler-Status-Code 404</li>
+     * <li>Versenden der Antwort ueber den geoeffneten Socket</li>
+     * </ol>
+     * 
+     * @param element
+     *            die zu verarbeitende HTTP Anfrage in Form eines TcpPufferElements
+     */
+    private void httpAnfrageVerarbeiten(String nachricht) {
+        Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
+                + " (PeerToPeerServerMitarbeiter), httpAnfrageVerarbeiten(" + nachricht + ")");
+        HTTPNachricht http, antwort;
+        Datei datei;
 
-		http = new HTTPNachricht(nachricht);
-		antwort = new HTTPNachricht(HTTPNachricht.SERVER);
-		datei = peerToPeerAnwendung.holeDatei(http.getPfad());
+        http = new HTTPNachricht(nachricht);
+        antwort = new HTTPNachricht(HTTPNachricht.SERVER);
+        datei = peerToPeerAnwendung.holeDatei(http.getPfad());
 
-		if (datei != null) {
-			antwort.setStatusCode(200);
-			antwort.setContentType(datei.getDateiTyp());
-			antwort.setDaten(datei.getDateiInhalt());
-		} else {
-			antwort.setStatusCode(404);
-		}
+        if (datei != null) {
+            antwort.setStatusCode(200);
+            antwort.setContentType(datei.getDateiTyp());
+            antwort.setDaten(datei.getDateiInhalt());
+        } else {
+            antwort.setStatusCode(404);
+        }
 
-		try {
-			socket.senden(antwort.toString());
-		} catch (Exception e) {
-			e.printStackTrace(Main.debug);
-		}
-	}
+        try {
+            socket.senden(antwort.toString());
+        } catch (Exception e) {
+            e.printStackTrace(Main.debug);
+        }
+    }
 
-	/**
-	 * Methode zur Verarbeitung einer eingehenden Ping-Nachricht.
-	 * <ol>
-	 * <li>Absender des Ping-Pakets wird der Liste der bekannten Teilnehmer im
-	 * Peer-to-Peer-Netzwerk hinzugefuegt.</li>
-	 * <li>Erzeugen einer entsprechenden Pong-Nachricht, wenn auf diese
-	 * Ping-Nachricht nicht schon geantwortet wurde.</li>
-	 * <li>Erhoehung des Hop-Zahlers und Dekrementierung des TTL-Zaehlers der
-	 * Ping-Nachricht.</li>
-	 * <li>Weiterleitung des Ping-Pakets</li>
-	 * </ol>
-	 * 
-	 * @param pingPaket
-	 */
-	private void verarbeitePing(PingPaket pingPaket) {
-		Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
-		        + " (PeerToPeerServerMitarbeiter), verarbeitePing(" + pingPaket + ")");
-		String pongNachricht;
+    /**
+     * Methode zur Verarbeitung einer eingehenden Ping-Nachricht.
+     * <ol>
+     * <li>Absender des Ping-Pakets wird der Liste der bekannten Teilnehmer im Peer-to-Peer-Netzwerk hinzugefuegt.</li>
+     * <li>Erzeugen einer entsprechenden Pong-Nachricht, wenn auf diese Ping-Nachricht nicht schon geantwortet wurde.</li>
+     * <li>Erhoehung des Hop-Zahlers und Dekrementierung des TTL-Zaehlers der Ping-Nachricht.</li>
+     * <li>Weiterleitung des Ping-Pakets</li>
+     * </ol>
+     * 
+     * @param pingPaket
+     */
+    private void verarbeitePing(PingPaket pingPaket) {
+        Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
+                + " (PeerToPeerServerMitarbeiter), verarbeitePing(" + pingPaket + ")");
+        String pongNachricht;
 
-		peerToPeerAnwendung.hinzuTeilnehmer(pingPaket.getIp());
+        peerToPeerAnwendung.hinzuTeilnehmer(pingPaket.getIp());
 
-		pongNachricht = peerToPeerAnwendung.erstellePong(pingPaket).toString();
-		if (pongNachricht != null) {
-			try {
-				socket.senden(pongNachricht);
-			} catch (Exception e) {
-				e.printStackTrace(Main.debug);
-			}
-		}
+        pongNachricht = peerToPeerAnwendung.erstellePong(pingPaket).toString();
+        if (pongNachricht != null) {
+            try {
+                socket.senden(pongNachricht);
+            } catch (Exception e) {
+                e.printStackTrace(Main.debug);
+            }
+        }
 
-		pingPaket.setHops(pingPaket.getHops() + 1);
-		pingPaket.setTtl(pingPaket.getTtl() - 1);
+        pingPaket.setHops(pingPaket.getHops() + 1);
+        pingPaket.setTtl(pingPaket.getTtl() - 1);
 
-		guid = pingPaket.getGuid();
-		peerToPeerAnwendung.sendePing(pingPaket, socket.holeZielIPAdresse());
-	}
+        guid = pingPaket.getGuid();
+        peerToPeerAnwendung.sendePing(pingPaket, socket.holeZielIPAdresse());
+    }
 
-	/**
-	 * Methode zur Verarbeitung einer eingehenden Suchanfrage (Query).
-	 * <ol>
-	 * <li>Erstellen der Ergebnisliste fuer eine Suchanfrage. Wenn auf die
-	 * Query-Nachricht bereits geantwortet wurde, wird keine Liste erzeugt.
-	 * Ausserdem wird damit zugleich veranlasst, dass die Suchanfrage ggf.
-	 * weitergeleitet wird.</li>
-	 * <li>
-	 * <ul>
-	 * <li>Wenn eine Liste mit mindestens einem Eintrag vorliegt, wird fuer jede
-	 * Datei eine Antwortnachricht ueber den Socket verschickt (Query-Hit).</li>
-	 * </ul>
-	 * </li>
-	 * </ol>
-	 * 
-	 * @param queryPaket
-	 */
-	private void verarbeiteQuery(QueryPaket queryPaket) {
-		Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
-		        + " (PeerToPeerServerMitarbeiter), verarbeiteQuery(" + queryPaket + ")");
-		LinkedList<Datei> dateien;
-		Datei aktuelleDatei;
-		Betriebssystem bs;
-		QueryHitPaket antwortPaket;
+    /**
+     * Methode zur Verarbeitung einer eingehenden Suchanfrage (Query).
+     * <ol>
+     * <li>Erstellen der Ergebnisliste fuer eine Suchanfrage. Wenn auf die Query-Nachricht bereits geantwortet wurde,
+     * wird keine Liste erzeugt. Ausserdem wird damit zugleich veranlasst, dass die Suchanfrage ggf. weitergeleitet
+     * wird.</li>
+     * <li>
+     * <ul>
+     * <li>Wenn eine Liste mit mindestens einem Eintrag vorliegt, wird fuer jede Datei eine Antwortnachricht ueber den
+     * Socket verschickt (Query-Hit).</li>
+     * </ul>
+     * </li>
+     * </ol>
+     * 
+     * @param queryPaket
+     */
+    private void verarbeiteQuery(QueryPaket queryPaket) {
+        Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
+                + " (PeerToPeerServerMitarbeiter), verarbeiteQuery(" + queryPaket + ")");
+        List<Datei> dateien;
+        Betriebssystem bs;
+        QueryHitPaket antwortPaket;
 
-		guid = queryPaket.getGuid();
+        guid = queryPaket.getGuid();
 
-		dateien = peerToPeerAnwendung.verarbeiteAnfrage(socket.holeZielIPAdresse(), queryPaket);
+        dateien = peerToPeerAnwendung.verarbeiteAnfrage(socket.holeZielIPAdresse(), queryPaket);
 
-		if (dateien != null && dateien.size() > 0) {
-			bs = (Betriebssystem) peerToPeerAnwendung.getSystemSoftware();
+        if (dateien != null && dateien.size() > 0) {
+            bs = (Betriebssystem) peerToPeerAnwendung.getSystemSoftware();
 
-			for (int i = 0; i < dateien.size(); i++) {
-				aktuelleDatei = (Datei) dateien.get(i);
-				antwortPaket = new QueryHitPaket(dateien.size(), 6346, bs.holeIPAdresse(), "2", "", " ");
-				antwortPaket.setGuid(queryPaket.getGuid());
-				antwortPaket.setHops(0);
-				antwortPaket.setTtl(8);
-				antwortPaket.setErgebnis(aktuelleDatei.getName() + ": " + aktuelleDatei.holeGroesse() + " B");
+            for (Datei aktuelleDatei : dateien) {
+                antwortPaket = new QueryHitPaket(dateien.size(), 6346, bs.holeIPAdresse(), "2", "", " ");
+                antwortPaket.setGuid(queryPaket.getGuid());
+                antwortPaket.setHops(0);
+                antwortPaket.setTtl(8);
+                antwortPaket.setErgebnis(aktuelleDatei.getName() + ": " + aktuelleDatei.holeGroesse() + " B");
 
-				try {
-					socket.senden(antwortPaket.toString());
-				} catch (Exception e) {
-					e.printStackTrace(Main.debug);
-				}
-			}
-		}
-	}
+                try {
+                    socket.senden(antwortPaket.toString());
+                } catch (Exception e) {
+                    e.printStackTrace(Main.debug);
+                }
+            }
+        }
+    }
 
-	/**
-	 * Wenn eine Nachricht auf dem zu ueberwachenden Socket eintrifft, wird die
-	 * Verarbeitung an diese Methode delegiert. <br />
-	 * Unterschieden wird eine HTTP-GET-Anfrage, eine eingehende Ping-Nachricht
-	 * und eine eingehende Suchanfrage (Query).
-	 */
-	protected void verarbeiteNachricht(String nachricht) {
-		Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
-		        + " (PeerToPeerServerMitarbeiter), verarbeiteNachricht(" + nachricht + ")");
-		PeerToPeerPaket paket;
-		PingPaket pingPaket;
-		QueryPaket queryPaket;
+    /**
+     * Wenn eine Nachricht auf dem zu ueberwachenden Socket eintrifft, wird die Verarbeitung an diese Methode delegiert. <br />
+     * Unterschieden wird eine HTTP-GET-Anfrage, eine eingehende Ping-Nachricht und eine eingehende Suchanfrage (Query).
+     */
+    protected void verarbeiteNachricht(String nachricht) {
+        Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
+                + " (PeerToPeerServerMitarbeiter), verarbeiteNachricht(" + nachricht + ")");
+        PeerToPeerPaket paket;
+        PingPaket pingPaket;
+        QueryPaket queryPaket;
 
-		if (nachricht != null) {
-			if (nachricht.startsWith("GET")) {
-				httpAnfrageVerarbeiten(nachricht);
-			} else {
-				paket = new PeerToPeerPaket(nachricht);
-				guid = paket.getGuid();
+        if (nachricht != null) {
+            if (nachricht.startsWith("GET")) {
+                httpAnfrageVerarbeiten(nachricht);
+            } else {
+                paket = new PeerToPeerPaket(nachricht);
+                guid = paket.getGuid();
 
-				if (paket.getPayload().equals("0x00")) {
-					pingPaket = new PingPaket(nachricht);
-					verarbeitePing(pingPaket);
-				} else if (paket.getPayload().equals("0x80")) {
-					queryPaket = new QueryPaket(nachricht);
-					verarbeiteQuery(queryPaket);
-				}
-			}
-		}
-	}
+                if (paket.getPayload().equals("0x00")) {
+                    pingPaket = new PingPaket(nachricht);
+                    verarbeitePing(pingPaket);
+                } else if (paket.getPayload().equals("0x80")) {
+                    queryPaket = new QueryPaket(nachricht);
+                    verarbeiteQuery(queryPaket);
+                }
+            }
+        }
+    }
 }

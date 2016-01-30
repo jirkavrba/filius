@@ -28,6 +28,7 @@ package filius.software.system;
 import java.io.Serializable;
 import java.util.Enumeration;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -460,14 +461,14 @@ public class Dateisystem implements Serializable {
      *            das Verzeichnis, in dem die Dateien gespeichert sind
      * @return eine Liste der Dateien
      */
-    public LinkedList<Datei> holeDateien(DefaultMutableTreeNode node) {
+    public List<Datei> holeDateien(DefaultMutableTreeNode node) {
         Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + ", holeDateien(" + node + ")");
-        LinkedList<Datei> liste = new LinkedList<Datei>();
+        List<Datei> liste = new LinkedList<Datei>();
 
         if (node == null) {
             return null;
         } else {
-            for (Enumeration e = node.children(); e.hasMoreElements();) {
+            for (Enumeration<DefaultMutableTreeNode> e = node.children(); e.hasMoreElements();) {
                 DefaultMutableTreeNode n = (DefaultMutableTreeNode) e.nextElement();
                 if (n.getUserObject() instanceof Datei) {
                     Datei dat = (Datei) n.getUserObject();
