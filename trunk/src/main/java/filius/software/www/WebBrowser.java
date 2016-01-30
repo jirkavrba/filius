@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedList;
-import java.util.ListIterator;
 
 import org.htmlparser.Node;
 import org.htmlparser.Parser;
@@ -183,14 +182,15 @@ public class WebBrowser extends ClientAnwendung implements I18n {
     private String einlesenTextdatei(String datei) throws FileNotFoundException, IOException {
         Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
                 + " (WebBrowser), einlesenTextdatei(" + datei + ")");
-        BufferedReader dateiPuffer;
         StringBuffer fullFile;
         String input;
 
-        dateiPuffer = new BufferedReader(new FileReader(datei));
+        FileReader fileReader = new FileReader(datei);
         fullFile = new StringBuffer();
-        while ((input = dateiPuffer.readLine()) != null) {
-            fullFile.append(input + "\n");
+        try (BufferedReader dateiPuffer = new BufferedReader(fileReader)) {
+            while ((input = dateiPuffer.readLine()) != null) {
+                fullFile.append(input + "\n");
+            }
         }
         return fullFile.toString();
     }
@@ -232,32 +232,21 @@ public class WebBrowser extends ClientAnwendung implements I18n {
     private void verarbeiteIMGTags(String quelltext, String host) {
         Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
                 + " (WebBrowser), verarbeiteIMGTags(" + quelltext + "," + host + ")");
-        Parser parser;
-        TagFindingVisitor nodeVisitor;
-        Node[] nodes;
-        ImageTag img;
-        ListIterator it;
-        String dateipfad;
-        URL url;
-        Object[] args;
-
         zustand = ABRUF_IMG;
 
-        parser = Parser.createParser(quelltext, null);
-
-        nodeVisitor = new TagFindingVisitor(new String[] { "img" });
+        Parser parser = Parser.createParser(quelltext, null);
+        TagFindingVisitor nodeVisitor = new TagFindingVisitor(new String[] { "img" });
         try {
             parser.visitAllNodesWith(nodeVisitor);
-            nodes = nodeVisitor.getTags(0);
+            Node[] nodes = nodeVisitor.getTags(0);
 
             for (int i = 0; i < nodes.length; i++) {
                 if (nodes[i] instanceof ImageTag) {
-                    img = (ImageTag) nodes[i];
+                    ImageTag img = (ImageTag) nodes[i];
                     synchronized (bilddateien) {
                         bilddateien.add(img.getImageURL());
                     }
                 }
-
             }
         } catch (Exception e) {
             e.printStackTrace(Main.debug);
@@ -267,13 +256,10 @@ public class WebBrowser extends ClientAnwendung implements I18n {
          * Liste der gefundenen IMG SRCs wird iteriert, die einzelnen Bilder werden abgerufen
          */
         synchronized (bilddateien) {
-            it = bilddateien.listIterator();
-            while (it.hasNext()) {
-
-                dateipfad = it.next().toString();
+            for (String dateipfad : bilddateien) {
                 try {
-                    url = new URL("http", host, dateipfad);
-                    args = new Object[2];
+                    URL url = new URL("http", host, dateipfad);
+                    Object[] args = new Object[2];
                     args[0] = url;
                     args[1] = "";
                     ausfuehren("internHoleRessource", args);
