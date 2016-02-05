@@ -456,14 +456,7 @@ public class Information implements Serializable {
 
         // Windows system (with drive letters!):
         if (File.separator.equals("\\")) {
-            if (progPath.substring(1, 3).equals(workPath.substring(1, 3))) { // directories
-                                                                             // on
-                                                                             // same
-                                                                             // drive
-                                                                             // -->
-                                                                             // remove
-                                                                             // drive
-                                                                             // letter
+            if (progPath.substring(1, 3).equals(workPath.substring(1, 3))) {
                 progPath = progPath.substring(2);
                 workPath = workPath.substring(2);
             } else { // different drives; --> return absolute path
@@ -540,15 +533,9 @@ public class Information implements Serializable {
                 if (!token.isEmpty())
                     arbeitsbereichPfad += token + System.getProperty("file.separator");
             }
-        } else
-            arbeitsbereichPfad = otherWD + System.getProperty("file.separator"); // no
-                                                                                 // separators,
-                                                                                 // but
-                                                                                 // possibly
-                                                                                 // still
-                                                                                 // legitimate
-                                                                                 // String
-
+        } else {
+            arbeitsbereichPfad = otherWD + System.getProperty("file.separator");
+        }
         arbeitsbereichPfad += ".filius" + System.getProperty("file.separator");
     }
 
@@ -626,6 +613,8 @@ public class Information implements Serializable {
 
             try {
                 iniFile = new RandomAccessFile(tmpFile.getAbsolutePath(), "r");
+                int width = 0;
+                int height = 0;
                 for (String line; (line = iniFile.readLine()) != null;) {
                     if (!line.trim().equals("") && !line.trim().startsWith("#")) {
                         StringTokenizer st = new StringTokenizer(line, "=");
@@ -665,11 +654,22 @@ public class Information implements Serializable {
                                     } else if (configValue.trim().equals("0")) {
                                         softwareWizardMode = FeatureMode.FORCE_DISABLE;
                                     }
+                                } else if (configKey.equalsIgnoreCase("pane-width")) {
+                                    try {
+                                        width = Integer.parseInt(configValue);
+                                    } catch (NumberFormatException e) {}
+                                } else if (configKey.equalsIgnoreCase("pane-height")) {
+                                    try {
+                                        height = Integer.parseInt(configValue);
+                                    } catch (NumberFormatException e) {}
                                 }
                             }
 
                         }
                     }
+                }
+                if (width > 0 && height > 0) {
+                    GUIContainer.getGUIContainer(width, height);
                 }
             } finally {
                 if (iniFile != null)

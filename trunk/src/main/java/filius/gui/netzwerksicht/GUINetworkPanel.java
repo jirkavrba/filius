@@ -30,7 +30,6 @@ import java.util.List;
 
 import javax.swing.ImageIcon;
 
-import filius.gui.GUIContainer;
 import filius.hardware.knoten.InternetKnoten;
 import filius.hardware.knoten.Knoten;
 import filius.hardware.knoten.Modem;
@@ -43,11 +42,11 @@ public class GUINetworkPanel extends GUIMainArea {
 
     private static final long serialVersionUID = 1L;
 
-    public GUINetworkPanel() {
+    public GUINetworkPanel(int width, int height) {
         setLayout(null);
-        setPreferredSize(new Dimension(GUIContainer.FLAECHE_BREITE, GUIContainer.FLAECHE_HOEHE));
+        setPreferredSize(new Dimension(width, height));
         setOpaque(false);
-        setBounds(0, 0, GUIContainer.FLAECHE_BREITE, GUIContainer.FLAECHE_HOEHE);
+        setBounds(0, 0, width, height);
     }
 
     public void updateViewport(List<GUIKnotenItem> knoten, List<GUIKabelItem> kabel) {
@@ -65,7 +64,7 @@ public class GUINetworkPanel extends GUIMainArea {
             templabel.setText(tempKnoten.holeAnzeigeName());
             templabel.setTyp(tempKnoten.holeHardwareTyp());
             if (tempitem.getKnoten() instanceof InternetKnoten) {
-                templabel.updateTooltip((InternetKnoten)tempitem.getKnoten());
+                templabel.updateTooltip((InternetKnoten) tempitem.getKnoten());
             }
             if (tempitem.getKnoten() instanceof Switch) {
                 if (((Switch) tempitem.getKnoten()).isCloud())

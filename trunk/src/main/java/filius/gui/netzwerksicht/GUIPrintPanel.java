@@ -32,25 +32,24 @@ import java.util.List;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import filius.gui.GUIContainer;
-
+@SuppressWarnings("serial")
 public class GUIPrintPanel extends JPanel {
     private static final int EMPTY_BORDER = 10;
 
-    private static final long serialVersionUID = 1L;
+    private GUINetworkPanel networkPanel;
+    private GUIDocumentationPanel docuPanel;
 
-    private GUINetworkPanel networkPanel = new GUINetworkPanel();
-    private GUIDocumentationPanel docuPanel = new GUIDocumentationPanel();
-
-    public GUIPrintPanel() {
-        this.setSize(GUIContainer.FLAECHE_BREITE + 2 * EMPTY_BORDER, GUIContainer.FLAECHE_HOEHE + 2 * EMPTY_BORDER);
+    public GUIPrintPanel(int width, int height) {
+        this.setSize(width + 2 * EMPTY_BORDER, height + 2 * EMPTY_BORDER);
         setOpaque(false);
 
+        networkPanel = new GUINetworkPanel(width, height);
         add(networkPanel);
-        networkPanel.setBounds(EMPTY_BORDER, EMPTY_BORDER, GUIContainer.FLAECHE_BREITE, GUIContainer.FLAECHE_HOEHE);
+        networkPanel.setBounds(EMPTY_BORDER, EMPTY_BORDER, width, height);
 
+        docuPanel = new GUIDocumentationPanel(width, height);
         add(docuPanel);
-        docuPanel.setBounds(EMPTY_BORDER, EMPTY_BORDER, GUIContainer.FLAECHE_BREITE, GUIContainer.FLAECHE_HOEHE);
+        docuPanel.setBounds(EMPTY_BORDER, EMPTY_BORDER, width, height);
     }
 
     public void updateViewport(List<GUIKnotenItem> knoten, List<GUIKabelItem> kabel, List<GUIDocuItem> docuItems,
@@ -98,15 +97,5 @@ public class GUIPrintPanel extends JPanel {
 
     public int getClipX() {
         return (int) Math.min(networkPanel.minX, docuPanel.minX);
-    }
-
-    @Override
-    public int getWidth() {
-        return GUIContainer.FLAECHE_BREITE + 2 * EMPTY_BORDER;
-    }
-
-    @Override
-    public int getHeight() {
-        return GUIContainer.FLAECHE_HOEHE + 2 * EMPTY_BORDER;
     }
 }

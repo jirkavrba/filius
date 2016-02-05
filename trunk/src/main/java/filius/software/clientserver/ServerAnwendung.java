@@ -105,6 +105,9 @@ public abstract class ServerAnwendung extends Anwendung implements I18n {
             notifyAll();
         }
         if (!flag) {
+            if (socket != null) {
+                socket.schliessen();
+            }
             benachrichtigeBeobachter(messages.getString("sw_serveranwendung_msg1"));
         } else {
             benachrichtigeBeobachter(messages.getString("sw_serveranwendung_msg2"));
@@ -189,8 +192,8 @@ public abstract class ServerAnwendung extends Anwendung implements I18n {
                         socket = new ServerSocket(getSystemSoftware(), port, transportProtokoll);
                     } catch (ServerSocketException e) {
                         e.printStackTrace(Main.debug);
-                        benachrichtigeBeobachter(messages.getString("sw_serveranwendung_msg3"));
                         setAktiv(false);
+                        benachrichtigeBeobachter(messages.getString("sw_serveranwendung_msg3"));
                         if (socket != null) {
                             socket.beenden();
                         }

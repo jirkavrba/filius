@@ -28,16 +28,14 @@ package filius.gui.netzwerksicht;
 import java.awt.Dimension;
 import java.util.List;
 
-import filius.gui.GUIContainer;
-
 public class GUIDocumentationPanel extends GUIMainArea {
 
     private static final long serialVersionUID = 1L;
 
-    public GUIDocumentationPanel() {
+    public GUIDocumentationPanel(int width, int height) {
         setLayout(null);
-        setPreferredSize(new Dimension(GUIContainer.FLAECHE_BREITE, GUIContainer.FLAECHE_HOEHE));
-        setBounds(0, 0, GUIContainer.FLAECHE_BREITE, GUIContainer.FLAECHE_HOEHE);
+        setPreferredSize(new Dimension(width, height));
+        setBounds(0, 0, width, height);
         setOpaque(false);
     }
 

@@ -108,12 +108,15 @@ public class GUIContainer implements Serializable, I18n {
 
     private GUIMainMenu menu;
 
-    private GUINetworkPanel networkPanel = new GUINetworkPanel();
+    private int width = FLAECHE_BREITE;
+    private int height = FLAECHE_HOEHE;
+
+    private GUINetworkPanel networkPanel;
     private JPanel designListenerPanel = new JPanel();
     private JLayeredPane layeredPane = new JLayeredPane();
 
     private GUIDocumentationSidebar docuSidebar;
-    private GUIDocumentationPanel docuPanel = new GUIDocumentationPanel();
+    private GUIDocumentationPanel docuPanel;
     private JScrollPane docuSidebarScrollpane;
     private JPanel docuDragPanel = new JPanel();
     private JDocuElement activeDocuElement;
@@ -139,6 +142,17 @@ public class GUIContainer implements Serializable, I18n {
     private List<GUIKnotenItem> nodeItems = new LinkedList<GUIKnotenItem>();
     private List<GUIKabelItem> cableItems = new LinkedList<GUIKabelItem>();
     private List<GUIDocuItem> docuItems = new ArrayList<GUIDocuItem>();
+
+    private GUIContainer(int width, int height) {
+        this.width = width;
+        this.height = height;
+
+        Image image = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/gfx/hardware/kabel.png"));
+        JMainFrame.getJMainFrame().setIconImage(image);
+
+        docuPanel = new GUIDocumentationPanel(width, height);
+        networkPanel = new GUINetworkPanel(width, height);
+    }
 
     public List<GUIKnotenItem> getKnotenItems() {
         return nodeItems;
@@ -174,13 +188,13 @@ public class GUIContainer implements Serializable, I18n {
      */
     public void initialisieren() {
         Container contentPane = JMainFrame.getJMainFrame().getContentPane();
-        layeredPane.setSize(FLAECHE_BREITE, FLAECHE_HOEHE);
-        layeredPane.setMinimumSize(new Dimension(FLAECHE_BREITE, FLAECHE_HOEHE));
-        layeredPane.setPreferredSize(new Dimension(FLAECHE_BREITE, FLAECHE_HOEHE));
-        
-        designListenerPanel.setSize(FLAECHE_BREITE, FLAECHE_HOEHE);
-        designListenerPanel.setMinimumSize(new Dimension(FLAECHE_BREITE, FLAECHE_HOEHE));
-        designListenerPanel.setPreferredSize(new Dimension(FLAECHE_BREITE, FLAECHE_HOEHE));
+        layeredPane.setSize(width, height);
+        layeredPane.setMinimumSize(new Dimension(width, height));
+        layeredPane.setPreferredSize(new Dimension(width, height));
+
+        designListenerPanel.setSize(width, height);
+        designListenerPanel.setMinimumSize(new Dimension(width, height));
+        designListenerPanel.setPreferredSize(new Dimension(width, height));
         designListenerPanel.setOpaque(false);
         layeredPane.add(designListenerPanel, ACTIVE_LISTENER_LAYER);
 
@@ -250,9 +264,9 @@ public class GUIContainer implements Serializable, I18n {
         layeredPane.add(networkPanel, JLayeredPane.DEFAULT_LAYER);
 
         designBackgroundPanel.setBackgroundImage("gfx/allgemein/entwurfshg.png");
-        designBackgroundPanel.setBounds(0, 0, FLAECHE_BREITE, FLAECHE_HOEHE);
+        designBackgroundPanel.setBounds(0, 0, width, height);
 
-        docuDragPanel.setBounds(0, 0, FLAECHE_BREITE, FLAECHE_HOEHE);
+        docuDragPanel.setBounds(0, 0, width, height);
         docuDragPanel.setOpaque(false);
         layeredPane.add(docuDragPanel, JLayeredPane.DRAG_LAYER);
 
@@ -262,7 +276,7 @@ public class GUIContainer implements Serializable, I18n {
         designView.getVerticalScrollBar().setUnitIncrement(10);
 
         simulationBackgroundPanel.setBackgroundImage("gfx/allgemein/simulationshg.png");
-        simulationBackgroundPanel.setBounds(0, 0, FLAECHE_BREITE, FLAECHE_HOEHE);
+        simulationBackgroundPanel.setBounds(0, 0, width, height);
         simulationView = new JScrollPane();
         simulationView.getVerticalScrollBar().setUnitIncrement(10);
 
@@ -425,7 +439,7 @@ public class GUIContainer implements Serializable, I18n {
 
         if (fileChooser.showSaveDialog(JMainFrame.getJMainFrame()) == JFileChooser.APPROVE_OPTION) {
             if (fileChooser.getSelectedFile() != null) {
-                GUIPrintPanel printPanel = new GUIPrintPanel();
+                GUIPrintPanel printPanel = new GUIPrintPanel(width, height);
                 printPanel
                         .updateViewport(nodeItems, cableItems, docuItems, SzenarioVerwaltung.getInstance().holePfad());
                 BufferedImage bi = new BufferedImage(printPanel.getWidth(), printPanel.getHeight(),
@@ -454,13 +468,6 @@ public class GUIContainer implements Serializable, I18n {
                 updateViewport();
             }
         }
-    }
-
-    private GUIContainer() {
-        Image image;
-
-        image = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/gfx/hardware/kabel.png"));
-        JMainFrame.getJMainFrame().setIconImage(image);
     }
 
     /**
@@ -556,12 +563,15 @@ public class GUIContainer implements Serializable, I18n {
      * @return ref
      */
     public static GUIContainer getGUIContainer() {
+        return getGUIContainer(FLAECHE_BREITE, FLAECHE_HOEHE);
+    }
+
+    public static GUIContainer getGUIContainer(int width, int height) {
         if (ref == null) {
-            ref = new GUIContainer();
+            ref = new GUIContainer(width, height);
             if (ref == null)
                 Main.debug.println("ERROR (static) getGUIContainer(): Fehler!!! ref==null");
         }
-
         return ref;
     }
 
@@ -754,11 +764,11 @@ public class GUIContainer implements Serializable, I18n {
 
     public void moveMarker(int incX, int incY, List<GUIKnotenItem> markedlist) {
         int newMarkerX = designSelectionArea.getX() + incX;
-        if (newMarkerX + designSelectionArea.getWidth() >= FLAECHE_BREITE || newMarkerX < 0) {
+        if (newMarkerX + designSelectionArea.getWidth() >= width || newMarkerX < 0) {
             incX = 0;
         }
         int newMarkerY = designSelectionArea.getY() + incY;
-        if (newMarkerY + designSelectionArea.getHeight() >= FLAECHE_HOEHE || newMarkerY < 0) {
+        if (newMarkerY + designSelectionArea.getHeight() >= height || newMarkerY < 0) {
             incY = 0;
         }
         designSelectionArea.setBounds(designSelectionArea.getX() + incX, designSelectionArea.getY() + incY,
@@ -826,11 +836,15 @@ public class GUIContainer implements Serializable, I18n {
         if (desktopWindowList.size() < totalNumberOfDesktops
                 && !Information.getDesktopWindowMode().equals(GUIDesktopWindow.Mode.STACK)) {
             if (Information.getDesktopWindowMode().equals(GUIDesktopWindow.Mode.COLUMN)) {
-                xPos = MIN_DESKTOP_SPACING + (desktopWindowList.size() / numberOfDesktopsPerColumn) * (int) desktopSize.getWidth();
-                yPos = MIN_DESKTOP_SPACING + (desktopWindowList.size() % numberOfDesktopsPerColumn) * (int) desktopSize.getHeight();
+                xPos = MIN_DESKTOP_SPACING + (desktopWindowList.size() / numberOfDesktopsPerColumn)
+                        * (int) desktopSize.getWidth();
+                yPos = MIN_DESKTOP_SPACING + (desktopWindowList.size() % numberOfDesktopsPerColumn)
+                        * (int) desktopSize.getHeight();
             } else {
-                xPos = MIN_DESKTOP_SPACING + (desktopWindowList.size() % numberOfDesktopsPerRow) * (int) desktopSize.getWidth();
-                yPos = MIN_DESKTOP_SPACING + (desktopWindowList.size() / numberOfDesktopsPerRow) * (int) desktopSize.getHeight();
+                xPos = MIN_DESKTOP_SPACING + (desktopWindowList.size() % numberOfDesktopsPerRow)
+                        * (int) desktopSize.getWidth();
+                yPos = MIN_DESKTOP_SPACING + (desktopWindowList.size() / numberOfDesktopsPerRow)
+                        * (int) desktopSize.getHeight();
             }
         } else {
             int overlappingDesktops = Information.getDesktopWindowMode().equals(GUIDesktopWindow.Mode.STACK) ? desktopWindowList
@@ -968,6 +982,14 @@ public class GUIContainer implements Serializable, I18n {
 
     public void removeCableItem(GUIKabelItem cableItem) {
         cableItems.remove(cableItem);
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
 
 }
