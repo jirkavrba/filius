@@ -131,12 +131,14 @@ public abstract class TransportProtokoll extends Protokoll implements I18n, Runn
     public boolean reservierePort(int port, SocketSchnittstelle socket) {
         Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (TransportProtokoll), reservierePort("
                 + port + "," + socket + ")");
-        if (portTabelle.containsKey(port)) {
-            Main.debug.println("ERROR (" + this.hashCode() + "): Port " + port + " ist bereits belegt!");
-            return false;
-        } else {
-            portTabelle.put(port, socket);
-            return true;
+        synchronized (portTabelle) {
+            if (portTabelle.containsKey(port)) {
+                Main.debug.println("ERROR (" + this.hashCode() + "): Port " + port + " ist bereits belegt!");
+                return false;
+            } else {
+                portTabelle.put(port, socket);
+                return true;
+            }
         }
     }
 
@@ -144,11 +146,13 @@ public abstract class TransportProtokoll extends Protokoll implements I18n, Runn
         Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (TransportProtokoll), gibPortFrei("
                 + port + ")");
 
-        if (portTabelle.containsKey(port)) {
-            portTabelle.remove(port);
-            return true;
-        } else {
-            return false;
+        synchronized (portTabelle) {
+            if (portTabelle.containsKey(port)) {
+                portTabelle.remove(port);
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
@@ -206,7 +210,7 @@ public abstract class TransportProtokoll extends Protokoll implements I18n, Runn
         if (!running) {
             running = true;
             if (sendeThread == null
-                    || (!sendeThread.getState().equals(State.WAITING) && !sendeThread.getState().equals(State.BLOCKED)))  {
+                    || (!sendeThread.getState().equals(State.WAITING) && !sendeThread.getState().equals(State.BLOCKED))) {
                 sendeThread = new Thread(this);
                 sendeThread.start();
             }

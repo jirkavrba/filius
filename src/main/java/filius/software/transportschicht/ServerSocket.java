@@ -98,7 +98,7 @@ public class ServerSocket implements SocketSchnittstelle, I18n {
         // Falls schon eine Anwendung auf dem vorgeschlagenen Port laeuft
         // wird eine Exception ausgeloest
         if (!protokoll.reservierePort(lokalerPort, this)) {
-            throw new ServerSocketException(messages.getString("sw_serversocket_msg1") + lokalerPort
+            throw new ServerSocketException(messages.getString("sw_serversocket_msg1") + " " + lokalerPort + " "
                     + messages.getString("sw_serversocket_msg2"));
         }
     }

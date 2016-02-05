@@ -164,16 +164,16 @@ public class GUIEvents implements I18n {
                 tmpX = e.getX() - (aktiveslabel.getWidth() / 2);
                 if (tmpX < -(aktiveslabel.getWidth() / 2)) {
                     neuX = -(aktiveslabel.getWidth() / 2);
-                } else if (tmpX > (GUIContainer.FLAECHE_BREITE - (aktiveslabel.getWidth() / 2))) {
-                    neuX = GUIContainer.FLAECHE_BREITE - (aktiveslabel.getWidth() / 2);
+                } else if (tmpX > (GUIContainer.getGUIContainer().getWidth() - (aktiveslabel.getWidth() / 2))) {
+                    neuX = GUIContainer.getGUIContainer().getWidth() - (aktiveslabel.getWidth() / 2);
                 } else {
                     neuX = tmpX;
                 }
                 tmpY = e.getY() - (aktiveslabel.getHeight() / 2);
                 if (tmpY < -(aktiveslabel.getHeight() / 2)) {
                     neuY = -(aktiveslabel.getHeight() / 2);
-                } else if (tmpY > (GUIContainer.FLAECHE_HOEHE - (aktiveslabel.getHeight() / 2))) {
-                    neuY = (GUIContainer.FLAECHE_HOEHE - (aktiveslabel.getHeight() / 2));
+                } else if (tmpY > (GUIContainer.getGUIContainer().getHeight() - (aktiveslabel.getHeight() / 2))) {
+                    neuY = (GUIContainer.getGUIContainer().getHeight() - (aktiveslabel.getHeight() / 2));
                 } else {
                     neuY = tmpY;
                 }
