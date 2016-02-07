@@ -1,3 +1,9 @@
+filius (1.7.2) unstable; urgency=low
+  * Konfigurierbare Groesse der Arbeitsflaeche zum Aufbau der Rechnernetze (konfigurierbar in filius.ini)
+  * Fehlerbehebung: Fenstergroesse fuer E-Mail Verfassen so angepasst, dass es auch unter Mac OS funktioniert
+  * Fehlerbehebung: Anhalten einer Server-Anwendung gibt den Port frei, der fuer den Serversocket verwendet wurde
+ -- Stefan Freischlad <kontakt@lernsoftware-filius.de>  Wed, 07 Feb 2016 00:00:00 +0000
+
 filius (1.7.1) unstable; urgency=low
   * Fehlerbehebung: Sprachselektion bei erstmaligem Starten wieder aktiviert
  -- Stefan Freischlad <kontakt@lernsoftware-filius.de>  Wed, 03 Feb 2016 00:00:00 +0000
