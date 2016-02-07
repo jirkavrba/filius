@@ -27,8 +27,7 @@ package filius.gui.anwendungssicht;
 
 import java.awt.Dimension;
 import java.awt.Image;
-import java.util.HashMap;
-import java.util.ListIterator;
+import java.util.Map;
 import java.util.Observer;
 
 import javax.swing.Icon;
@@ -48,99 +47,91 @@ import filius.software.Anwendung;
  */
 public abstract class GUIApplicationWindow extends JInternalFrame implements I18n, Observer {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private GUIDesktopPanel desktop;
-	private Anwendung anwendung;
+    private GUIDesktopPanel desktop;
+    private Anwendung anwendung;
 
-	public GUIApplicationWindow(GUIDesktopPanel desktop, String appKlasse) {
-		super();
-		this.setDefaultCloseOperation(JInternalFrame.HIDE_ON_CLOSE);
+    public GUIApplicationWindow(GUIDesktopPanel desktop, String appKlasse) {
+        super();
+        this.setDefaultCloseOperation(JInternalFrame.HIDE_ON_CLOSE);
 
-		this.desktop = desktop;
-		this.desktop.getDesktopPane().add(this);
+        this.desktop = desktop;
+        this.desktop.getDesktopPane().add(this);
 
-		this.anwendung = desktop.getBetriebssystem().holeSoftware(appKlasse);
-		this.anwendung.hinzuBeobachter(this);
+        this.anwendung = desktop.getBetriebssystem().holeSoftware(appKlasse);
+        this.anwendung.hinzuBeobachter(this);
 
-		this.setPreferredSize(new Dimension(550, 420));
-		this.setClosable(true);
-		this.setMaximizable(true);
-		this.setIconifiable(false);
-		this.setResizable(true);
+        this.setPreferredSize(new Dimension(550, 420));
+        this.setClosable(true);
+        this.setMaximizable(true);
+        this.setIconifiable(false);
+        this.setResizable(true);
 
-		this.setTitle(anwendung.holeAnwendungsName());
-		this.initIcon();
-	}
+        this.setTitle(anwendung.holeAnwendungsName());
+        this.initIcon();
+    }
 
-	private void initIcon() {
-		ListIterator it;
-		HashMap tmpMap;
-		String awName;
-		ImageIcon image;
-		boolean fertig = false;
+    private void initIcon() {
+        String awName;
+        ImageIcon image;
+        try {
+            for (Map<String, String> tmpMap : Information.getInformation().ladeProgrammListe()) {
+                awName = (String) tmpMap.get("Anwendung");
 
-		try {
-			it = Information.getInformation().ladeProgrammListe().listIterator();
+                if (awName.equals(anwendung.holeAnwendungsName())) {
+                    image = new ImageIcon(getClass().getResource("/" + ((String) tmpMap.get("gfxFile"))));
+                    image.setImage(image.getImage().getScaledInstance(16, 16, Image.SCALE_AREA_AVERAGING));
+                    setFrameIcon(image);
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace(Main.debug);
+        }
+    }
 
-			while (it.hasNext() && !fertig) {
-				tmpMap = (HashMap) it.next();
-				awName = (String) tmpMap.get("Anwendung");
+    public Anwendung holeAnwendung() {
+        return anwendung;
+    }
 
-				if (awName.equals(anwendung.holeAnwendungsName())) {
-					image = new ImageIcon(getClass().getResource("/" + ((String) tmpMap.get("gfxFile"))));
-					image.setImage(image.getImage().getScaledInstance(16, 16, Image.SCALE_AREA_AVERAGING));
-					setFrameIcon(image);
-					fertig = true;
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace(Main.debug);
-		}
-	}
+    public void showMessageDialog(String msg) {
+        JOptionPane.showMessageDialog(desktop, msg);
+    }
 
-	public Anwendung holeAnwendung() {
-		return anwendung;
-	}
+    public int showOptionDialog(Object message, String title, int optionType, int messageType, Icon icon,
+            Object[] options, Object initialValue) {
+        return JOptionPane.showOptionDialog(desktop, message, title, optionType, messageType, icon, options,
+                initialValue);
+    }
 
-	public void showMessageDialog(String msg) {
-		JOptionPane.showMessageDialog(desktop, msg);
-	}
+    public int showConfirmDialog(String msg) {
+        return JOptionPane.showConfirmDialog(desktop, msg);
+    }
 
-	public int showOptionDialog(Object message, String title, int optionType, int messageType, Icon icon,
-	        Object[] options, Object initialValue) {
-		return JOptionPane.showOptionDialog(desktop, message, title, optionType, messageType, icon, options,
-		        initialValue);
-	}
+    public void addFrame(JInternalFrame frame) {
+        desktop.getDesktopPane().add(frame);
+    }
 
-	public int showConfirmDialog(String msg) {
-		return JOptionPane.showConfirmDialog(desktop, msg);
-	}
+    public void removeFrame(JInternalFrame frame) {
+        desktop.getDesktopPane().remove(frame);
+    }
 
-	public void addFrame(JInternalFrame frame) {
-		desktop.getDesktopPane().add(frame);
-	}
+    public void starteExterneAnwendung(String softwareName) {
+        desktop.starteAnwendung(softwareName);
+    }
 
-	public void removeFrame(JInternalFrame frame) {
-		desktop.getDesktopPane().remove(frame);
-	}
+    public void starteExterneAnwendung(String softwareName, String[] param) {
+        desktop.starteAnwendung(softwareName, param);
+    }
 
-	public void starteExterneAnwendung(String softwareName) {
-		desktop.starteAnwendung(softwareName);
-	}
+    public String[] holeParameter() {
+        return desktop.getParameter();
+    }
 
-	public void starteExterneAnwendung(String softwareName, String[] param) {
-		desktop.starteAnwendung(softwareName, param);
-	}
+    public void zeigePopupMenu(JPopupMenu menu, int x, int y) {
+        menu.show(desktop, x, y);
+    }
 
-	public String[] holeParameter() {
-		return desktop.getParameter();
-	}
-
-	public void zeigePopupMenu(JPopupMenu menu, int x, int y) {
-		menu.show(desktop, x, y);
-	}
-
-	public void starten(String[] param) {
-	}
+    public void starten(String[] param) {}
 }

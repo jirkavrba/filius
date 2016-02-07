@@ -323,7 +323,7 @@ public class GUIApplicationEmailAnwendungWindow extends GUIApplicationWindow {
     private void emailVerfassen(Email antwortAuf) {
         ImageIcon image;
         inFrVerfassen = new JInternalFrame(messages.getString("emailanwendung_msg12"));
-        inFrVerfassen.setBounds(100, 50, 530, 400);
+        inFrVerfassen.setBounds(50, 20, 570, 400);
         inFrVerfassen.setVisible(true);
         inFrVerfassen.setResizable(true);
         inFrVerfassen.setClosable(true);
