@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Vector;
 
+import org.apache.commons.lang3.StringUtils;
+
 import filius.Main;
 import filius.hardware.NetzwerkInterface;
 import filius.hardware.knoten.InternetKnoten;
@@ -273,10 +275,16 @@ public class Firewall extends Anwendung implements I18n {
             // shouldn't be possible, thus, an error obviously occurred...
         } else if (col == 1) {// srcIP
             ruleset.get(row).srcIP = value;
+            if (StringUtils.isNoneBlank(value) && StringUtils.isBlank(ruleset.get(row).srcMask)) {
+                ruleset.get(row).srcMask = "255.255.255.255";
+            }
         } else if (col == 2) {// srcMask
             ruleset.get(row).srcMask = value;
         } else if (col == 3) {// destIP
             ruleset.get(row).destIP = value;
+            if (StringUtils.isNoneBlank(value) && StringUtils.isBlank(ruleset.get(row).destMask)) {
+                ruleset.get(row).destMask = "255.255.255.255";
+            }
         } else if (col == 4) {// destMask
             ruleset.get(row).destMask = value;
         } else if (col == 5) {// protocol
@@ -301,6 +309,7 @@ public class Firewall extends Anwendung implements I18n {
             else
                 ruleset.get(row).action = FirewallRule.DROP;
         }
+        benachrichtigeBeobachter();
         return value;
     }
 
