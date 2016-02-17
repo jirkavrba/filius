@@ -32,6 +32,8 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Vector;
 
 import javax.swing.AbstractCellEditor;
@@ -62,7 +64,7 @@ import filius.software.firewall.Firewall;
 import filius.software.firewall.FirewallRule;
 
 @SuppressWarnings("serial")
-public class JFirewallDialog extends JDialog implements I18n {
+public class JFirewallDialog extends JDialog implements I18n, Observer {
 
     private class ComboBoxTableCellEditor extends AbstractCellEditor implements TableCellEditor {
         private JComboBox<String> cmbBox;
@@ -103,6 +105,7 @@ public class JFirewallDialog extends JDialog implements I18n {
         Main.debug.println("INVOKED-2 (" + this.hashCode() + ") " + getClass() + ", constr: JFirewallDialog("
                 + firewall + "," + dummyFrame + ")");
         this.firewall = firewall;
+        firewall.hinzuBeobachter(this);
 
         erzeugeFenster();
     }
@@ -503,5 +506,10 @@ public class JFirewallDialog extends JDialog implements I18n {
 
     public Firewall getFirewall() {
         return firewall;
+    }
+
+    @Override
+    public void update(Observable o, Object arg) {
+        updateRuleTable();
     }
 }
