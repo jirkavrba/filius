@@ -30,6 +30,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import filius.Main;
+import filius.software.vermittlungsschicht.IP;
 
 /**
  * 
@@ -88,26 +89,9 @@ public class EingabenUeberpruefung implements I18n {
 
     public static boolean isValidSubnetmask(String subnet) {
         Main.debug.println("INVOKED (EingabenUeberpruefung), isValidSubnetmask(" + subnet + ")");
-        String[] token = subnet.split("\\.");
-        String binary = "";
-        Main.debug.println("DEBUG (EingabenUeberpruefung), '" + token + "', length=" + token.length);
-        if (token.length != 4)
-            return false;
-        try {
-            for (int i = 0; i < token.length; i++) {
-                String currBin = Integer.toBinaryString(Integer.parseInt(token[i]));
-                while (currBin.length() < 8)
-                    currBin = "0" + currBin;
-                binary += currBin;
-                Main.debug.println("DEBUG (EingabenUeberpruefung), '" + token[i] + "' ~~> binary (" + i + ") = '"
-                        + binary + "'");
-            }
-        } catch (Exception e) {
-            return false;
-        }
-        if (binary.length() == 32 && isGueltig(binary, EingabenUeberpruefung.musterSubnetBinary))
-            return true;
-        return false;
+        String netmaskAsBinaryString = Long.toBinaryString(IP.inetAton(subnet));
+        return netmaskAsBinaryString.length() == 32
+                && isGueltig(netmaskAsBinaryString, EingabenUeberpruefung.musterSubnetBinary);
     }
 
 }
