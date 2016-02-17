@@ -28,7 +28,6 @@ package filius.software.firewall;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.StringTokenizer;
 import java.util.Vector;
 
 import filius.Main;
@@ -398,66 +397,6 @@ public class Firewall extends Anwendung implements I18n {
                                     // Otherwise numbering may contain offsets
                                     // due to one-for-all set (port, source,
                                     // dest) in new format.
-    }
-
-    /**
-     * 
-     * @param untereGrenze
-     * @param obereGrenze
-     * @param pruefWert
-     * @return wandelt zunächst die Adressen in Zahlen um. Dann wird geprueft, ob der pruefWert inmitten der oberen und
-     *         unteren Grenze liegt
-     */
-    private boolean inPruefbereich(String untereGrenze, String obereGrenze, String pruefWert) {
-        Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
-                + " (Firewall), inPruefbereich(" + untereGrenze + "," + obereGrenze + "," + pruefWert + ")");
-
-        boolean pruef = false;
-
-        StringTokenizer untereTokens = new StringTokenizer(untereGrenze, ".");
-        double ersteZahl = Integer.parseInt(untereTokens.nextToken());
-        ersteZahl = ersteZahl * 16777216; // entspricht 2^24
-        double zweiteZahl = Integer.parseInt(untereTokens.nextToken());
-        zweiteZahl = zweiteZahl * 65536; // entspricht 2^16
-        double dritteZahl = Integer.parseInt(untereTokens.nextToken());
-        dritteZahl = dritteZahl * 256;
-        double vierteZahl = Integer.parseInt(untereTokens.nextToken());
-
-        double untereSumme = ersteZahl + zweiteZahl + dritteZahl + vierteZahl;
-        // Main.debug.println("Firewall: untereSumme = "+untereSumme);
-
-        // String obereGrenze in eine Zahl umrechnen:
-        StringTokenizer obereTokens = new StringTokenizer(obereGrenze, ".");
-        double ersteObereZahl = Integer.parseInt(obereTokens.nextToken());
-        ersteObereZahl = ersteObereZahl * 16777216; // entspricht 2^24
-        double zweiteObereZahl = Integer.parseInt(obereTokens.nextToken());
-        zweiteObereZahl = zweiteObereZahl * 65536; // entspricht 2^16
-        double dritteObereZahl = Integer.parseInt(obereTokens.nextToken());
-        dritteObereZahl = dritteObereZahl * 256; // entspricht 2^8
-        double vierteObereZahl = Integer.parseInt(obereTokens.nextToken());
-
-        double obereSumme = ersteObereZahl + zweiteObereZahl + dritteObereZahl + vierteObereZahl;
-        // Main.debug.println("Firewall: obereSumme = "+obereSumme);
-
-        // String pruefWert in eine Zahl umrechnen:
-        StringTokenizer pruefTokens = new StringTokenizer(pruefWert, ".");
-        double erstePruefZahl = Integer.parseInt(pruefTokens.nextToken());
-        erstePruefZahl = erstePruefZahl * 16777216; // entspricht 2^24
-        double zweitePruefZahl = Integer.parseInt(pruefTokens.nextToken());
-        zweitePruefZahl = zweitePruefZahl * 65536; // entspricht 2^16
-        double drittePruefZahl = Integer.parseInt(pruefTokens.nextToken());
-        drittePruefZahl = drittePruefZahl * 256; // entspricht 2^8
-        double viertePruefZahl = Integer.parseInt(pruefTokens.nextToken());
-
-        double pruefZahlSumme = erstePruefZahl + zweitePruefZahl + drittePruefZahl + viertePruefZahl;
-        // Main.debug.println("Firewall: pruefZahlSumme = "+pruefZahlSumme);
-
-        // pruefen ob der pruefWert zwischen Obersumme und Untersumme liegt
-        if (pruefZahlSumme >= untereSumme && pruefZahlSumme <= obereSumme) {
-            pruef = true;
-        }
-
-        return pruef;
     }
 
     /**
