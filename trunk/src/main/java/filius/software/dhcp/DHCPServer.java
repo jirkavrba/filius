@@ -169,11 +169,8 @@ public class DHCPServer extends UDPServerAnwendung {
                 if (StringUtils.equalsIgnoreCase(mac, assignment.getMAC())) {
                     success = true;
                     offeredAddresses.remove(assignment);
-                    break;
-                } else {
-                    success = false;
-                    break;
                 }
+                break;
             }
         }
         if (!success && checkAddressAvailable(ip)) {

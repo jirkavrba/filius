@@ -183,25 +183,30 @@ public class ARP extends VermittlungsProtokoll {
                 "FF:FF:FF:FF:FF:FF", EthernetFrame.ARP);
     }
 
+    public static boolean isValidArpEntry(String ipAddress, String localNetmask) {
+        return !VermittlungsProtokoll.isBroadcast(ipAddress, ipAddress, localNetmask)
+                && !VermittlungsProtokoll.isNetworkAddress(ipAddress, ipAddress, localNetmask);
+    }
+
     public NetzwerkInterface getBroadcastNic(String zielStr) {
-        long netAddr, maskAddr, zielAddr = IP.inetAton(zielStr);
+        long netAddr, maskAddr, zielAddr = IP.inetAToN(zielStr);
 
         long bestMask = -1;
         NetzwerkInterface bestNic = null;
 
         for (NetzwerkInterface nic : ((InternetKnoten) holeSystemSoftware().getKnoten()).getNetzwerkInterfaces()) {
-            maskAddr = IP.inetAton(nic.getSubnetzMaske());
+            maskAddr = IP.inetAToN(nic.getSubnetzMaske());
             if (maskAddr <= bestMask) {
                 continue;
             }
-            netAddr = IP.inetAton(nic.getIp()) & maskAddr;
+            netAddr = IP.inetAToN(nic.getIp()) & maskAddr;
             if (netAddr == (maskAddr & zielAddr)) {
                 bestMask = maskAddr;
                 bestNic = nic;
             }
         }
         if (null == bestNic) {
-            bestMask = IP.inetAton(((InternetKnotenBetriebssystem) holeSystemSoftware()).holeNetzmaske());
+            bestMask = IP.inetAToN(((InternetKnotenBetriebssystem) holeSystemSoftware()).holeNetzmaske());
             bestNic = ((InternetKnoten) holeSystemSoftware().getKnoten()).getNetzwerkInterfaces().get(0);
         }
         return bestNic;

@@ -73,8 +73,8 @@ public class RIPTable {
 		long netMask, netAddr;
 
 		for (NetzwerkInterface nic : knoten.getNetzwerkInterfaces()) {
-			netMask = IP.inetAton(nic.getSubnetzMaske());
-			netAddr = IP.inetAton(nic.getIp()) & netMask;
+			netMask = IP.inetAToN(nic.getSubnetzMaske());
+			netAddr = IP.inetAToN(nic.getIp()) & netMask;
 
 			addRoute(new RIPRoute(0, IP.inetNtoa(netAddr), IP.inetNtoa(netMask), nic.getIp(), bs.holeIPAdresse(),
 			        nic.getIp(), 0));

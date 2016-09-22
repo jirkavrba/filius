@@ -74,7 +74,7 @@ public class IP extends VermittlungsProtokoll implements I18n {
                 + ")");
     }
 
-    public static long inetAton(String ipStr) {
+    public static long inetAToN(String ipStr) {
         long ipAddr = 0;
         int octet;
         StringTokenizer ipToken = new StringTokenizer(ipStr, ".");
@@ -118,7 +118,7 @@ public class IP extends VermittlungsProtokoll implements I18n {
     }
 
     public static String ipCheck(String ip) {
-        long ipAddr = inetAton(ip);
+        long ipAddr = inetAToN(ip);
         if (ipAddr == -1) {
             return null;
         }

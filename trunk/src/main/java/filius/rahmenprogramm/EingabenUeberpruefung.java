@@ -89,7 +89,7 @@ public class EingabenUeberpruefung implements I18n {
 
     public static boolean isValidSubnetmask(String subnet) {
         Main.debug.println("INVOKED (EingabenUeberpruefung), isValidSubnetmask(" + subnet + ")");
-        String netmaskAsBinaryString = Long.toBinaryString(IP.inetAton(subnet));
+        String netmaskAsBinaryString = Long.toBinaryString(IP.inetAToN(subnet));
         return netmaskAsBinaryString.length() == 32
                 && isGueltig(netmaskAsBinaryString, EingabenUeberpruefung.musterSubnetBinary);
     }

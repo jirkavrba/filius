@@ -253,8 +253,8 @@ public class Weiterleitungstabelle implements I18n {
 	 * 255.255.255.0 wird zu 192.168.2.0
 	 */
 	private String berechneNetzkennung(String ipStr, String maskStr) {
-		long ipAddr = IP.inetAton(ipStr);
-		long maskAddr = IP.inetAton(maskStr);
+		long ipAddr = IP.inetAToN(ipStr);
+		long maskAddr = IP.inetAToN(maskStr);
 		long netAddr = ipAddr & maskAddr;
 		return IP.inetNtoa(netAddr);
 	}
@@ -292,17 +292,17 @@ public class Weiterleitungstabelle implements I18n {
 	}
 
 	public Route determineRouteFromStaticRoutingTable(String targetIPAddress) throws RouteNotFoundException {
-		long netAddr, maskAddr, zielAddr = IP.inetAton(targetIPAddress);
+		long netAddr, maskAddr, zielAddr = IP.inetAToN(targetIPAddress);
 
 		long bestMask = -1;
 		Route bestRoute = null;
 
 		for (String[] route : holeTabelle()) {
-			maskAddr = IP.inetAton(route[1]);
+			maskAddr = IP.inetAToN(route[1]);
 			if (maskAddr <= bestMask) {
 				continue;
 			}
-			netAddr = IP.inetAton(route[0]);
+			netAddr = IP.inetAToN(route[0]);
 			if (netAddr == (maskAddr & zielAddr)) {
 				bestMask = maskAddr;
 				bestRoute = new Route(route);
@@ -327,10 +327,10 @@ public class Weiterleitungstabelle implements I18n {
 					if (bestHops < route.hops) {
 						continue;
 					}
-					if (bestHops > route.hops || bestMask < IP.inetAton(route.getNetMask())) {
+					if (bestHops > route.hops || bestMask < IP.inetAToN(route.getNetMask())) {
 						bestRoute = route;
 						bestHops = route.hops;
-						bestMask = IP.inetAton(route.getNetMask());
+						bestMask = IP.inetAToN(route.getNetMask());
 					}
 				}
 			}

@@ -61,23 +61,21 @@ public class ARPThread extends ProtokollThread {
         Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
                 + " (ARPThread), verarbeiteDatenEinheit(" + datenEinheit.toString() + ")");
         ArpPaket arpPaket, antwortArp;
-        InternetKnotenBetriebssystem bs;
-        NetzwerkInterface nic;
 
         arpPaket = (ArpPaket) datenEinheit;
+        InternetKnotenBetriebssystem bs = (InternetKnotenBetriebssystem) vermittlung.holeSystemSoftware();
+        NetzwerkInterface nic = vermittlung.getBroadcastNic(arpPaket.getQuellIp());
 
         // Aus jedem ARP-Paket wird ein neuer ARP-Eintrag erzeugt
-        if (!arpPaket.getQuellIp().equalsIgnoreCase("0.0.0.0")) {
+        if (ARP.isValidArpEntry(arpPaket.getQuellIp(), nic.getSubnetzMaske())) {
             vermittlung.hinzuARPTabellenEintrag(arpPaket.getQuellIp(), arpPaket.getQuellMacAdresse());
         }
-
-        bs = (InternetKnotenBetriebssystem) vermittlung.holeSystemSoftware();
-        nic = vermittlung.getBroadcastNic(arpPaket.getQuellIp());
 
         // wenn die Anfrage eine Anfrage fuer eine eigene
         // IP-Adresse ist, wird eine Antwort verschickt
         if (nic != null && arpPaket.getZielMacAdresse().equalsIgnoreCase("ff:ff:ff:ff:ff:ff")
-                && arpPaket.getZielIp().equalsIgnoreCase(nic.getIp())) {
+                && arpPaket.getZielIp().equalsIgnoreCase(nic.getIp())
+                && !VermittlungsProtokoll.isBroadcast(arpPaket.getQuellIp(), nic.getIp(), nic.getSubnetzMaske())) {
             antwortArp = new ArpPaket();
             antwortArp.setProtokollTyp(arpPaket.getProtokollTyp());
             antwortArp.setQuellIp(nic.getIp());
