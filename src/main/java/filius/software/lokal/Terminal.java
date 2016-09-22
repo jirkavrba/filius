@@ -747,6 +747,10 @@ public class Terminal extends ClientAnwendung implements I18n {
             if (VermittlungsProtokoll.isBroadcast(destIp, route.getInterfaceIpAddress(), route.getNetMask())) {
                 benachrichtigeBeobachter(messages.getString("sw_terminal_msg53"));
                 return messages.getString("sw_terminal_msg53");
+            } else if (VermittlungsProtokoll
+                    .isNetworkAddress(destIp, route.getInterfaceIpAddress(), route.getNetMask())) {
+                benachrichtigeBeobachter(messages.getString("sw_terminal_msg54"));
+                return messages.getString("sw_terminal_msg54");
             }
         } catch (RouteNotFoundException e1) {
             benachrichtigeBeobachter(messages.getString("sw_terminal_msg52"));

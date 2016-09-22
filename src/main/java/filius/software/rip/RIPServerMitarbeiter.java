@@ -106,11 +106,11 @@ public class RIPServerMitarbeiter extends ServerMitarbeiter {
 	}
 
 	String findeInterfaceIp(String ipStr) {
-		long ip = IP.inetAton(ipStr);
+		long ip = IP.inetAToN(ipStr);
 
 		for (NetzwerkInterface nic : knoten.getNetzwerkInterfaces()) {
-			long netMask = IP.inetAton(nic.getSubnetzMaske());
-			long netAddr = IP.inetAton(nic.getIp()) & netMask;
+			long netMask = IP.inetAToN(nic.getSubnetzMaske());
+			long netAddr = IP.inetAToN(nic.getIp()) & netMask;
 
 			if ((ip & netMask) == netAddr) {
 				return nic.getIp();
