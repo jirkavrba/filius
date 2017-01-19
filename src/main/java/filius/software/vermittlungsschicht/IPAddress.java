@@ -62,8 +62,6 @@ public class IPAddress {
             + "|[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){0,2}:(:[0-9a-fA-F]{1,4}){0,4}"
             + "|[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){0,1}:(:[0-9a-fA-F]{1,4}){0,5}" + ")" + NETMASK_REGEX);
 
-    // TODO private static final IPAddress IP_V6_LOOPBACK_ADDRESS = new IPAddress("::1");
-
     private final IPVersion version;
     private final short[] addressBytes;
     private final int netmaskWidth;
@@ -202,7 +200,6 @@ public class IPAddress {
             if (loopbackAddress && 1 != addressBytes[15]) {
                 loopbackAddress = false;
             }
-            // TODO loopbackAddress = IP_V6_LOOPBACK_ADDRESS.equals(this);
         }
         return loopbackAddress;
     }
