@@ -40,6 +40,7 @@ import filius.hardware.Verbindung;
 import filius.rahmenprogramm.EingabenUeberpruefung;
 import filius.software.clientserver.UDPServerAnwendung;
 import filius.software.transportschicht.Socket;
+import filius.software.vermittlungsschicht.IPAddress;
 
 /**
  * In dieser Klasse und in DHCPServerMitarbeiter wird ein Sever fuer Dynamic Host Configuration Protocol implementiert. <br />
@@ -283,7 +284,7 @@ public class DHCPServer extends UDPServerAnwendung {
     }
 
     static int[] ipToIntArray(String ipAddress) {
-        if (!EingabenUeberpruefung.isGueltig(ipAddress, EingabenUeberpruefung.musterIpAdresse)) {
+        if (!IPAddress.verifyAddress(ipAddress)) {
             throw new NumberFormatException("Not a valid IP address");
         }
         int[] ipAsArray = new int[4];
@@ -394,7 +395,7 @@ public class DHCPServer extends UDPServerAnwendung {
             }
         }
         if (!alreadyExisting && EingabenUeberpruefung.isGueltig(mac, EingabenUeberpruefung.musterMacAddress)
-                && EingabenUeberpruefung.isGueltig(ip, EingabenUeberpruefung.musterIpAdresse)) {
+                && IPAddress.verifyAddress(ip)) {
             staticAssignedAddresses.add(new DHCPAddressAssignment(mac, ip, 0));
         }
     }

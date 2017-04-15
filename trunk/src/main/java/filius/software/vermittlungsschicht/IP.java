@@ -117,14 +117,6 @@ public class IP extends VermittlungsProtokoll implements I18n {
         return ipStr;
     }
 
-    public static String ipCheck(String ip) {
-        long ipAddr = inetAToN(ip);
-        if (ipAddr == -1) {
-            return null;
-        }
-        return inetNtoa(ipAddr);
-    }
-
     /** Hilfsmethode zum Versenden eines Broadcast-Pakets */
     private void sendeBroadcast(IpPaket ipPaket) {
         Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (IP), sendeBroadcast("

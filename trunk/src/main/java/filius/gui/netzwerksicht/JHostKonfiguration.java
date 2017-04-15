@@ -41,27 +41,29 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JTextField;
+
+import org.apache.commons.lang3.StringUtils;
 
 import filius.Main;
 import filius.gui.GUIContainer;
 import filius.gui.JMainFrame;
+import filius.gui.ValidateableTextField;
 import filius.hardware.Hardware;
 import filius.hardware.knoten.Host;
-import filius.rahmenprogramm.EingabenUeberpruefung;
 import filius.rahmenprogramm.I18n;
 import filius.software.system.Betriebssystem;
+import filius.software.vermittlungsschicht.IPAddress;
 
 @SuppressWarnings("serial")
 public class JHostKonfiguration extends JKonfiguration implements I18n {
 
     private static final int LABEL_WIDTH = 160;
-    private JTextField name;
-    private JTextField macAdresse;
-    private JTextField ipAdresse;
-    private JTextField netzmaske;
-    private JTextField gateway;
-    private JTextField dns;
+    private ValidateableTextField name;
+    private ValidateableTextField macAdresse;
+    private ValidateableTextField ipAdresse;
+    private ValidateableTextField netzmaske;
+    private ValidateableTextField gateway;
+    private ValidateableTextField dns;
     private JCheckBox dhcp;
     private JButton btDhcp;
     private JCheckBox useIpAsName;
@@ -138,7 +140,7 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
         tempLabel.setVisible(true);
         tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
-        name = new JTextField(messages.getString("jhostkonfiguration_msg2"));
+        name = new ValidateableTextField(messages.getString("jhostkonfiguration_msg2"));
         name.addActionListener(actionListener);
         name.addFocusListener(focusListener);
 
@@ -160,7 +162,7 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
         tempLabel.setVisible(true);
         tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
-        macAdresse = new JTextField("");
+        macAdresse = new ValidateableTextField("");
         macAdresse.setEditable(false);
 
         tempBox = Box.createHorizontalBox();
@@ -180,7 +182,7 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
         tempLabel.setVisible(true);
         tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
-        ipAdresse = new JTextField("192.168.0.1");
+        ipAdresse = new ValidateableTextField("192.168.0.1");
         ipAdresse.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
                 checkIpAddress();
@@ -206,7 +208,7 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
         tempLabel.setVisible(true);
         tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
-        netzmaske = new JTextField("255.255.255.0");
+        netzmaske = new ValidateableTextField("255.255.255.0");
         netzmaske.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
                 checkNetmask();
@@ -232,7 +234,7 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
         tempLabel.setVisible(true);
         tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
-        gateway = new JTextField("192.168.0.1");
+        gateway = new ValidateableTextField("192.168.0.1");
         gateway.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
                 checkGatewayAddress();
@@ -258,7 +260,7 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
         tempLabel.setVisible(true);
         tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
-        dns = new JTextField("192.168.0.1");
+        dns = new ValidateableTextField("192.168.0.1");
         dns.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
                 checkDnsAddress();
@@ -358,19 +360,19 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
     }
 
     private void checkIpAddress() {
-        ueberpruefen(EingabenUeberpruefung.musterIpAdresse, ipAdresse);
+        ipAdresse.setValid(IPAddress.verifyAddress(ipAdresse.getText()));
     }
 
     private void checkDnsAddress() {
-        ueberpruefen(EingabenUeberpruefung.musterIpAdresseAuchLeer, dns);
+        dns.setValid(StringUtils.isBlank(dns.getText()) || IPAddress.verifyAddress(dns.getText()));
     }
 
     private void checkGatewayAddress() {
-        ueberpruefen(EingabenUeberpruefung.musterIpAdresseAuchLeer, gateway);
+        gateway.setValid(StringUtils.isBlank(gateway.getText()) || IPAddress.verifyAddress(gateway.getText()));
     }
 
     private void checkNetmask() {
-        ueberpruefen(EingabenUeberpruefung.musterSubNetz, netzmaske);
+        netzmaske.setValid(IPAddress.verifyNetmaskDefinition(netzmaske.getText()));
     }
 
     public void updateAttribute() {

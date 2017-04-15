@@ -35,13 +35,13 @@ import org.apache.commons.lang3.StringUtils;
 import filius.Main;
 import filius.hardware.NetzwerkInterface;
 import filius.hardware.knoten.InternetKnoten;
-import filius.rahmenprogramm.EingabenUeberpruefung;
 import filius.rahmenprogramm.I18n;
 import filius.software.Anwendung;
 import filius.software.system.InternetKnotenBetriebssystem;
 import filius.software.transportschicht.Segment;
 import filius.software.transportschicht.TcpSegment;
 import filius.software.transportschicht.UdpSegment;
+import filius.software.vermittlungsschicht.IPAddress;
 import filius.software.vermittlungsschicht.IpPaket;
 import filius.software.vermittlungsschicht.VermittlungsProtokoll;
 
@@ -319,8 +319,7 @@ public class Firewall extends Anwendung implements I18n {
     public void eintragHinzufuegen(String von, String bis, String typ) {
         Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
                 + " (Firewall), eintragHinzufuegen(" + von + "," + bis + "," + typ + ")");
-        if (!EingabenUeberpruefung.isGueltig(von, EingabenUeberpruefung.musterIpAdresse)
-                || !EingabenUeberpruefung.isGueltig(bis, EingabenUeberpruefung.musterIpAdresseAuchLeer)) {
+        if (!IPAddress.verifyAddress(von) || !(StringUtils.isBlank(bis) || IPAddress.verifyAddress(bis))) {
             return;
         }
 

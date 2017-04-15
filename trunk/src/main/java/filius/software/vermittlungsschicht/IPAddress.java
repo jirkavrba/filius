@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import filius.exception.InvalidParameterException;
 
+/** This class represents an IP address alternatively with or without netmask. */
 public class IPAddress {
     private static final String GROUP_NETMASK = "netmask";
     private static final String[] GROUP_SEGMENT = { "segment0", "segment1", "segment2", "segment3", "segment4",
@@ -17,6 +18,23 @@ public class IPAddress {
     private static final String[] GROUP_BYTE = { "byte0", "byte1", "byte2", "byte3" };
     private static final String IP_V4_REGEX = "(?<" + GROUP_BYTE[0] + ">[0-9]{1,3})\\.(?<" + GROUP_BYTE[1]
             + ">[0-9]{1,3})\\.(?<" + GROUP_BYTE[2] + ">[0-9]{1,3})\\.(?<" + GROUP_BYTE[3] + ">[0-9]{1,3})";
+
+    private static final String IP_V6_START_DOUBLE_COLON_REGEX = ":(:|(:[0-9a-fA-F]{1,4}){1,7})";
+    private static final String IP_V6_END_DOUBLE_COLON_REGEX = "[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){0,5}::";
+    private static final String IP_V6_ZERO_REGEX = "::";
+    private static final String IP_V6_INBETWEEN_DOUBLE_COLON_REGEX = "([0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){0,4}:(:[0-9a-fA-F]{1,4}){1,2}"
+            + "|[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){0,3}:(:[0-9a-fA-F]{1,4}){1,3}"
+            + "|[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){0,2}:(:[0-9a-fA-F]{1,4}){1,4}"
+            + "|[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){0,1}:(:[0-9a-fA-F]{1,4}){1,5})";
+    private static final String IP_V6_NO_DOUBLE_COLON_REGEX = "[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){7}";
+    private static final String IP_V6_WITH_DEC_NOTATION_REGEX = "([0-9a-fA-F]{1,4}" + "(:[0-9a-fA-F]{1,4}){5}"
+            + "|:(:[0-9a-fA-F]{1,4}){0,5}" + "|[0-9a-fA-F]{1,4}:(:[0-9a-fA-F]{1,4}){0,4}"
+            + "|([0-9a-fA-F]{1,4}:){2}(:[0-9a-fA-F]{1,4}){0,3}" + "|([0-9a-fA-F]{1,4}:){3}(:[0-9a-fA-F]{1,4}){0,2}"
+            + "|([0-9a-fA-F]{1,4}:){4}(:[0-9a-fA-F]{1,4}){0,1}" + "|([0-9a-fA-F]{1,4}:){5})" + ":" + IP_V4_REGEX;
+    private static final String IP_V6_REGEX = "(" + IP_V6_WITH_DEC_NOTATION_REGEX + "|" + IP_V6_ZERO_REGEX + "|"
+            + IP_V6_START_DOUBLE_COLON_REGEX + "|" + IP_V6_NO_DOUBLE_COLON_REGEX + "|" + IP_V6_END_DOUBLE_COLON_REGEX
+            + "|" + IP_V6_INBETWEEN_DOUBLE_COLON_REGEX + ")";
+
     private static final String IP_V6_START_SEG_REGEX = "((?<" + BEFORE_ZERO_SEQ_PLACEHOLDER + GROUP_SEGMENT[0]
             + ">[0-9a-fA-F]{1,4})(:(?<" + BEFORE_ZERO_SEQ_PLACEHOLDER + GROUP_SEGMENT[1] + ">[0-9a-fA-F]{1,4})(:(?<"
             + BEFORE_ZERO_SEQ_PLACEHOLDER + GROUP_SEGMENT[2] + ">[0-9a-fA-F]{1,4})(:(?<" + BEFORE_ZERO_SEQ_PLACEHOLDER
@@ -43,24 +61,20 @@ public class IPAddress {
             + AFTER_ZERO_SEQ_PLACEHOLDER + GROUP_SEGMENT[3] + ">[0-9a-fA-F]{1,4}):)?(?<" + AFTER_ZERO_SEQ_PLACEHOLDER
             + GROUP_SEGMENT[4] + ">[0-9a-fA-F]{1,4}):)?(?<" + AFTER_ZERO_SEQ_PLACEHOLDER + GROUP_SEGMENT[5]
             + ">[0-9a-fA-F]{1,4}):)?|:)" + IP_V4_REGEX;
-    private static final String NETMASK_REGEX = "(/(?<" + GROUP_NETMASK + ">[0-9]{1,2}))?";
+    private static final String IPV4_NETMASK_SUFFIX_REGEX = "(?<" + GROUP_NETMASK + ">[1-2]?[0-9]|3[0-2])";
+    private static final String IPV6_NETMASK_SUFFIX_REGEX = "(?<" + GROUP_NETMASK
+            + ">1([0-1][0-9]|2[0-8])|[1-9]?[0-9])";
 
-    private static final Pattern IP_V4_VALIDATION_PATTERN = Pattern.compile(IP_V4_REGEX + NETMASK_REGEX);
+    private static final Pattern IP_V4_WITH_NETMASK_VALIDATION_PATTERN = Pattern.compile(IP_V4_REGEX + "/"
+            + IPV4_NETMASK_SUFFIX_REGEX);
+    private static final Pattern IP_V4_NO_NETMASK_VALIDATION_PATTERN = Pattern.compile(IP_V4_REGEX);
     private static final Pattern IP_V6_SEGMENT_PATTERN = Pattern.compile(IP_V6_START_SEG_REGEX
-            + IP_V6_END_SEG_PART_REGEX + NETMASK_REGEX);
+            + IP_V6_END_SEG_PART_REGEX);
     private static final Pattern IP_V6_WITH_DEC_NOTATION_SEGMENT_PATTERN = Pattern
-            .compile(IP_V6_START_SEG_WITH_DEC_NOTATION_REGEX + IP_V6_END_SEG_PART_WITH_DEC_NOTATION_REGEX
-                    + NETMASK_REGEX);
-    private static final Pattern IP_V6_VALIDATION_PATTERN = Pattern.compile("(([0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){5}"
-            + "|:(:[0-9a-fA-F]{1,4}){0,5}" + "|[0-9a-fA-F]{1,4}:(:[0-9a-fA-F]{1,4}){0,4}"
-            + "|([0-9a-fA-F]{1,4}:){2}(:[0-9a-fA-F]{1,4}){0,3}" + "|([0-9a-fA-F]{1,4}:){3}(:[0-9a-fA-F]{1,4}){0,2}"
-            + "|([0-9a-fA-F]{1,4}:){4}(:[0-9a-fA-F]{1,4}){0,1}" + "|([0-9a-fA-F]{1,4}:){5})" + ":" + IP_V4_REGEX
-            + "|:(:[0-9a-fA-F]{1,4}){0,7}" + "|[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){7}"
-            + "|[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){0,6}:" + "|[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){0,5}::"
-            + "|[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){0,4}:(:[0-9a-fA-F]{1,4}){0,2}"
-            + "|[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){0,3}:(:[0-9a-fA-F]{1,4}){0,3}"
-            + "|[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){0,2}:(:[0-9a-fA-F]{1,4}){0,4}"
-            + "|[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){0,1}:(:[0-9a-fA-F]{1,4}){0,5}" + ")" + NETMASK_REGEX);
+            .compile(IP_V6_START_SEG_WITH_DEC_NOTATION_REGEX + IP_V6_END_SEG_PART_WITH_DEC_NOTATION_REGEX);
+    private static final Pattern IP_V6_WITH_NETMASK_VALIDATION_PATTERN = Pattern.compile(IP_V6_REGEX + "/"
+            + IPV6_NETMASK_SUFFIX_REGEX);
+    private static final Pattern IP_V6_NO_NETMASK_VALIDATION_PATTERN = Pattern.compile(IP_V6_REGEX);
 
     private final IPVersion version;
     private final short[] addressBytes;
@@ -69,8 +83,8 @@ public class IPAddress {
     private boolean ipv6WithDecimalNotation;
 
     public IPAddress(String address) {
-        Matcher ipv4matcher = IP_V4_VALIDATION_PATTERN.matcher(address);
-        Matcher ipv6matcher = IP_V6_VALIDATION_PATTERN.matcher(address);
+        Matcher ipv4matcher = IP_V4_WITH_NETMASK_VALIDATION_PATTERN.matcher(address);
+        Matcher ipv6matcher = IP_V6_WITH_NETMASK_VALIDATION_PATTERN.matcher(address);
 
         String netmaskString = null;
         if (ipv4matcher.matches()) {
@@ -92,22 +106,58 @@ public class IPAddress {
         }
     }
 
-    private short[] extractIPv6Segments(String address) {
+    public IPAddress(String address, String netmask) {
+        Matcher ipv4matcher = IP_V4_NO_NETMASK_VALIDATION_PATTERN.matcher(address);
+        Matcher ipv6matcher = IP_V6_NO_NETMASK_VALIDATION_PATTERN.matcher(address);
+
+        if (ipv4matcher.matches()) {
+            version = IPVersion.IPv4;
+            addressBytes = extractIPv4Segments(ipv4matcher);
+            netmaskWidth = defineNetmaskWidthFromAddressPattern(netmask);
+        } else if (ipv6matcher.matches()) {
+            version = IPVersion.IPv6;
+            ipv6WithDecimalNotation = ipv4matcher.find();
+            addressBytes = extractIPv6Segments(address);
+            netmaskWidth = Integer.parseInt(netmask);
+        } else {
+            throw new InvalidParameterException("invalid IP address: " + address);
+        }
+
+    }
+
+    private static int defineNetmaskWidthFromAddressPattern(String netmask) {
+        Matcher netmaskMatcher = IP_V4_NO_NETMASK_VALIDATION_PATTERN.matcher(netmask);
+        if (!netmaskMatcher.matches()) {
+            throw new InvalidParameterException("invalid network mask: " + netmask);
+        }
+        short[] netmaskBytes = extractIPv4Segments(netmaskMatcher);
+        int oneBitCount = 0;
+        for (short currentByte : netmaskBytes) {
+            int currentBitCount = Integer.bitCount(currentByte);
+            if (Math.pow(2, currentBitCount) - 1 != currentByte) {
+                throw new InvalidParameterException("invalid network mask: " + netmask);
+            }
+            oneBitCount += currentBitCount;
+        }
+        return oneBitCount;
+    }
+
+    private static short[] extractIPv6Segments(String address) {
         short[] ipv6AddressBytes = new short[16];
 
         Matcher ipv6segmentMatcher = IP_V6_SEGMENT_PATTERN.matcher(address);
         Matcher ipv6withDecNotationSegmentMatcher = IP_V6_WITH_DEC_NOTATION_SEGMENT_PATTERN.matcher(address);
 
-        if (ipv6withDecNotationSegmentMatcher.matches()) {
+        if (ipv6withDecNotationSegmentMatcher.find()) {
             initIPv6SegmentBytes(ipv6withDecNotationSegmentMatcher, ipv6AddressBytes, 0, 6);
             initIPv6SegmentBytesFromDecimalNotation(ipv6withDecNotationSegmentMatcher, ipv6AddressBytes);
-        } else if (ipv6segmentMatcher.matches()) {
+        } else if (ipv6segmentMatcher.find()) {
             initIPv6SegmentBytes(ipv6segmentMatcher, ipv6AddressBytes, 0, 8);
         }
         return ipv6AddressBytes;
     }
 
-    private void initIPv6SegmentBytesFromDecimalNotation(Matcher ipv6matcher, short[] ipv6AddressBytes) {
+    private static void initIPv6SegmentBytesFromDecimalNotation(Matcher ipv6matcher, short[] ipv6AddressBytes) {
         short[] ipv4Bytes = extractIPv4Segments(ipv6matcher);
 
         for (int i = 0; i < ipv4Bytes.length; i++) {
@@ -115,7 +165,8 @@ public class IPAddress {
         }
     }
 
-    private void initIPv6SegmentBytes(Matcher ipv6matcher, short[] ipv6AddressBytes, int startIdx, int stopIdxExcluded) {
+    private static void initIPv6SegmentBytes(Matcher ipv6matcher, short[] ipv6AddressBytes, int startIdx,
+            int stopIdxExcluded) {
         short[] segmentBytes;
         for (int i = startIdx; i < stopIdxExcluded; i++) {
             segmentBytes = parseIPv6Segment(ipv6matcher, GROUP_SEGMENT[i]);
@@ -124,7 +175,7 @@ public class IPAddress {
         }
     }
 
-    private short[] parseIPv6Segment(Matcher matcher, String groupName) {
+    private static short[] parseIPv6Segment(Matcher matcher, String groupName) {
         String segmentString = matcher.group(BEFORE_ZERO_SEQ_PLACEHOLDER + groupName);
         if (StringUtils.isBlank(segmentString)) {
             segmentString = matcher.group(AFTER_ZERO_SEQ_PLACEHOLDER + groupName);
@@ -136,7 +187,7 @@ public class IPAddress {
         return byteValues;
     }
 
-    private short[] extractIPv4Segments(Matcher matcher) {
+    private static short[] extractIPv4Segments(Matcher matcher) {
         String group0 = matcher.group(GROUP_BYTE[0]);
         String group1 = matcher.group(GROUP_BYTE[1]);
         String group2 = matcher.group(GROUP_BYTE[2]);
@@ -159,32 +210,77 @@ public class IPAddress {
 
     @Override
     public String toString() {
-        StringBuffer address = new StringBuffer();
+        return asString(addressBytes, true, netmaskWidth, false, ipv6WithDecimalNotation);
+    }
+
+    private String asString(short[] bytes, boolean appendNetmask, int netmask, boolean ipv6Compact,
+            boolean ipv6DecimalNotation) {
+        StringBuffer address;
         if (IPVersion.IPv4 == version) {
-            address.append(createIpv4AddressString(addressBytes));
+            address = v4StringBuffer(bytes);
         } else {
-            for (int i = 0; i < 12; i += 2) {
-                int segmentValue = 256 * addressBytes[i] + addressBytes[i + 1];
-                address.append(String.format("%x:", segmentValue));
-            }
-            if (ipv6WithDecimalNotation) {
-                address.append(createIpv4AddressString(ArrayUtils.subarray(addressBytes, 12, 16)));
-            } else {
-                int segmentValue6 = 256 * addressBytes[12] + addressBytes[13];
-                int segmentValue7 = 256 * addressBytes[14] + addressBytes[15];
-                address.append(String.format("%x:%x", segmentValue6, segmentValue7));
-            }
+            address = v6StringBuffer(bytes, ipv6Compact, ipv6DecimalNotation);
         }
-        if (netmaskWidth > 0) {
+        if (appendNetmask) {
             address.append("/" + netmaskWidth);
         }
         return address.toString();
+    }
+
+    private StringBuffer v4StringBuffer(short[] bytes) {
+        StringBuffer address;
+        address = new StringBuffer();
+        address.append(createIpv4AddressString(bytes));
+        return address;
+    }
+
+    private StringBuffer v6StringBuffer(short[] bytes, boolean normalize, boolean ipv6DecimalNotation) {
+        StringBuffer address;
+        address = new StringBuffer();
+        int maxZeroSeqPos = -1;
+        int maxZeroSeqLength = 0;
+        int currentZeroSeqPos = -1;
+        int currentZeroSeqLength = 0;
+
+        int[] segments = new int[ipv6DecimalNotation ? 6 : 8];
+        for (int i = 0; i < segments.length; i++) {
+            segments[i] = 256 * bytes[2 * i] + bytes[2 * i + 1];
+            if (segments[i] == 0) {
+                if (currentZeroSeqPos < 0) {
+                    currentZeroSeqPos = i;
+                    currentZeroSeqLength = 1;
+                } else {
+                    currentZeroSeqLength++;
+                }
+            } else {
+                currentZeroSeqPos = -1;
+                currentZeroSeqLength = 0;
+            }
+            if (currentZeroSeqLength > maxZeroSeqLength) {
+                maxZeroSeqPos = currentZeroSeqPos;
+                maxZeroSeqLength = currentZeroSeqLength;
+            }
+        }
+        for (int i = 0; i < segments.length; i++) {
+            if (!normalize || i < maxZeroSeqPos || i >= maxZeroSeqPos + maxZeroSeqLength) {
+                address.append(String.format((i == 0 ? "" : ":") + "%x", segments[i]));
+            } else if (normalize && i == maxZeroSeqPos && maxZeroSeqPos + maxZeroSeqLength >= 8) {
+                address.append(IP_V6_ZERO_REGEX);
+            } else if (normalize && i == maxZeroSeqPos) {
+                address.append(":");
+            }
+        }
+        if (ipv6DecimalNotation) {
+            address.append(":").append(createIpv4AddressString(ArrayUtils.subarray(bytes, 12, 16)));
+        }
+        return address;
     }
 
     private String createIpv4AddressString(short[] segments) {
         return StringUtils.join(segments, '.');
     }
 
+    /** Check whether this address is a loopback address such as 127.0.0.1 (localhost) */
     public boolean isLoopbackAddress() {
         boolean loopbackAddress;
         if (IPVersion.IPv4 == version) {
@@ -204,11 +300,21 @@ public class IPAddress {
         return loopbackAddress;
     }
 
+    /**
+     * Check whether the address is the unspecified address (IPv6: "::/128", IPv4: "0.0.0.0/8") - with or without
+     * network mask - which is used as source if the IP address is not known yet.
+     */
     public boolean isUnspecifiedAddress() {
-        return false;
-    }
-
-    public boolean isNetworkAddress() {
+        if (version == IPVersion.IPv4 && addressBytes[0] == 0 && addressBytes[1] == 0 && addressBytes[2] == 0
+                && addressBytes[3] == 0 && (netmaskWidth == 0 || netmaskWidth == 8)) {
+            return true;
+        } else if (version == IPVersion.IPv6 && addressBytes[0] == 0 && addressBytes[1] == 0 && addressBytes[2] == 0
+                && addressBytes[3] == 0 && addressBytes[4] == 0 && addressBytes[5] == 0 && addressBytes[6] == 0
+                && addressBytes[7] == 0 && addressBytes[8] == 0 && addressBytes[9] == 0 && addressBytes[10] == 0
+                && addressBytes[11] == 0 && addressBytes[12] == 0 && addressBytes[13] == 0 && addressBytes[14] == 0
+                && addressBytes[15] == 0 && (netmaskWidth == 0 || netmaskWidth == 128)) {
+            return true;
+        }
         return false;
     }
 
@@ -236,5 +342,91 @@ public class IPAddress {
     @Override
     public int hashCode() {
         return addressBytes.hashCode();
+    }
+
+    public static IPVersion defineVersion(String ipAddress) {
+        if (IP_V4_WITH_NETMASK_VALIDATION_PATTERN.matcher(ipAddress).matches()
+                || IP_V4_NO_NETMASK_VALIDATION_PATTERN.matcher(ipAddress).matches()) {
+            return IPVersion.IPv4;
+        } else if (IP_V6_WITH_NETMASK_VALIDATION_PATTERN.matcher(ipAddress).matches()
+                || IP_V6_NO_NETMASK_VALIDATION_PATTERN.matcher(ipAddress).matches()) {
+            return IPVersion.IPv6;
+        }
+        return null;
+    }
+
+    public static boolean verifyAddress(String ipAddress) {
+        return IP_V4_NO_NETMASK_VALIDATION_PATTERN.matcher(ipAddress).matches()
+                || IP_V6_NO_NETMASK_VALIDATION_PATTERN.matcher(ipAddress).matches();
+    }
+
+    public static boolean verifyNetmaskDefinition(String netmaskDefinition) {
+        boolean verified = false;
+        Matcher ipv4Matcher = IP_V4_NO_NETMASK_VALIDATION_PATTERN.matcher(netmaskDefinition);
+        if (ipv4Matcher.matches()) {
+            try {
+                defineNetmaskWidthFromAddressPattern(netmaskDefinition);
+                verified = true;
+            } catch (InvalidParameterException e) {}
+        } else {
+            try {
+                int netmaskSuffixAsInt = Integer.parseInt(netmaskDefinition);
+                verified = netmaskSuffixAsInt > 0 && netmaskSuffixAsInt <= 128;
+            } catch (NumberFormatException e) {}
+        }
+        return verified;
+    }
+
+    /** Retrieve network part of IP address (without netmask) as String */
+    public String networkAddress() {
+        short[] networkBytes = new short[addressBytes.length];
+        short[] netmaskBytes = netmaskBytes(addressBytes.length, netmaskWidth);
+        for (int i = 0; i < networkBytes.length; i++) {
+            networkBytes[i] = (short) (addressBytes[i] & netmaskBytes[i]);
+        }
+        return asString(networkBytes, false, 0, false, false);
+    }
+
+    /** Retrieve netmask as String representation, e.g. 255.255.0.0 (IPv4) or 64 (IPv6) */
+    public String netmask() {
+        String netmaskAsString;
+        if (IPVersion.IPv4 == version) {
+            short[] netmaskBytes = netmaskBytes(addressBytes.length, netmaskWidth);
+            netmaskAsString = asString(netmaskBytes, false, 0, false, false);
+        } else {
+            netmaskAsString = String.valueOf(netmaskWidth);
+        }
+        return netmaskAsString;
+    }
+
+    private short[] netmaskBytes(int totalBytes, int netmaskBits) {
+        short[] netmaskBytes = new short[totalBytes];
+        for (int i = 0; i < netmaskBytes.length; i++) {
+            int byteMask;
+            int maskRemainder = netmaskBits - i * 8;
+            if (maskRemainder >= 8) {
+                byteMask = 0xFF;
+            } else if (maskRemainder > 0) {
+                byteMask = 0xFF << (8 - maskRemainder);
+            } else {
+                byteMask = 0;
+            }
+            netmaskBytes[i] = (short) (byteMask % 0x100);
+        }
+        return netmaskBytes;
+    }
+
+    /**
+     * Returns a normalized representation of the address:
+     * <ul>
+     * <li>IPv4: four segments and the network mask, e.g. 10.0.49.3/8</li>
+     * <li>IPv6: address without 0-sequence remaining IPv4 representation and network mask, e.g. 1::44:33/64 or
+     * 1::10.0.49.3/64</li>
+     * </ul>
+     * 
+     * @return
+     */
+    public String normalizedString() {
+        return asString(addressBytes, true, netmaskWidth, true, ipv6WithDecimalNotation);
     }
 }
