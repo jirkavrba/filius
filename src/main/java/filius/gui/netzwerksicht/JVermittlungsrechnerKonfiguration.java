@@ -55,6 +55,7 @@ import javax.swing.event.ChangeListener;
 import filius.Main;
 import filius.gui.GUIContainer;
 import filius.gui.JMainFrame;
+import filius.gui.ValidateableTextField;
 import filius.hardware.Hardware;
 import filius.hardware.Kabel;
 import filius.hardware.NetzwerkInterface;
@@ -64,10 +65,10 @@ import filius.hardware.knoten.InternetKnoten;
 import filius.hardware.knoten.Knoten;
 import filius.hardware.knoten.LokalerKnoten;
 import filius.hardware.knoten.Vermittlungsrechner;
-import filius.rahmenprogramm.EingabenUeberpruefung;
 import filius.rahmenprogramm.I18n;
 import filius.software.firewall.Firewall;
 import filius.software.system.VermittlungsrechnerBetriebssystem;
+import filius.software.vermittlungsschicht.IPAddress;
 
 public class JVermittlungsrechnerKonfiguration extends JKonfiguration implements I18n {
 
@@ -77,11 +78,11 @@ public class JVermittlungsrechnerKonfiguration extends JKonfiguration implements
 
     private JTextField name;
 
-    private JTextField[] ipAdressen;
-    private JTextField[] netzmasken;
-    private JTextField[] macAdressen;
+    private ValidateableTextField[] ipAdressen;
+    private ValidateableTextField[] netzmasken;
+    private ValidateableTextField[] macAdressen;
 
-    private JTextField gateway;
+    private ValidateableTextField gateway;
     private JCheckBox rip;
 
     private JLabel[] verbundeneKomponente;
@@ -117,15 +118,19 @@ public class JVermittlungsrechnerKonfiguration extends JKonfiguration implements
         for (int i = 0; it.hasNext(); i++) {
             nic = (NetzwerkInterface) it.next();
 
-            if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, ipAdressen[i]))
+            if (IPAddress.verifyAddress(ipAdressen[i].getText())) {
+                ipAdressen[i].setValid(true);
                 nic.setIp(ipAdressen[i].getText());
-            else
+            } else {
+                ipAdressen[i].setValid(false);
                 Main.debug.println("ERROR (" + this.hashCode() + "): IP-Adresse ungueltig " + ipAdressen[i].getText());
+            }
 
-            if (ueberpruefen(EingabenUeberpruefung.musterSubNetz, netzmasken[i]))
+            if (IPAddress.verifyNetmaskDefinition(netzmasken[i].getText())) {
                 nic.setSubnetzMaske(netzmasken[i].getText());
-            else
+            } else {
                 Main.debug.println("ERROR (" + this.hashCode() + "): Netzmaske ungueltig " + netzmasken[i].getText());
+            }
         }
 
         GUIContainer.getGUIContainer().updateViewport();
@@ -205,15 +210,15 @@ public class JVermittlungsrechnerKonfiguration extends JKonfiguration implements
 
         ipAdresseKeyAdapter = new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
-                JTextField tfQuelle = (JTextField) e.getSource();
-                ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfQuelle);
+                ValidateableTextField tfQuelle = (ValidateableTextField) e.getSource();
+                tfQuelle.setValid(IPAddress.verifyAddress(tfQuelle.getText()));
             }
         };
 
         netzmaskeKeyAdapter = new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
-                JTextField tfQuelle = (JTextField) e.getSource();
-                ueberpruefen(EingabenUeberpruefung.musterSubNetz, tfQuelle);
+                ValidateableTextField tfQuelle = (ValidateableTextField) e.getSource();
+                tfQuelle.setValid(IPAddress.verifyNetmaskDefinition(tfQuelle.getText()));
             }
         };
 
@@ -248,7 +253,7 @@ public class JVermittlungsrechnerKonfiguration extends JKonfiguration implements
         tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
         tempBox.add(tempLabel);
 
-        gateway = new JTextField();
+        gateway = new ValidateableTextField();
         gateway.setPreferredSize(new Dimension(160, 20));
         gateway.addActionListener(actionListener);
         gateway.addFocusListener(focusListener);
@@ -308,9 +313,9 @@ public class JVermittlungsrechnerKonfiguration extends JKonfiguration implements
 
         vRechner = (Vermittlungsrechner) holeHardware();
         nicListe = vRechner.getNetzwerkInterfaces();
-        ipAdressen = new JTextField[nicListe.size()];
-        netzmasken = new JTextField[nicListe.size()];
-        macAdressen = new JTextField[nicListe.size()];
+        ipAdressen = new ValidateableTextField[nicListe.size()];
+        netzmasken = new ValidateableTextField[nicListe.size()];
+        macAdressen = new ValidateableTextField[nicListe.size()];
         verbundeneKomponente = new JLabel[nicListe.size()];
 
         it = nicListe.listIterator();
@@ -339,7 +344,7 @@ public class JVermittlungsrechnerKonfiguration extends JKonfiguration implements
             tempLabel.setPreferredSize(new Dimension(120, 10));
             boxIpAdresse.add(tempLabel);
 
-            ipAdressen[i] = new JTextField(tempNic.getIp());
+            ipAdressen[i] = new ValidateableTextField(tempNic.getIp());
             boxIpAdresse.add(ipAdressen[i]);
 
             // show netmask (editable)
@@ -349,7 +354,7 @@ public class JVermittlungsrechnerKonfiguration extends JKonfiguration implements
             tempLabel.setPreferredSize(new Dimension(120, 10));
             boxSubnetz.add(tempLabel);
 
-            netzmasken[i] = new JTextField(tempNic.getSubnetzMaske());
+            netzmasken[i] = new ValidateableTextField(tempNic.getSubnetzMaske());
             boxSubnetz.add(netzmasken[i]);
 
             // show MAC address (not editable)
@@ -359,7 +364,7 @@ public class JVermittlungsrechnerKonfiguration extends JKonfiguration implements
             tempLabel.setPreferredSize(new Dimension(120, 10));
             boxMacAdresse.add(tempLabel);
 
-            macAdressen[i] = new JTextField(tempNic.getMac());
+            macAdressen[i] = new ValidateableTextField(tempNic.getMac());
             macAdressen[i].setEnabled(false);
             boxMacAdresse.add(macAdressen[i]);
 

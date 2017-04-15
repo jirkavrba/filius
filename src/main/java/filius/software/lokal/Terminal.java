@@ -47,7 +47,7 @@ import filius.software.transportschicht.ServerSocket;
 import filius.software.transportschicht.Socket;
 import filius.software.transportschicht.SocketSchnittstelle;
 import filius.software.transportschicht.TransportProtokoll;
-import filius.software.vermittlungsschicht.IP;
+import filius.software.vermittlungsschicht.IPAddress;
 import filius.software.vermittlungsschicht.IcmpPaket;
 import filius.software.vermittlungsschicht.Route;
 import filius.software.vermittlungsschicht.RouteNotFoundException;
@@ -210,10 +210,7 @@ public class Terminal extends ClientAnwendung implements I18n {
         Main.debug.println(")");
         if (!numParams(args, 2)) {
             benachrichtigeBeobachter(messages.getString("sw_terminal_msg32") + messages.getString("sw_terminal_msg40"));
-            return messages.getString("sw_terminal_msg32") + messages.getString("sw_terminal_msg40"); // wrong
-                                                                                                      // number
-                                                                                                      // of
-                                                                                                      // parameters
+            return messages.getString("sw_terminal_msg32") + messages.getString("sw_terminal_msg40");
         }
         if (pureCopy(args)) {
             benachrichtigeBeobachter(messages.getString("sw_terminal_msg33"));
@@ -235,10 +232,7 @@ public class Terminal extends ClientAnwendung implements I18n {
         Main.debug.println(")");
         if (!numParams(args, 0)) {
             benachrichtigeBeobachter(messages.getString("sw_terminal_msg32") + messages.getString("sw_terminal_msg42"));
-            return messages.getString("sw_terminal_msg32") + messages.getString("sw_terminal_msg42"); // wrong
-                                                                                                      // number
-                                                                                                      // of
-                                                                                                      // parameters
+            return messages.getString("sw_terminal_msg32") + messages.getString("sw_terminal_msg42");
         }
         Betriebssystem bs = (Betriebssystem) getSystemSoftware();
         String ausgabe = "";
@@ -723,10 +717,10 @@ public class Terminal extends ClientAnwendung implements I18n {
         }
 
         // first: resolve host name
-        String destIp;
+        String destIp = null;
         try {
-            destIp = IP.ipCheck(args[0]);
-            if (destIp == null) { // args[0] is not an IP address
+            boolean validIPAddress = IPAddress.verifyAddress(args[0]);
+            if (!validIPAddress) { // args[0] is not an IP address
                 destIp = res.holeIPAdresse(args[0]);
             }
             if (destIp == null) { // args[0] could also not be resolved
@@ -819,10 +813,11 @@ public class Terminal extends ClientAnwendung implements I18n {
         int maxHops = 20;
 
         // 1.: Hostnamen auflösen
-        String destIP = IP.ipCheck(args[0]);
-        if (destIP == null) {
+        String destIP;
+        if (IPAddress.verifyAddress(args[0])) {
+            destIP = args[0];
+        } else {
             filius.software.dns.Resolver res = getSystemSoftware().holeDNSClient();
-
             try {
                 destIP = res.holeIPAdresse(args[0]);
             } catch (TimeoutException e) {

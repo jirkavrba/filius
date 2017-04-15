@@ -55,6 +55,8 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
+import org.apache.commons.lang3.StringUtils;
+
 import filius.Main;
 import filius.gui.anwendungssicht.JTableEditable;
 import filius.gui.anwendungssicht.JTableEditable.ColorTableCellRenderer;
@@ -62,6 +64,7 @@ import filius.rahmenprogramm.EingabenUeberpruefung;
 import filius.rahmenprogramm.I18n;
 import filius.software.firewall.Firewall;
 import filius.software.firewall.FirewallRule;
+import filius.software.vermittlungsschicht.IPAddress;
 
 @SuppressWarnings("serial")
 public class JFirewallDialog extends JDialog implements I18n, Observer {
@@ -440,13 +443,13 @@ public class JFirewallDialog extends JDialog implements I18n, Observer {
         ColorTableCellRenderer cellDestMask = (ColorTableCellRenderer) colModel.getColumn(4).getCellRenderer();
         ColorTableCellRenderer cellPort = (ColorTableCellRenderer) colModel.getColumn(6).getCellRenderer();
         for (int i = 0; i < ruleTable.getRowCount(); i++) {
-            if (EingabenUeberpruefung.isGueltig((String) ruleTable.getValueAt(i, 1),
-                    EingabenUeberpruefung.musterIpAdresseAuchLeer)) {
+            String srcIP = (String) ruleTable.getValueAt(i, 1);
+            if (StringUtils.isBlank(srcIP) || IPAddress.verifyAddress(srcIP)) {
                 cellSrcIP.resetColor(i, 1);
             } else {
                 cellSrcIP.setColor(i, 1, EingabenUeberpruefung.farbeFalsch);
             }
-            if (!((String) ruleTable.getValueAt(i, 1)).isEmpty()) {
+            if (!srcIP.isEmpty()) {
                 if (((String) ruleTable.getValueAt(i, 2)).isEmpty()) {
                     cellSrcMask.setColor(i, 2, EingabenUeberpruefung.farbeFalsch);
                 } else if (!EingabenUeberpruefung.isValidSubnetmask((String) ruleTable.getValueAt(i, 2))) {
@@ -457,13 +460,13 @@ public class JFirewallDialog extends JDialog implements I18n, Observer {
             } else {
                 cellSrcMask.resetColor(i, 2);
             }
-            if (EingabenUeberpruefung.isGueltig((String) ruleTable.getValueAt(i, 3),
-                    EingabenUeberpruefung.musterIpAdresseAuchLeer)) {
+            String destIP = (String) ruleTable.getValueAt(i, 3);
+            if (StringUtils.isBlank(destIP) || IPAddress.verifyAddress(destIP)) {
                 cellDestIP.resetColor(i, 3);
             } else {
                 cellDestIP.setColor(i, 3, EingabenUeberpruefung.farbeFalsch);
             }
-            if (!((String) ruleTable.getValueAt(i, 3)).isEmpty()) {
+            if (!destIP.isEmpty()) {
                 if (((String) ruleTable.getValueAt(i, 4)).isEmpty()) {
                     cellDestMask.setColor(i, 4, EingabenUeberpruefung.farbeFalsch);
                 } else if (!EingabenUeberpruefung.isValidSubnetmask((String) ruleTable.getValueAt(i, 4))) {

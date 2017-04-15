@@ -40,10 +40,13 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 
+import org.apache.commons.lang3.StringUtils;
+
 import filius.gui.netzwerksicht.JFirewallDialog;
 import filius.rahmenprogramm.EingabenUeberpruefung;
 import filius.software.dns.DNSServer;
 import filius.software.firewall.Firewall;
+import filius.software.vermittlungsschicht.IPAddress;
 import filius.software.www.WebServer;
 
 public class JTableEditable extends JTable {
@@ -157,7 +160,7 @@ public class JTableEditable extends JTable {
                             dnsServer.changeSingleEntry(editingRow, 0, ADDRESS, value);
                         }
                     } else {
-                        validChange = EingabenUeberpruefung.isGueltig(value, EingabenUeberpruefung.musterIpAdresse);
+                        validChange = IPAddress.verifyAddress(value);
                         if (validChange) {
                             dnsServer.changeSingleEntry(editingRow, 3, ADDRESS, value);
                         }
@@ -203,7 +206,7 @@ public class JTableEditable extends JTable {
                     if (!retValue.equals(value))
                         setValueAt(retValue, editingRow, editingColumn);
                     if (editingColumn == 1 || editingColumn == 3) {
-                        if (!EingabenUeberpruefung.isGueltig(value, EingabenUeberpruefung.musterIpAdresseAuchLeer)) {
+                        if (StringUtils.isNoneBlank(value) && !IPAddress.verifyAddress(value)) {
                             ((ColorTableCellRenderer) getCellRenderer(editingRow, editingColumn)).setColor(editingRow,
                                     editingColumn, EingabenUeberpruefung.farbeFalsch);
                         } else {

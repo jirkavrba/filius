@@ -50,28 +50,29 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
 import filius.Main;
+import filius.gui.ValidateableTextField;
 import filius.gui.anwendungssicht.JTableEditable;
 import filius.rahmenprogramm.EingabenUeberpruefung;
 import filius.rahmenprogramm.I18n;
 import filius.software.dhcp.DHCPAddressAssignment;
 import filius.software.dhcp.DHCPServer;
 import filius.software.system.Betriebssystem;
+import filius.software.vermittlungsschicht.IPAddress;
 
 public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
 
     private static final long serialVersionUID = 1L;
     private DHCPServer server;
-    private JTextField tfObergrenze;
-    private JTextField tfUntergrenze;
-    private JTextField tfNetzmaske;
-    private JTextField tfGateway;
-    private JTextField tfDNSServer;
+    private ValidateableTextField tfObergrenze;
+    private ValidateableTextField tfUntergrenze;
+    private ValidateableTextField tfNetzmaske;
+    private ValidateableTextField tfGateway;
+    private ValidateableTextField tfDNSServer;
     private JCheckBox cbAktiv;
     private JCheckBox cbUseInternal;
     private JTabbedPane tabbedPane;
@@ -108,44 +109,44 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         jpDhcp = new JPanel(layout);
 
         lbUntergrenze = new JLabel(messages.getString("jdhcpkonfiguration_msg1"));
-        tfUntergrenze = new JTextField(server.getUntergrenze());
+        tfUntergrenze = new ValidateableTextField(server.getUntergrenze());
         tfUntergrenze.setPreferredSize(new Dimension(150, 25));
         tfUntergrenze.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
-                ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfUntergrenze);
+                tfUntergrenze.setValid(IPAddress.verifyAddress(tfUntergrenze.getText()));
             }
         });
 
         lbObergrenze = new JLabel(messages.getString("jdhcpkonfiguration_msg2"));
-        tfObergrenze = new JTextField(server.getObergrenze());
+        tfObergrenze = new ValidateableTextField(server.getObergrenze());
         tfObergrenze.setPreferredSize(new Dimension(150, 25));
         tfObergrenze.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
-                ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfObergrenze);
+                tfObergrenze.setValid(IPAddress.verifyAddress(tfObergrenze.getText()));
             }
         });
 
         lbNetzmaske = new JLabel(messages.getString("jdhcpkonfiguration_msg3"));
-        tfNetzmaske = new JTextField(server.getSubnetzmaske());
+        tfNetzmaske = new ValidateableTextField(server.getSubnetzmaske());
         tfNetzmaske.setPreferredSize(new Dimension(150, 25));
         tfNetzmaske.setEditable(false);
 
         lbGateway = new JLabel(messages.getString("jdhcpkonfiguration_msg4"));
-        tfGateway = new JTextField(server.getGatewayip());
+        tfGateway = new ValidateableTextField(server.getGatewayip());
         tfGateway.setPreferredSize(new Dimension(150, 25));
         tfGateway.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
-                ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfGateway);
+                tfGateway.setValid(IPAddress.verifyAddress(tfGateway.getText()));
             }
         });
         tfGateway.setEditable(server.isOwnSettings());
 
         lbDNSServer = new JLabel(messages.getString("jdhcpkonfiguration_msg5"));
-        tfDNSServer = new JTextField(server.getDnsserverip());
+        tfDNSServer = new ValidateableTextField(server.getDnsserverip());
         tfDNSServer.setPreferredSize(new Dimension(150, 25));
         tfDNSServer.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
-                ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfDNSServer);
+                tfDNSServer.setValid(IPAddress.verifyAddress(tfDNSServer.getText()));
             }
         });
         tfDNSServer.setEditable(server.isOwnSettings());
@@ -281,7 +282,7 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         hBox.add(macAddressLabel);
         hBox.add(Box.createHorizontalStrut(5));
 
-        JTextField macAddressTextField = new JTextField();
+        ValidateableTextField macAddressTextField = new ValidateableTextField();
         macAddressTextField.setPreferredSize(new Dimension(275, 25));
         macAddressTextField.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
@@ -301,11 +302,11 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         hBox.add(ipAddressLabel);
         hBox.add(Box.createHorizontalStrut(5));
 
-        JTextField ipAddressTextField = new JTextField();
+        ValidateableTextField ipAddressTextField = new ValidateableTextField();
         ipAddressTextField.setPreferredSize(new Dimension(275, 25));
         ipAddressTextField.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
-                ueberpruefen(EingabenUeberpruefung.musterIpAdresse, ipAddressTextField);
+                ipAddressTextField.setValid(IPAddress.verifyAddress(ipAddressTextField.getText()));
             }
         });
         hBox.add(ipAddressTextField);
@@ -320,7 +321,7 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         addButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
                 if (ueberpruefen(EingabenUeberpruefung.musterMacAddress, macAddressTextField)
-                        && ueberpruefen(EingabenUeberpruefung.musterIpAdresse, ipAddressTextField)) {
+                        && IPAddress.verifyAddress(ipAddressTextField.getText())) {
                     ((DefaultTableModel) staticAddressTable.getModel()).addRow(new Object[] {
                             macAddressTextField.getText(), ipAddressTextField.getText() });
                     macAddressTextField.setText("");
@@ -417,35 +418,33 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         }
     }
 
-    public boolean ueberpruefen(Pattern pruefRegel, JTextField feld) {
+    public boolean ueberpruefen(Pattern pruefRegel, ValidateableTextField feld) {
         if (EingabenUeberpruefung.isGueltig(feld.getText(), pruefRegel)) {
-            feld.setForeground(EingabenUeberpruefung.farbeRichtig);
-            JTextField test = new JTextField();
-            feld.setBorder(test.getBorder());
+            feld.setValid(true);
             return true;
         } else {
-            feld.setForeground(EingabenUeberpruefung.farbeFalsch);
-
-            feld.setForeground(EingabenUeberpruefung.farbeFalsch);
-            feld.setBorder(BorderFactory.createLineBorder(EingabenUeberpruefung.farbeFalsch, 1));
+            feld.setValid(false);
             return false;
         }
-
     }
 
     private void speichern() {
-        if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfObergrenze))
+        if (IPAddress.verifyAddress(tfObergrenze.getText())) {
             server.setObergrenze(tfObergrenze.getText());
+        }
 
-        if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfUntergrenze))
+        if (IPAddress.verifyAddress(tfUntergrenze.getText())) {
             server.setUntergrenze(tfUntergrenze.getText());
+        }
 
         if (cbUseInternal.isSelected()) {
             server.setOwnSettings(true);
-            if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfGateway))
+            if (IPAddress.verifyAddress(tfGateway.getText())) {
                 server.setGatewayip(tfGateway.getText());
-            if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfDNSServer))
+            }
+            if (IPAddress.verifyAddress(tfDNSServer.getText())) {
                 server.setDnsserverip(tfDNSServer.getText());
+            }
         } else {
             server.setOwnSettings(false);
         }

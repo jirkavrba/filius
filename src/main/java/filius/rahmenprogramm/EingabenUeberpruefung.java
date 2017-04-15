@@ -43,13 +43,6 @@ import filius.software.vermittlungsschicht.IP;
  */
 public class EingabenUeberpruefung implements I18n {
 
-    // NOTE: include *.*.*.0 to be able to still use this pattern for routing
-    // table configuration as network identifier
-    public static final Pattern musterIpAdresse = Pattern
-            .compile("^(0*([1-9]?[0-9]?|1[0-9]{1,2}|2[0-4]?[0-9]|25[0-5]))\\.((0*(1?[0-9]{1,2}|2[0-4]?[0-9]|25[0-5]))\\.){2}(0*(1?[0-9]{1,2}|2[0-4]?[0-9]|25[0-5]))$");
-    public static final Pattern musterIpAdresseAuchLeer = Pattern
-            .compile("^((0*([1-9]?[0-9]?|1[0-9]{1,2}|2[0-4]?[0-9]|25[0-5]))\\.((0*(1?[0-9]{1,2}|2[0-4]?[0-9]|25[0-5]))\\.){2}(0*(1?[0-9]{1,2}|2[0-4]?[0-9]|25[0-5]))){0,1}$");
-
     public static final Pattern musterSubNetz = Pattern
             .compile("^(0*([1-9]|1?[0-9]{1,2}|2[0-4]?[0-9]|25[0-5]))\\.((0*([0-9]|1?[0-9]{1,2}|2[0-4]?[0-9]|25[0-5]))\\.){2}(0*([0-9]|1?[0-9]{1,2}|2[0-4]?[0-9]|25[0-5]))$");
     private static final String rawMailAddress = "[a-zA-Z0-9]([\\-_\\.]{0,1}[a-zA-Z0-9])*@[a-zA-Z0-9]([\\-_\\.]{0,1}[a-zA-Z0-9])*\\.{0,1}";
