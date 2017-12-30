@@ -522,7 +522,7 @@ public class GUIEvents implements I18n {
                 InternetKnoten node = (InternetKnoten) knotenItem.getKnoten();
                 for (NetzwerkInterface nic : node.getNetzwerkInterfaces()) {
                     JMenuItem pmDatenAustauschAnzeigen = new JMenuItem(messages.getString("guievents_msg4") + " ("
-                            + nic.getIp() + ")");
+                            + nic.addressIPv4().address() + ")");
                     pmDatenAustauschAnzeigen.setActionCommand("datenaustausch-" + nic.getMac());
                     pmDatenAustauschAnzeigen.addActionListener(al);
 

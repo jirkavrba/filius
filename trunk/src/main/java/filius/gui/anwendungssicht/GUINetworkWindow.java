@@ -48,8 +48,10 @@ import filius.hardware.NetzwerkInterface;
 import filius.hardware.knoten.Host;
 import filius.rahmenprogramm.EingabenUeberpruefung;
 import filius.rahmenprogramm.I18n;
+import filius.rahmenprogramm.SzenarioVerwaltung;
 import filius.software.system.Betriebssystem;
 import filius.software.vermittlungsschicht.IPAddress;
+import filius.software.vermittlungsschicht.IPVersion;
 
 /**
  * Die Klasse stellt einen Dialog dar, in dem der Nutzer die Netzwerkeinstellungen des aktuellen Rechners betrachten und
@@ -100,7 +102,7 @@ public class GUINetworkWindow extends JInternalFrame implements I18n {
         bs = this.dp.getBetriebssystem();
         nic = (NetzwerkInterface) ((Host) bs.getKnoten()).getNetzwerkInterfaces().get(0);
 
-        ipField = new ValidateableTextField(nic.getIp());
+        ipField = new ValidateableTextField(nic.addressIPv4().address());
         ipField.setEditable(false);
         ipField.setSize(new Dimension(100, 15));
         ipField.setPreferredSize(new Dimension(100, 15));
@@ -130,7 +132,7 @@ public class GUINetworkWindow extends JInternalFrame implements I18n {
             }
 
         });
-        netmaskField = new ValidateableTextField(nic.getSubnetzMaske());
+        netmaskField = new ValidateableTextField(nic.addressIPv4().netmask());
         netmaskField.setEditable(false);
         netmaskField.setSize(new Dimension(100, 15));
         netmaskField.setPreferredSize(new Dimension(100, 15));
@@ -267,10 +269,10 @@ public class GUINetworkWindow extends JInternalFrame implements I18n {
             bs = this.dp.getBetriebssystem();
             NetzwerkInterface nic = (NetzwerkInterface) ((Host) bs.getKnoten()).getNetzwerkInterfaces().get(0);
 
-            ipField.setText(nic.getIp());
+            ipField.setText(nic.addressIPv4().address());
             dnsField.setText(bs.getDNSServer());
             gatewayField.setText(bs.getStandardGateway());
-            netmaskField.setText(nic.getSubnetzMaske());
+            netmaskField.setText(nic.addressIPv4().netmask());
         }
         super.setVisible(b);
     }

@@ -7,6 +7,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import filius.exception.InvalidParameterException;
+import filius.rahmenprogramm.SzenarioVerwaltung;
 
 /** This class represents an IP address alternatively with or without netmask. */
 public class IPAddress {
@@ -65,26 +66,26 @@ public class IPAddress {
     private static final String IPV6_NETMASK_SUFFIX_REGEX = "(?<" + GROUP_NETMASK
             + ">1([0-1][0-9]|2[0-8])|[1-9]?[0-9])";
 
-    private static final Pattern IP_V4_WITH_NETMASK_VALIDATION_PATTERN = Pattern.compile(IP_V4_REGEX + "/"
-            + IPV4_NETMASK_SUFFIX_REGEX);
+    private static final Pattern IP_V4_OPTIONAL_NETMASK_VALIDATION_PATTERN = Pattern.compile(IP_V4_REGEX + "(/"
+            + IPV4_NETMASK_SUFFIX_REGEX + ")?");
     private static final Pattern IP_V4_NO_NETMASK_VALIDATION_PATTERN = Pattern.compile(IP_V4_REGEX);
     private static final Pattern IP_V6_SEGMENT_PATTERN = Pattern.compile(IP_V6_START_SEG_REGEX
             + IP_V6_END_SEG_PART_REGEX);
     private static final Pattern IP_V6_WITH_DEC_NOTATION_SEGMENT_PATTERN = Pattern
             .compile(IP_V6_START_SEG_WITH_DEC_NOTATION_REGEX + IP_V6_END_SEG_PART_WITH_DEC_NOTATION_REGEX);
-    private static final Pattern IP_V6_WITH_NETMASK_VALIDATION_PATTERN = Pattern.compile(IP_V6_REGEX + "/"
-            + IPV6_NETMASK_SUFFIX_REGEX);
+    private static final Pattern IP_V6_OPTIONAL_NETMASK_VALIDATION_PATTERN = Pattern.compile(IP_V6_REGEX + "(/"
+            + IPV6_NETMASK_SUFFIX_REGEX + ")?");
     private static final Pattern IP_V6_NO_NETMASK_VALIDATION_PATTERN = Pattern.compile(IP_V6_REGEX);
 
     private final IPVersion version;
     private final short[] addressBytes;
-    private final int netmaskWidth;
+    private final int netmaskLength;
 
     private boolean ipv6WithDecimalNotation;
 
-    public IPAddress(String address) {
-        Matcher ipv4matcher = IP_V4_WITH_NETMASK_VALIDATION_PATTERN.matcher(address);
-        Matcher ipv6matcher = IP_V6_WITH_NETMASK_VALIDATION_PATTERN.matcher(address);
+    public IPAddress(String address) throws InvalidParameterException {
+        Matcher ipv4matcher = IP_V4_OPTIONAL_NETMASK_VALIDATION_PATTERN.matcher(address);
+        Matcher ipv6matcher = IP_V6_OPTIONAL_NETMASK_VALIDATION_PATTERN.matcher(address);
 
         String netmaskString = null;
         if (ipv4matcher.matches()) {
@@ -100,32 +101,32 @@ public class IPAddress {
             throw new InvalidParameterException("invalid IP address: " + address);
         }
         if (StringUtils.isNoneBlank(netmaskString)) {
-            netmaskWidth = Integer.parseInt(netmaskString);
+            netmaskLength = Integer.parseInt(netmaskString);
         } else {
-            netmaskWidth = 0;
+            netmaskLength = 0;
         }
     }
 
-    public IPAddress(String address, String netmask) {
+    public IPAddress(String address, String netmask) throws InvalidParameterException {
         Matcher ipv4matcher = IP_V4_NO_NETMASK_VALIDATION_PATTERN.matcher(address);
         Matcher ipv6matcher = IP_V6_NO_NETMASK_VALIDATION_PATTERN.matcher(address);
 
         if (ipv4matcher.matches()) {
             version = IPVersion.IPv4;
             addressBytes = extractIPv4Segments(ipv4matcher);
-            netmaskWidth = defineNetmaskWidthFromAddressPattern(netmask);
+            netmaskLength = defineNetmaskWidthFromAddressPattern(netmask);
         } else if (ipv6matcher.matches()) {
             version = IPVersion.IPv6;
             ipv6WithDecimalNotation = ipv4matcher.find();
             addressBytes = extractIPv6Segments(address);
-            netmaskWidth = Integer.parseInt(netmask);
+            netmaskLength = Integer.parseInt(netmask);
         } else {
             throw new InvalidParameterException("invalid IP address: " + address);
         }
 
     }
 
-    private static int defineNetmaskWidthFromAddressPattern(String netmask) {
+    private static int defineNetmaskWidthFromAddressPattern(String netmask) throws InvalidParameterException {
         Matcher netmaskMatcher = IP_V4_NO_NETMASK_VALIDATION_PATTERN.matcher(netmask);
         if (!netmaskMatcher.matches()) {
             throw new InvalidParameterException("invalid network mask: " + netmask);
@@ -134,7 +135,7 @@ public class IPAddress {
         int oneBitCount = 0;
         for (short currentByte : netmaskBytes) {
             int currentBitCount = Integer.bitCount(currentByte);
-            if (Math.pow(2, currentBitCount) - 1 != currentByte) {
+            if ((currentByte << currentBitCount & 0xFF) != 0) {
                 throw new InvalidParameterException("invalid network mask: " + netmask);
             }
             oneBitCount += currentBitCount;
@@ -210,11 +211,10 @@ public class IPAddress {
 
     @Override
     public String toString() {
-        return asString(addressBytes, true, netmaskWidth, false, ipv6WithDecimalNotation);
+        return asString(addressBytes, true, false, ipv6WithDecimalNotation);
     }
 
-    private String asString(short[] bytes, boolean appendNetmask, int netmask, boolean ipv6Compact,
-            boolean ipv6DecimalNotation) {
+    private String asString(short[] bytes, boolean appendNetmask, boolean ipv6Compact, boolean ipv6DecimalNotation) {
         StringBuffer address;
         if (IPVersion.IPv4 == version) {
             address = v4StringBuffer(bytes);
@@ -222,7 +222,7 @@ public class IPAddress {
             address = v6StringBuffer(bytes, ipv6Compact, ipv6DecimalNotation);
         }
         if (appendNetmask) {
-            address.append("/" + netmaskWidth);
+            address.append("/" + netmaskLength);
         }
         return address.toString();
     }
@@ -306,13 +306,13 @@ public class IPAddress {
      */
     public boolean isUnspecifiedAddress() {
         if (version == IPVersion.IPv4 && addressBytes[0] == 0 && addressBytes[1] == 0 && addressBytes[2] == 0
-                && addressBytes[3] == 0 && (netmaskWidth == 0 || netmaskWidth == 8)) {
+                && addressBytes[3] == 0 && (netmaskLength == 0 || netmaskLength == 8)) {
             return true;
         } else if (version == IPVersion.IPv6 && addressBytes[0] == 0 && addressBytes[1] == 0 && addressBytes[2] == 0
                 && addressBytes[3] == 0 && addressBytes[4] == 0 && addressBytes[5] == 0 && addressBytes[6] == 0
                 && addressBytes[7] == 0 && addressBytes[8] == 0 && addressBytes[9] == 0 && addressBytes[10] == 0
                 && addressBytes[11] == 0 && addressBytes[12] == 0 && addressBytes[13] == 0 && addressBytes[14] == 0
-                && addressBytes[15] == 0 && (netmaskWidth == 0 || netmaskWidth == 128)) {
+                && addressBytes[15] == 0 && (netmaskLength == 0 || netmaskLength == 128)) {
             return true;
         }
         return false;
@@ -332,7 +332,7 @@ public class IPAddress {
                     return false;
                 }
             }
-            if (netmaskWidth != ((IPAddress) other).netmaskWidth) {
+            if (netmaskLength != ((IPAddress) other).netmaskLength) {
                 return false;
             }
             return true;
@@ -345,10 +345,10 @@ public class IPAddress {
     }
 
     public static IPVersion defineVersion(String ipAddress) {
-        if (IP_V4_WITH_NETMASK_VALIDATION_PATTERN.matcher(ipAddress).matches()
+        if (IP_V4_OPTIONAL_NETMASK_VALIDATION_PATTERN.matcher(ipAddress).matches()
                 || IP_V4_NO_NETMASK_VALIDATION_PATTERN.matcher(ipAddress).matches()) {
             return IPVersion.IPv4;
-        } else if (IP_V6_WITH_NETMASK_VALIDATION_PATTERN.matcher(ipAddress).matches()
+        } else if (IP_V6_OPTIONAL_NETMASK_VALIDATION_PATTERN.matcher(ipAddress).matches()
                 || IP_V6_NO_NETMASK_VALIDATION_PATTERN.matcher(ipAddress).matches()) {
             return IPVersion.IPv6;
         }
@@ -356,19 +356,27 @@ public class IPAddress {
     }
 
     public static boolean verifyAddress(String ipAddress) {
-        return IP_V4_NO_NETMASK_VALIDATION_PATTERN.matcher(ipAddress).matches()
-                || IP_V6_NO_NETMASK_VALIDATION_PATTERN.matcher(ipAddress).matches();
+        return verifyAddress(ipAddress, SzenarioVerwaltung.getInstance().ipVersion());
+    }
+
+    static boolean verifyAddress(String ipAddress, IPVersion ipVersion) {
+        return IPVersion.IPv4 == ipVersion && IP_V4_NO_NETMASK_VALIDATION_PATTERN.matcher(ipAddress).matches()
+                || IPVersion.IPv6 == ipVersion && IP_V6_NO_NETMASK_VALIDATION_PATTERN.matcher(ipAddress).matches();
     }
 
     public static boolean verifyNetmaskDefinition(String netmaskDefinition) {
+        return verifyNetmaskDefinition(netmaskDefinition, SzenarioVerwaltung.getInstance().ipVersion());
+    }
+
+    static boolean verifyNetmaskDefinition(String netmaskDefinition, IPVersion ipVersion) {
         boolean verified = false;
         Matcher ipv4Matcher = IP_V4_NO_NETMASK_VALIDATION_PATTERN.matcher(netmaskDefinition);
-        if (ipv4Matcher.matches()) {
+        if (IPVersion.IPv4 == ipVersion && ipv4Matcher.matches()) {
             try {
                 defineNetmaskWidthFromAddressPattern(netmaskDefinition);
                 verified = true;
             } catch (InvalidParameterException e) {}
-        } else {
+        } else if (IPVersion.IPv6 == ipVersion) {
             try {
                 int netmaskSuffixAsInt = Integer.parseInt(netmaskDefinition);
                 verified = netmaskSuffixAsInt > 0 && netmaskSuffixAsInt <= 128;
@@ -377,26 +385,35 @@ public class IPAddress {
         return verified;
     }
 
+    /** Retrieve IP address without netmask as string. */
+    public String address() {
+        return asString(addressBytes, false, false, ipv6WithDecimalNotation);
+    }
+
     /** Retrieve network part of IP address (without netmask) as String */
     public String networkAddress() {
         short[] networkBytes = new short[addressBytes.length];
-        short[] netmaskBytes = netmaskBytes(addressBytes.length, netmaskWidth);
+        short[] netmaskBytes = netmaskBytes(addressBytes.length, netmaskLength);
         for (int i = 0; i < networkBytes.length; i++) {
             networkBytes[i] = (short) (addressBytes[i] & netmaskBytes[i]);
         }
-        return asString(networkBytes, false, 0, false, false);
+        return asString(networkBytes, false, false, false);
     }
 
     /** Retrieve netmask as String representation, e.g. 255.255.0.0 (IPv4) or 64 (IPv6) */
     public String netmask() {
         String netmaskAsString;
         if (IPVersion.IPv4 == version) {
-            short[] netmaskBytes = netmaskBytes(addressBytes.length, netmaskWidth);
-            netmaskAsString = asString(netmaskBytes, false, 0, false, false);
+            short[] netmaskBytes = netmaskBytes(addressBytes.length, netmaskLength);
+            netmaskAsString = asString(netmaskBytes, false, false, false);
         } else {
-            netmaskAsString = String.valueOf(netmaskWidth);
+            netmaskAsString = String.valueOf(netmaskLength);
         }
         return netmaskAsString;
+    }
+
+    public int netmaskLength() {
+        return netmaskLength;
     }
 
     private short[] netmaskBytes(int totalBytes, int netmaskBits) {
@@ -427,6 +444,18 @@ public class IPAddress {
      * @return
      */
     public String normalizedString() {
-        return asString(addressBytes, true, netmaskWidth, true, ipv6WithDecimalNotation);
+        return asString(addressBytes, true, true, ipv6WithDecimalNotation);
+    }
+
+    public static IPAddress defaultAddress(IPVersion ipVersion) {
+        IPAddress defaultAddress = null;
+        try {
+            if (IPVersion.IPv4 == ipVersion) {
+                defaultAddress = new IPAddress("0.0.0.0", "255.255.255.0");
+            } else {
+                defaultAddress = new IPAddress("::", "128");
+            }
+        } catch (InvalidParameterException e) {}
+        return defaultAddress;
     }
 }

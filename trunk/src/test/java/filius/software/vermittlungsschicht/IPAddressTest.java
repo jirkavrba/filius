@@ -313,55 +313,72 @@ public class IPAddressTest {
 
     @Test
     public void testVerify_IPv4WithNetmask_Failure() throws Exception {
-        assertFalse(IPAddress.verifyAddress("192.168.2.2/24"));
+        assertFalse(IPAddress.verifyAddress("192.168.2.2/24", IPVersion.IPv4));
     }
 
     @Test
     public void testVerify_IPv4WithoutNetmask_Success() throws Exception {
-        assertTrue(IPAddress.verifyAddress("192.168.2.2"));
+        assertTrue(IPAddress.verifyAddress("192.168.2.2", IPVersion.IPv4));
+    }
+
+    @Test
+    public void testVerify_IPv4AsIPv6_Failure() throws Exception {
+        assertFalse(IPAddress.verifyAddress("192.168.2.2", IPVersion.IPv6));
     }
 
     @Test
     public void testVerify_IPv6WithNetmask_Failure() throws Exception {
-        assertFalse(IPAddress.verifyAddress("1:2:3::8/24"));
+        assertFalse(IPAddress.verifyAddress("1:2:3::8/24", IPVersion.IPv6));
     }
 
     @Test
     public void testVerify_IPv6Incomplete_Failure() throws Exception {
-        assertFalse(IPAddress.verifyAddress("1:"));
+        assertFalse(IPAddress.verifyAddress("1:", IPVersion.IPv6));
     }
 
     @Test
     public void testVerify_IPv6WithoutNetmask_Success() throws Exception {
-        assertTrue(IPAddress.verifyAddress("1:2:3::8"));
+        assertTrue(IPAddress.verifyAddress("1:2:3::8", IPVersion.IPv6));
+    }
+
+    @Test
+    public void testVerify_IPv6AsIPv4_Failure() throws Exception {
+        assertFalse(IPAddress.verifyAddress("1:2:3::8", IPVersion.IPv4));
     }
 
     @Test
     public void testVerifyNetmaskDefinition_IPv6_True() throws Exception {
-        assertTrue(IPAddress.verifyNetmaskDefinition("5"));
-        assertTrue(IPAddress.verifyNetmaskDefinition("1"));
-        assertTrue(IPAddress.verifyNetmaskDefinition("128"));
+        assertTrue(IPAddress.verifyNetmaskDefinition("5", IPVersion.IPv6));
+        assertTrue(IPAddress.verifyNetmaskDefinition("1", IPVersion.IPv6));
+        assertTrue(IPAddress.verifyNetmaskDefinition("128", IPVersion.IPv6));
     }
 
     @Test
     public void testVerifyNetmaskDefinition_IPv6_False() throws Exception {
-        assertFalse(IPAddress.verifyNetmaskDefinition("0"));
-        assertFalse(IPAddress.verifyNetmaskDefinition("-1"));
-        assertFalse(IPAddress.verifyNetmaskDefinition("129"));
+        assertFalse(IPAddress.verifyNetmaskDefinition("0", IPVersion.IPv6));
+        assertFalse(IPAddress.verifyNetmaskDefinition("-1", IPVersion.IPv6));
+        assertFalse(IPAddress.verifyNetmaskDefinition("129", IPVersion.IPv6));
+        assertFalse(IPAddress.verifyNetmaskDefinition("255.255.255.0", IPVersion.IPv6));
     }
 
     @Test
     public void testVerifyNetmaskDefinition_IPv6_Hexadecimal() throws Exception {
-        assertFalse(IPAddress.verifyNetmaskDefinition("f"));
+        assertFalse(IPAddress.verifyNetmaskDefinition("f", IPVersion.IPv6));
     }
 
     @Test
     public void testVerifyNetmaskDefinition_IPv4_True() throws Exception {
-        assertTrue(IPAddress.verifyNetmaskDefinition("255.255.0.0"));
+        assertTrue(IPAddress.verifyNetmaskDefinition("255.255.0.0", IPVersion.IPv4));
+    }
+
+    @Test
+    public void testVerifyNetmaskDefinition_IPv4WithPartlyByte_True() throws Exception {
+        assertTrue(IPAddress.verifyNetmaskDefinition("255.128.0.0", IPVersion.IPv4));
     }
 
     @Test
     public void testVerifyNetmaskDefinition_IPv4_InvalidNetmaskString() throws Exception {
-        assertFalse(IPAddress.verifyNetmaskDefinition("255.253.0.0"));
+        assertFalse(IPAddress.verifyNetmaskDefinition("255.253.0.0", IPVersion.IPv4));
+        assertFalse(IPAddress.verifyNetmaskDefinition("16", IPVersion.IPv4));
     }
 }

@@ -180,7 +180,7 @@ public class JSidebarButton extends JLabel implements Observer, I18n {
         String gateway = null;
         String dns = null;
         for (NetzwerkInterface nic : knoten.getNetzwerkInterfaces()) {
-            tooltip.append("\n ").append(nic.getIp()).append(" / ").append(nic.getSubnetzMaske());
+            tooltip.append("\n ").append(nic.addressIPv4().address()).append(" / ").append(nic.addressIPv4().netmask());
             tooltip.append(" (").append(nic.getMac()).append(")");
             gateway = nic.getGateway();
             dns = nic.getDns();

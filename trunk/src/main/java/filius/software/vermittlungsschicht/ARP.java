@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import filius.Main;
+import filius.exception.InvalidParameterException;
 import filius.hardware.NetzwerkInterface;
 import filius.hardware.Verbindung;
 import filius.hardware.knoten.InternetKnoten;
@@ -143,15 +144,19 @@ public class ARP extends VermittlungsProtokoll {
         } else {
             // ARP-Broadcast und warte auf Antwort
             for (int i = 0; arpTabelle.get(zielIp) == null && i < 2; i++) {
-                sendeARPBroadcast(zielIp);
-                synchronized (arpTabelle) {
-                    try {
-                        arpTabelle.wait(Verbindung.holeRTT() / 2);
-                    } catch (InterruptedException e) {
-                        Main.debug.println("EXCEPTION (" + this.hashCode()
-                                + "): keine Anwort auf ARP-Broadcast fuer IP-Adresse " + zielIp + " eingegangen!");
-                        e.printStackTrace(Main.debug);
+                try {
+                    sendeARPBroadcast(zielIp);
+                    synchronized (arpTabelle) {
+                        try {
+                            arpTabelle.wait(Verbindung.holeRTT() / 2);
+                        } catch (InterruptedException e) {
+                            Main.debug.println("EXCEPTION (" + this.hashCode()
+                                    + "): keine Anwort auf ARP-Broadcast fuer IP-Adresse " + zielIp + " eingegangen!");
+                            e.printStackTrace(Main.debug);
+                        }
                     }
+                } catch (InvalidParameterException e1) {
+                    e1.printStackTrace();
                 }
             }
 
@@ -165,8 +170,12 @@ public class ARP extends VermittlungsProtokoll {
         return null;
     }
 
-    /** Hilfsmethode zum Versenden einer ARP-Anfrage */
-    private void sendeARPBroadcast(String suchIp) {
+    /**
+     * Hilfsmethode zum Versenden einer ARP-Anfrage
+     * 
+     * @throws InvalidParameterException
+     */
+    private void sendeARPBroadcast(String suchIp) throws InvalidParameterException {
         NetzwerkInterface nic = getBroadcastNic(suchIp);
         if (nic == null) {
             return;
@@ -176,7 +185,7 @@ public class ARP extends VermittlungsProtokoll {
         arpPaket.setProtokollTyp(EthernetFrame.ARP);
         arpPaket.setZielIp(suchIp);
         arpPaket.setZielMacAdresse("FF:FF:FF:FF:FF:FF");
-        arpPaket.setQuellIp(nic.getIp());
+        arpPaket.setQuellIp(nic.addressIPv4().address());
         arpPaket.setQuellMacAdresse(nic.getMac());
 
         ((InternetKnotenBetriebssystem) holeSystemSoftware()).holeEthernet().senden(arpPaket, nic.getMac(),
@@ -188,25 +197,20 @@ public class ARP extends VermittlungsProtokoll {
                 && !VermittlungsProtokoll.isNetworkAddress(ipAddress, ipAddress, localNetmask);
     }
 
-    public NetzwerkInterface getBroadcastNic(String zielStr) {
-        long netAddr, maskAddr, zielAddr = IP.inetAToN(zielStr);
-
+    public NetzwerkInterface getBroadcastNic(String zielStr) throws InvalidParameterException {
         long bestMask = -1;
         NetzwerkInterface bestNic = null;
 
         for (NetzwerkInterface nic : ((InternetKnoten) holeSystemSoftware().getKnoten()).getNetzwerkInterfaces()) {
-            maskAddr = IP.inetAToN(nic.getSubnetzMaske());
-            if (maskAddr <= bestMask) {
-                continue;
-            }
-            netAddr = IP.inetAToN(nic.getIp()) & maskAddr;
-            if (netAddr == (maskAddr & zielAddr)) {
-                bestMask = maskAddr;
+            IPAddress senderAddress = nic.addressIPv4();
+            IPAddress rcptAddress = new IPAddress(zielStr, senderAddress.netmask());
+            if (senderAddress.netmaskLength() > bestMask
+                    && senderAddress.networkAddress().equals(rcptAddress.networkAddress())) {
+                bestMask = senderAddress.netmaskLength();
                 bestNic = nic;
             }
         }
         if (null == bestNic) {
-            bestMask = IP.inetAToN(((InternetKnotenBetriebssystem) holeSystemSoftware()).holeNetzmaske());
             bestNic = ((InternetKnoten) holeSystemSoftware().getKnoten()).getNetzwerkInterfaces().get(0);
         }
         return bestNic;
