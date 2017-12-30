@@ -132,7 +132,7 @@ public abstract class VermittlungsProtokoll extends Protokoll {
 
         InternetKnoten knoten = (InternetKnoten) holeSystemSoftware().getKnoten();
         for (NetzwerkInterface nic : knoten.getNetzwerkInterfaces()) {
-            if (ip.equals(nic.getIp())) {
+            if (ip.equals(nic.addressIPv4().address())) {
                 return true;
             }
         }
@@ -142,7 +142,7 @@ public abstract class VermittlungsProtokoll extends Protokoll {
     public boolean isApplicableBroadcast(String zielIp) {
         List<NetzwerkInterface> nics = ((InternetKnoten) this.holeSystemSoftware().getKnoten()).getNetzwerkInterfaces();
         for (NetzwerkInterface nic : nics) {
-            if (isBroadcast(zielIp, nic.getIp(), nic.getSubnetzMaske())) {
+            if (isBroadcast(zielIp, nic.addressIPv4().address(), nic.addressIPv4().netmask())) {
                 return true;
             }
         }

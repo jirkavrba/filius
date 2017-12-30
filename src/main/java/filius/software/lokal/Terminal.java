@@ -27,6 +27,7 @@ package filius.software.lokal;
 
 import java.util.Enumeration;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -35,8 +36,11 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 import filius.Main;
 import filius.exception.SocketException;
+import filius.hardware.NetzwerkInterface;
+import filius.hardware.knoten.InternetKnoten;
 import filius.rahmenprogramm.I18n;
 import filius.rahmenprogramm.Information;
+import filius.rahmenprogramm.SzenarioVerwaltung;
 import filius.software.clientserver.ClientAnwendung;
 import filius.software.dns.Resolver;
 import filius.software.system.Betriebssystem;
@@ -48,6 +52,7 @@ import filius.software.transportschicht.Socket;
 import filius.software.transportschicht.SocketSchnittstelle;
 import filius.software.transportschicht.TransportProtokoll;
 import filius.software.vermittlungsschicht.IPAddress;
+import filius.software.vermittlungsschicht.IPVersion;
 import filius.software.vermittlungsschicht.IcmpPaket;
 import filius.software.vermittlungsschicht.Route;
 import filius.software.vermittlungsschicht.RouteNotFoundException;
@@ -234,17 +239,36 @@ public class Terminal extends ClientAnwendung implements I18n {
             benachrichtigeBeobachter(messages.getString("sw_terminal_msg32") + messages.getString("sw_terminal_msg42"));
             return messages.getString("sw_terminal_msg32") + messages.getString("sw_terminal_msg42");
         }
-        Betriebssystem bs = (Betriebssystem) getSystemSoftware();
-        String ausgabe = "";
+        List<NetzwerkInterface> nicList = ((InternetKnoten) getSystemSoftware().getKnoten()).getNetzwerkInterfaces();
+        StringBuffer ausgabe = new StringBuffer();
 
-        ausgabe += messages.getString("sw_terminal_msg4") + " " + bs.holeIPAdresse() + "\n";
-        ausgabe += messages.getString("sw_terminal_msg5") + " " + bs.holeNetzmaske() + "\n";
-        ausgabe += messages.getString("sw_terminal_msg26") + " " + bs.holeMACAdresse() + "\n";
-        ausgabe += messages.getString("sw_terminal_msg6") + " " + bs.getStandardGateway() + "\n";
-        ausgabe += messages.getString("sw_terminal_msg27") + " " + bs.getDNSServer() + "\n";
-
+        boolean first = true;
+        for (NetzwerkInterface nic : nicList) {
+            if (!first) {
+                ausgabe.append("\n");
+            }
+            if (SzenarioVerwaltung.getInstance().ipVersion().equals(IPVersion.IPv4)) {
+                ausgabe.append(messages.getString("sw_terminal_msg4")).append(" ").append(nic.addressIPv4().address())
+                        .append("\n");
+                ausgabe.append(messages.getString("sw_terminal_msg5")).append(" ").append(nic.addressIPv4().netmask())
+                        .append("\n");
+                ausgabe.append(messages.getString("sw_terminal_msg26")).append(" ").append(nic.getMac()).append("\n");
+                ausgabe.append(messages.getString("sw_terminal_msg6")).append(" ").append(nic.getGateway())
+                        .append("\n");
+                ausgabe.append(messages.getString("sw_terminal_msg27")).append(" ").append(nic.getDns()).append("\n");
+            } else {
+                ausgabe.append(messages.getString("sw_terminal_msg60")).append(" ")
+                        .append(nic.addressIPv6().toString()).append("\n");
+                ausgabe.append(messages.getString("sw_terminal_msg26")).append(" ").append(nic.getMac()).append("\n");
+                ausgabe.append(messages.getString("sw_terminal_msg6")).append(" ").append(nic.getIPv6Gateway())
+                        .append("\n");
+                ausgabe.append(messages.getString("sw_terminal_msg27")).append(" ").append(nic.getIPv6Dns())
+                        .append("\n");
+            }
+            first = false;
+        }
         benachrichtigeBeobachter(ausgabe);
-        return ausgabe;
+        return ausgabe.toString();
     }
 
     /* Entspricht route print unter windows */
@@ -720,7 +744,9 @@ public class Terminal extends ClientAnwendung implements I18n {
         String destIp = null;
         try {
             boolean validIPAddress = IPAddress.verifyAddress(args[0]);
-            if (!validIPAddress) { // args[0] is not an IP address
+            if (!validIPAddress) {
+                destIp = args[0];
+            } else { // args[0] is not an IP address
                 destIp = res.holeIPAdresse(args[0]);
             }
             if (destIp == null) { // args[0] could also not be resolved

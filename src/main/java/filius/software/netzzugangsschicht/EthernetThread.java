@@ -110,7 +110,8 @@ public class EthernetThread extends ProtokollThread {
             // without even having received the packet on this specific NIC,
             // i.e., without physical connection)
             String zielIp = ((ArpPaket) etp.getDaten()).getZielIp();
-            if (!zielIp.equals(netzwerkInterface.getIp()) && !"0.0.0.0".equals(netzwerkInterface.getIp())) {
+            if (!zielIp.equals(netzwerkInterface.addressIPv4().address())
+                    && !"0.0.0.0".equals(netzwerkInterface.addressIPv4().address())) {
                 Main.debug.println("ERROR (" + this.hashCode() + "):  ARP packet seems to be sent from a NIC ("
                         + ((ArpPaket) etp.getDaten()).getQuellIp() + ","
                         + ((ArpPaket) etp.getDaten()).getQuellMacAdresse()

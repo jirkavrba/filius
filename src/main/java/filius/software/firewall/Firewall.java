@@ -173,8 +173,8 @@ public class Firewall extends Anwendung implements I18n {
                         boolean foundNIC = false;
                         while (it.hasNext() && !foundNIC) {
                             NetzwerkInterface iface = it.next();
-                            if (VermittlungsProtokoll.gleichesRechnernetz(ipPacket.getSender(), iface.getIp(),
-                                    iface.getSubnetzMaske())) {
+                            if (VermittlungsProtokoll.gleichesRechnernetz(ipPacket.getSender(), iface.addressIPv4()
+                                    .address(), iface.addressIPv4().netmask())) {
                                 foundNIC = true; // found NIC with IP address of
                                                  // same network
                             }

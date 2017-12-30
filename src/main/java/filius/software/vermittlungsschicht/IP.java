@@ -138,7 +138,7 @@ public class IP extends VermittlungsProtokoll implements I18n {
 
         InternetKnotenBetriebssystem bs = (InternetKnotenBetriebssystem) holeSystemSoftware();
         if (CURRENT_NETWORK.equals(ipPaket.getSender())
-                || gleichesRechnernetz(ipPaket.getSender(), nic.getIp(), nic.getSubnetzMaske())) {
+                || gleichesRechnernetz(ipPaket.getSender(), nic.addressIPv4().address(), nic.addressIPv4().netmask())) {
             bs.holeEthernet().senden(ipPaket, nic.getMac(), ETHERNET_BROADCAST, EthernetFrame.IP);
         }
     }
@@ -176,7 +176,7 @@ public class IP extends VermittlungsProtokoll implements I18n {
     private void sendeUnicast(IpPaket paket, Route route) throws RouteNotFoundException {
         NetzwerkInterface nic = ((InternetKnoten) holeSystemSoftware().getKnoten()).getNetzwerkInterfaceByIp(route
                 .getInterfaceIpAddress());
-        String netzmaske = nic.getSubnetzMaske();
+        String netzmaske = nic.addressIPv4().netmask();
 
         if (gleichesRechnernetz(paket.getEmpfaenger(), route.getInterfaceIpAddress(), netzmaske)) {
             // adressierter Knoten befindet sich im lokalen Rechnernetz

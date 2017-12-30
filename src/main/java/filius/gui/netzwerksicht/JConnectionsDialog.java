@@ -153,7 +153,7 @@ public class JConnectionsDialog extends JDialog implements I18n {
                 Port[] ports = connection.getAnschluesse();
                 for (Port port : ports) {
                     if (port.getNIC() != null && port.getNIC() != nic) {
-                        remoteAddress = port.getNIC().getIp();
+                        remoteAddress = port.getNIC().addressIPv4().address();
                     }
                 }
                 btnRemote[nicNr - 1].setEnabled(false);
@@ -182,7 +182,7 @@ public class JConnectionsDialog extends JDialog implements I18n {
         Knoten node;
         for (NetzwerkInterface nic : internetSwitch.getNetzwerkInterfaces()) {
             nicNr++;
-            lblLocal[nicNr - 1].setText("NIC " + nicNr + ": " + nic.getIp());
+            lblLocal[nicNr - 1].setText("NIC " + nicNr + ": " + nic.addressIPv4().address());
 
             node = getConnectedComponent(nic);
             if (node != null) {

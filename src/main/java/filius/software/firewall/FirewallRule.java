@@ -132,8 +132,8 @@ public class FirewallRule implements I18n {
         boolean sameNet = false;
 
         if (nics != null) {
-            ip = nics.get(0).getIp();
-            mask = nics.get(0).getSubnetzMaske();
+            ip = nics.get(0).addressIPv4().address();
+            mask = nics.get(0).addressIPv4().netmask();
             if (srcIP.equals(FirewallRule.SAME_NETWORK) && ip != null && mask != null)
                 sameNet = true;
         }

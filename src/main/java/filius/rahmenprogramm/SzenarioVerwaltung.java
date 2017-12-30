@@ -44,20 +44,27 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
+import org.apache.commons.lang3.StringUtils;
+
 import filius.Main;
 import filius.gui.GUIErrorHandler;
 import filius.gui.netzwerksicht.GUIDocuItem;
 import filius.gui.netzwerksicht.GUIKabelItem;
 import filius.gui.netzwerksicht.GUIKnotenItem;
 import filius.gui.netzwerksicht.JSidebarButton;
+import filius.software.system.InternetKnotenBetriebssystem;
+import filius.software.system.SystemSoftware;
+import filius.software.vermittlungsschicht.IPAddress;
+import filius.software.vermittlungsschicht.IPVersion;
 
 public class SzenarioVerwaltung extends Observable implements I18n {
 
-    private boolean geaendert = false;
-    private String pfad = null;
     private static SzenarioVerwaltung verwaltung = null;
+    private Szenario activeScenario;
 
-    private SzenarioVerwaltung() {}
+    private SzenarioVerwaltung() {
+        activeScenario = new Szenario(Information.getDefaultIPVersion());
+    }
 
     public static SzenarioVerwaltung getInstance() {
         Main.debug.println("INVOKED (static) filius.rahmenprogramm.SzenarioVerwaltung, getInstance()");
@@ -69,8 +76,7 @@ public class SzenarioVerwaltung extends Observable implements I18n {
 
     public void reset() {
         Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + ", reset()");
-        pfad = null;
-        geaendert = false;
+        activeScenario.reset();
 
         setChanged();
         notifyObservers();
@@ -78,18 +84,22 @@ public class SzenarioVerwaltung extends Observable implements I18n {
 
     public void setzeGeaendert() {
         Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + ", setzeGeaendert()");
-        geaendert = true;
+        activeScenario.setGeaendert(true);
 
         this.setChanged();
         this.notifyObservers();
     }
 
     public boolean istGeaendert() {
-        return geaendert;
+        return activeScenario.isGeaendert();
     }
 
     public String holePfad() {
-        return pfad;
+        return activeScenario.getPfad();
+    }
+
+    public IPVersion ipVersion() {
+        return activeScenario.getIpVersion();
     }
 
     /**
@@ -127,8 +137,8 @@ public class SzenarioVerwaltung extends Observable implements I18n {
         }
 
         if (erfolg) {
-            pfad = datei;
-            geaendert = false;
+            activeScenario.setPfad(datei);
+            activeScenario.setGeaendert(false);
 
             this.setChanged();
             this.notifyObservers();
@@ -222,14 +232,29 @@ public class SzenarioVerwaltung extends Observable implements I18n {
         }
 
         if (erfolg) {
-            pfad = datei;
-            geaendert = false;
+            activeScenario = new Szenario(defineIPVersion(hardwareItems));
+            activeScenario.setPfad(datei);
 
             this.setChanged();
             this.notifyObservers();
         }
 
         return erfolg;
+    }
+
+    private IPVersion defineIPVersion(List<GUIKnotenItem> hardwareItems) {
+        IPVersion ipVersion = Information.getDefaultIPVersion();
+        for (GUIKnotenItem item : hardwareItems) {
+            SystemSoftware os = item.getKnoten().getSystemSoftware();
+            if (os instanceof InternetKnotenBetriebssystem) {
+                String ipAddress = ((InternetKnotenBetriebssystem) os).holeIPAdresse();
+                if (StringUtils.isNoneBlank(ipAddress)) {
+                    ipVersion = IPAddress.defineVersion(ipAddress);
+                    break;
+                }
+            }
+        }
+        return ipVersion;
     }
 
     private static boolean netzwerkLaden(String datei, List<GUIKnotenItem> hardwareItems,

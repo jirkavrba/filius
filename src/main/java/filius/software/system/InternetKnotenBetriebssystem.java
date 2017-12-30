@@ -37,9 +37,6 @@ import org.apache.commons.lang3.StringUtils;
 import filius.Main;
 import filius.hardware.NetzwerkInterface;
 import filius.hardware.knoten.InternetKnoten;
-import filius.hardware.knoten.Notebook;
-import filius.hardware.knoten.Rechner;
-import filius.hardware.knoten.Vermittlungsrechner;
 import filius.rahmenprogramm.FiliusClassLoader;
 import filius.rahmenprogramm.Information;
 import filius.software.Anwendung;
@@ -229,29 +226,6 @@ public abstract class InternetKnotenBetriebssystem extends SystemSoftware {
             Main.debug.println("DEBUG (" + this.hashCode() + ")      - ICMP T = " + ICMPthread.hashCode());
         Main.debug.println("DEBUG (" + this.hashCode() + ") - TCP = " + tcp.hashCode());
         Main.debug.println("DEBUG (" + this.hashCode() + ") - UDP = " + udp.hashCode());
-        if (this.getKnoten() != null) {
-            if (getKnoten() instanceof Notebook) {
-                NetzwerkInterface nic = ((NetzwerkInterface) ((Notebook) getKnoten()).getNetzwerkInterfaces().get(0));
-                Main.debug.println("DEBUG (" + this.hashCode() + ") - NIC: {IP=" + nic.getIp() + "/"
-                        + nic.getSubnetzMaske() + ", MAC=" + nic.getMac() + ", DNS=" + nic.getDns() + ", GW="
-                        + nic.getGateway() + "}");
-            } else if (getKnoten() instanceof Rechner) {
-                NetzwerkInterface nic = ((NetzwerkInterface) ((Rechner) getKnoten()).getNetzwerkInterfaces().get(0));
-                Main.debug.println("DEBUG (" + this.hashCode() + ") - NIC: {IP=" + nic.getIp() + "/"
-                        + nic.getSubnetzMaske() + ", MAC=" + nic.getMac() + ", DNS=" + nic.getDns() + ", GW="
-                        + nic.getGateway() + "}");
-            } else if (getKnoten() instanceof Vermittlungsrechner) {
-                int nicNr = 0;
-                for (NetzwerkInterface nic : ((Vermittlungsrechner) getKnoten()).getNetzwerkInterfaces()) {
-                    Main.debug.println("DEBUG (" + this.hashCode() + ") - NIC" + nicNr + ": {IP=" + nic.getIp() + "/"
-                            + nic.getSubnetzMaske() + ", MAC=" + nic.getMac() + ", DNS=" + nic.getDns() + ", GW="
-                            + nic.getGateway() + "}");
-                    nicNr++;
-                }
-            }
-        } else {
-            Main.debug.println("DEBUG (" + this.hashCode() + ") - NIC=<unknown>");
-        }
         getWeiterleitungstabelle().printTabelle(Integer.toString(this.hashCode()));
     }
 
@@ -599,21 +573,12 @@ public abstract class InternetKnotenBetriebssystem extends SystemSoftware {
         if (!(getKnoten() instanceof InternetKnoten)) {
             return null;
         }
-        InternetKnoten knoten = (InternetKnoten) getKnoten();
 
         String ip = null;
-        NetzwerkInterface nic;
-        ListIterator it = knoten.getNetzwerkInterfaces().listIterator();
-        while (it.hasNext()) {
-            nic = (NetzwerkInterface) it.next();
-            ip = nic.getIp();
-
-            // search for a public IP
-            if (!(ip.startsWith("10.") || ip.startsWith("192.168.") || ip.startsWith("0.") || ip.startsWith("127."))) {
-                break;
-            }
+        List<NetzwerkInterface> netzwerkInterfaces = ((InternetKnoten) getKnoten()).getNetzwerkInterfaces();
+        if (netzwerkInterfaces.size() >= 1) {
+            ip = netzwerkInterfaces.get(0).addressIPv4().address();
         }
-
         return ip;
     }
 
@@ -639,7 +604,7 @@ public abstract class InternetKnotenBetriebssystem extends SystemSoftware {
     }
 
     /**
-     * Methode fuer den Zugriff auf die IP-Adresse des DNS-Servers der aller Netzwerkkarten. Das ist eine Methode des
+     * Methode fuer den Zugriff auf die IPv4-Adresse des DNS-Servers der aller Netzwerkkarten. Das ist eine Methode des
      * Entwurfsmusters Fassade
      */
     public String getDNSServer() {
@@ -702,7 +667,7 @@ public abstract class InternetKnotenBetriebssystem extends SystemSoftware {
 
         if (getKnoten() instanceof InternetKnoten) {
             knoten = (InternetKnoten) getKnoten();
-            return ((NetzwerkInterface) knoten.getNetzwerkInterfaces().get(0)).getSubnetzMaske();
+            return ((NetzwerkInterface) knoten.getNetzwerkInterfaces().get(0)).addressIPv4().netmask();
         }
         return null;
 
