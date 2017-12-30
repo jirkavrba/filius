@@ -44,26 +44,27 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
-import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import filius.Main;
+import filius.exception.InvalidParameterException;
 import filius.gui.GUIErrorHandler;
 import filius.gui.netzwerksicht.GUIDocuItem;
 import filius.gui.netzwerksicht.GUIKabelItem;
 import filius.gui.netzwerksicht.GUIKnotenItem;
 import filius.gui.netzwerksicht.JSidebarButton;
-import filius.software.system.InternetKnotenBetriebssystem;
-import filius.software.system.SystemSoftware;
-import filius.software.vermittlungsschicht.IPAddress;
 import filius.software.vermittlungsschicht.IPVersion;
 
 public class SzenarioVerwaltung extends Observable implements I18n {
+    private static final Logger LOG = LoggerFactory.getLogger(SzenarioVerwaltung.class);
 
     private static SzenarioVerwaltung verwaltung = null;
-    private Szenario activeScenario;
+    private Scenario activeScenario;
+    private String pfad;
 
     private SzenarioVerwaltung() {
-        activeScenario = new Szenario(Information.getDefaultIPVersion());
+        activeScenario = Scenario.createNew();
     }
 
     public static SzenarioVerwaltung getInstance() {
@@ -76,7 +77,8 @@ public class SzenarioVerwaltung extends Observable implements I18n {
 
     public void reset() {
         Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + ", reset()");
-        activeScenario.reset();
+        activeScenario = Scenario.createNew();
+        pfad = null;
 
         setChanged();
         notifyObservers();
@@ -95,11 +97,18 @@ public class SzenarioVerwaltung extends Observable implements I18n {
     }
 
     public String holePfad() {
-        return activeScenario.getPfad();
+        return pfad;
     }
 
     public IPVersion ipVersion() {
-        return activeScenario.getIpVersion();
+        IPVersion version;
+        try {
+            version = IPVersion.fromString(activeScenario.getIpVersion());
+        } catch (InvalidParameterException e) {
+            version = Information.getDefaultIPVersion();
+            LOG.warn("Could not determine IP version. Use default: " + version, e);
+        }
+        return version;
     }
 
     /**
@@ -122,22 +131,27 @@ public class SzenarioVerwaltung extends Observable implements I18n {
         (new File(tmpDir)).mkdirs();
 
         if (!kopiereVerzeichnis(Information.getInformation().getAnwendungenPfad(), tmpDir + "anwendungen")) {
-            Main.debug.println("ERROR (" + this.hashCode() + "): Speicherung der eigenen Anwendungen fehlgeschlagen!");
+            LOG.warn("Speicherung der eigenen Anwendungen fehlgeschlagen!");
             erfolg = false;
         }
 
         if (!netzwerkSpeichern(tmpDir + "konfiguration.xml", hardwareItems, kabelItems, docuItems)) {
-            Main.debug.println("ERROR (" + this.hashCode() + "): Speicherung des Netzwerks fehlgeschlagen!");
+            LOG.warn("Speicherung des Netzwerks fehlgeschlagen!");
             erfolg = false;
         }
 
-        if (!erzeugeZipArchiv(tmpDir, datei)) {
-            Main.debug.println("ERROR (" + this.hashCode() + "): Speicherung der Projektdatei fehlgeschlagen!");
+        if (!metadataSpeichern(tmpDir + "metadata.xml", activeScenario)) {
+            LOG.warn("Speicherung der Metadaten fehlgeschlagen!");
+            erfolg = false;
+        }
+
+        if (erfolg && !erzeugeZipArchiv(tmpDir, datei)) {
+            LOG.warn("Speicherung der Projektdatei fehlgeschlagen!");
             erfolg = false;
         }
 
         if (erfolg) {
-            activeScenario.setPfad(datei);
+            pfad = datei;
             activeScenario.setGeaendert(false);
 
             this.setChanged();
@@ -147,6 +161,19 @@ public class SzenarioVerwaltung extends Observable implements I18n {
         loescheDateien(tmpDir);
 
         return erfolg;
+    }
+
+    private static boolean metadataSpeichern(String filepath, Scenario scenario) {
+        boolean success = false;
+        try (XMLEncoder mx = new XMLEncoder(new FileOutputStream(filepath))) {
+            mx.writeObject(scenario);
+            success = true;
+        } catch (IOException e) {
+            LOG.warn("Project metadata could not be written to temporary file " + filepath, e);
+        } catch (RuntimeException e) {
+            LOG.warn("Unexpected error while writing project metadata.", e);
+        }
+        return success;
     }
 
     private static boolean netzwerkSpeichern(String datei, List<GUIKnotenItem> hardwareItems,
@@ -176,7 +203,7 @@ public class SzenarioVerwaltung extends Observable implements I18n {
             mx.writeObject(docuItems);
 
             return true;
-        } catch (java.lang.RuntimeException e) {
+        } catch (RuntimeException e) {
             Main.debug
                     .println("EXCEPTION: java.lang.RuntimeException raised; Java internal problem, not Filius related!");
             return false;
@@ -231,30 +258,33 @@ public class SzenarioVerwaltung extends Observable implements I18n {
             erfolg = false;
         }
 
+        if (erfolg && !metadataLaden(tmpDir + "projekt/metadata.xml")) {
+            Main.debug.println("ERROR (" + this.hashCode() + "): Laden der Projektmetadaten fehlgeschlagen");
+            erfolg = false;
+        }
+
         if (erfolg) {
-            activeScenario = new Szenario(defineIPVersion(hardwareItems));
-            activeScenario.setPfad(datei);
+            pfad = datei;
 
             this.setChanged();
             this.notifyObservers();
         }
-
         return erfolg;
     }
 
-    private IPVersion defineIPVersion(List<GUIKnotenItem> hardwareItems) {
-        IPVersion ipVersion = Information.getDefaultIPVersion();
-        for (GUIKnotenItem item : hardwareItems) {
-            SystemSoftware os = item.getKnoten().getSystemSoftware();
-            if (os instanceof InternetKnotenBetriebssystem) {
-                String ipAddress = ((InternetKnotenBetriebssystem) os).holeIPAdresse();
-                if (StringUtils.isNoneBlank(ipAddress)) {
-                    ipVersion = IPAddress.defineVersion(ipAddress);
-                    break;
-                }
+    private boolean metadataLaden(String filepath) {
+        boolean success = true;
+        try (XMLDecoder xmldec = new XMLDecoder(new FileInputStream(filepath))) {
+            Object tmp = xmldec.readObject();
+            if (tmp instanceof Scenario) {
+                activeScenario = (Scenario) tmp;
+            } else {
+                success = false;
             }
+        } catch (FileNotFoundException e) {
+            LOG.debug("Could not read project metadata from file " + filepath, e);
         }
-        return ipVersion;
+        return success;
     }
 
     private static boolean netzwerkLaden(String datei, List<GUIKnotenItem> hardwareItems,
