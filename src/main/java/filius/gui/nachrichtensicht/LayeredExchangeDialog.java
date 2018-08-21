@@ -113,7 +113,7 @@ public class LayeredExchangeDialog extends JDialog implements ExchangeDialog, I1
             panel.add(scrollPane, BorderLayout.CENTER);
 
             String ipAddress = ((InternetKnoten) system.getKnoten()).getNetzwerkInterfaceByMac(identifier)
-                    .addressIPv4().address();
+                    .getIp();
             String tabTitle;
             if (system.getKnoten() instanceof Host && ((Host) system.getKnoten()).isUseIPAsName()) {
                 tabTitle = ipAddress;

@@ -71,11 +71,11 @@ public class RIPTable {
         long netMask, netAddr;
 
         for (NetzwerkInterface nic : knoten.getNetzwerkInterfaces()) {
-            netMask = IP.inetAToN(nic.addressIPv4().netmask());
-            netAddr = IP.inetAToN(nic.addressIPv4().address()) & netMask;
+            netMask = IP.inetAToN(nic.getSubnetzMaske());
+            netAddr = IP.inetAToN(nic.getIp()) & netMask;
 
-            addRoute(new RIPRoute(0, IP.inetNtoa(netAddr), IP.inetNtoa(netMask), nic.addressIPv4().address(),
-                    bs.holeIPAdresse(), nic.addressIPv4().address(), 0));
+            addRoute(new RIPRoute(0, IP.inetNtoa(netAddr), IP.inetNtoa(netMask), nic.getIp(),
+                    bs.holeIPAdresse(), nic.getIp(), 0));
         }
     }
 

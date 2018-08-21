@@ -27,10 +27,12 @@ package filius.hardware.knoten;
 
 import filius.Main;
 import filius.hardware.NetzwerkInterface;
+import filius.rahmenprogramm.Information;
 import filius.software.system.Betriebssystem;
+import filius.software.vermittlungsschicht.IPVersion;
 
+@SuppressWarnings("serial")
 public abstract class Host extends InternetKnoten {
-
     private boolean useIPAsName = false;
 
     public boolean isUseIPAsName() {
@@ -53,8 +55,10 @@ public abstract class Host extends InternetKnoten {
 
     @Override
     public String holeAnzeigeName() {
-        if (useIPAsName) {
-            return getNetzwerkInterfaces().get(0).addressIPv4().address();
+        if (useIPAsName && IPVersion.IPv4 == Information.getDefaultIPVersion()) {
+            return getNetzwerkInterfaces().get(0).getIp();
+        } else if (useIPAsName && IPVersion.IPv6 == Information.getDefaultIPVersion()) {
+            return getNetzwerkInterfaces().get(0).getIPv6();
         } else {
             return getName();
         }

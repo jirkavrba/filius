@@ -102,7 +102,7 @@ public class GUINetworkWindow extends JInternalFrame implements I18n {
         bs = this.dp.getBetriebssystem();
         nic = (NetzwerkInterface) ((Host) bs.getKnoten()).getNetzwerkInterfaces().get(0);
 
-        ipField = new ValidateableTextField(nic.addressIPv4().address());
+        ipField = new ValidateableTextField(nic.getIp());
         ipField.setEditable(false);
         ipField.setSize(new Dimension(100, 15));
         ipField.setPreferredSize(new Dimension(100, 15));
@@ -132,7 +132,7 @@ public class GUINetworkWindow extends JInternalFrame implements I18n {
             }
 
         });
-        netmaskField = new ValidateableTextField(nic.addressIPv4().netmask());
+        netmaskField = new ValidateableTextField(nic.getSubnetzMaske());
         netmaskField.setEditable(false);
         netmaskField.setSize(new Dimension(100, 15));
         netmaskField.setPreferredSize(new Dimension(100, 15));
@@ -269,10 +269,10 @@ public class GUINetworkWindow extends JInternalFrame implements I18n {
             bs = this.dp.getBetriebssystem();
             NetzwerkInterface nic = (NetzwerkInterface) ((Host) bs.getKnoten()).getNetzwerkInterfaces().get(0);
 
-            ipField.setText(nic.addressIPv4().address());
+            ipField.setText(nic.getIp());
             dnsField.setText(bs.getDNSServer());
             gatewayField.setText(bs.getStandardGateway());
-            netmaskField.setText(nic.addressIPv4().netmask());
+            netmaskField.setText(nic.getSubnetzMaske());
         }
         super.setVisible(b);
     }

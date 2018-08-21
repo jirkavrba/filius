@@ -98,7 +98,7 @@ public abstract class InternetKnoten extends Knoten {
         ListIterator<NetzwerkInterface> it = this.netzwerkInterfaces.listIterator();
         while (it.hasNext()) {
             NetzwerkInterface ni = (NetzwerkInterface) it.next();
-            if (ni.addressIPv4().address().equals(ip)) {
+            if (ni.getIp().equals(ip)) {
                 rueckgabe = ni;
             }
         }

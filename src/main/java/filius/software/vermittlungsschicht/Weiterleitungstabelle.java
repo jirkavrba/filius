@@ -184,10 +184,10 @@ public class Weiterleitungstabelle implements I18n {
             for (NetzwerkInterface nic : knoten.getNetzwerkInterfaces()) {
                 tmp = new String[4];
                 // tmp[0] = nic.getIp();
-                tmp[0] = berechneNetzkennung(nic.addressIPv4().address(), nic.addressIPv4().netmask());
-                tmp[1] = nic.addressIPv4().netmask();
-                tmp[2] = nic.addressIPv4().address();
-                tmp[3] = nic.addressIPv4().address();
+                tmp[0] = berechneNetzkennung(nic.getIp(), nic.getSubnetzMaske());
+                tmp[1] = nic.getSubnetzMaske();
+                tmp[2] = nic.getIp();
+                tmp[3] = nic.getIp();
                 tabelle.addFirst(tmp);
                 manuelleEintraege.addFirst(new Boolean(false));
             }
@@ -195,7 +195,7 @@ public class Weiterleitungstabelle implements I18n {
             // Eintrag fuer eigene IP-Adresse
             for (NetzwerkInterface nic : knoten.getNetzwerkInterfaces()) {
                 tmp = new String[4];
-                tmp[0] = nic.addressIPv4().address();
+                tmp[0] = nic.getIp();
                 tmp[1] = "255.255.255.255";
                 tmp[2] = "127.0.0.1";
                 tmp[3] = "127.0.0.1";
@@ -210,13 +210,13 @@ public class Weiterleitungstabelle implements I18n {
                 tmp = null;
                 for (NetzwerkInterface nic : knoten.getNetzwerkInterfaces()) {
                     if (nic != null
-                            && VermittlungsProtokoll.gleichesRechnernetz(gateway, nic.addressIPv4().address(), nic
-                                    .addressIPv4().netmask())) {
+                            && VermittlungsProtokoll.gleichesRechnernetz(gateway, nic.getIp(), nic
+                                    .getSubnetzMaske())) {
                         tmp = new String[4];
                         tmp[0] = "0.0.0.0";
                         tmp[1] = "0.0.0.0";
                         tmp[2] = gateway;
-                        tmp[3] = nic.addressIPv4().address();
+                        tmp[3] = nic.getIp();
                     }
                 }
                 if (tmp == null) {

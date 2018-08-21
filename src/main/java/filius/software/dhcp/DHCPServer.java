@@ -39,8 +39,10 @@ import filius.exception.NoAvailableAddressException;
 import filius.hardware.Verbindung;
 import filius.rahmenprogramm.EingabenUeberpruefung;
 import filius.software.clientserver.UDPServerAnwendung;
+import filius.software.system.InternetKnotenBetriebssystem;
 import filius.software.transportschicht.Socket;
 import filius.software.vermittlungsschicht.IPAddress;
+import filius.software.vermittlungsschicht.IPVersion;
 
 /**
  * In dieser Klasse und in DHCPServerMitarbeiter wird ein Sever fuer Dynamic Host Configuration Protocol implementiert. <br />
@@ -56,13 +58,13 @@ public class DHCPServer extends UDPServerAnwendung {
     private static final int DHCP_SERVER_PORT = 67;
 
     /** niedrigste IP-Adresse, die durch diesen DHCP-Server vergeben wird */
-    private String untergrenze = DEFAULT_IP_ADDRESS;
+    private String untergrenze;
     /** hoechste IP-Adresse, die durch diesen DHCP-Server vergeben wird */
-    private String obergrenze = DEFAULT_IP_ADDRESS;
+    private String obergrenze;
     /** setting of DHCP server for the router/gateway (not necessarily equal to operating system settings) */
-    private String dhcpGateway = DEFAULT_IP_ADDRESS;
+    private String dhcpGateway;
     /** setting of DHCP server for the DNS server (not necessarily equal to operating system settings) */
-    private String dhcpDNS = DEFAULT_IP_ADDRESS;
+    private String dhcpDNS;
     /** whether to use the operating system or the dhcp settings for the attributes router/gateway and DND server */
     private boolean useDhcpSettings = false;
 
@@ -79,8 +81,17 @@ public class DHCPServer extends UDPServerAnwendung {
 
     /** Konstruktor, in dem der UDP-Port 67 gesetzt wird. */
     public DHCPServer() {
+        this(IPVersion.IPv4, null);
+    }
+
+    public DHCPServer(IPVersion ipVersion, InternetKnotenBetriebssystem systemSoftware) {
         super();
+        untergrenze = IPAddress.defaultAddress(ipVersion).address();
+        obergrenze = IPAddress.defaultAddress(ipVersion).address();
+        dhcpGateway = IPAddress.defaultAddress(ipVersion).address();
+        dhcpDNS = IPAddress.defaultAddress(ipVersion).address();
         port = DHCP_SERVER_PORT;
+        setSystemSoftware(systemSoftware);
     }
 
     String nextAddress() {

@@ -185,7 +185,7 @@ public class ARP extends VermittlungsProtokoll {
         arpPaket.setProtokollTyp(EthernetFrame.ARP);
         arpPaket.setZielIp(suchIp);
         arpPaket.setZielMacAdresse("FF:FF:FF:FF:FF:FF");
-        arpPaket.setQuellIp(nic.addressIPv4().address());
+        arpPaket.setQuellIp(nic.getIp());
         arpPaket.setQuellMacAdresse(nic.getMac());
 
         ((InternetKnotenBetriebssystem) holeSystemSoftware()).holeEthernet().senden(arpPaket, nic.getMac(),

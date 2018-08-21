@@ -109,11 +109,11 @@ public class RIPServerMitarbeiter extends ServerMitarbeiter {
         long ip = IP.inetAToN(ipStr);
 
         for (NetzwerkInterface nic : knoten.getNetzwerkInterfaces()) {
-            long netMask = IP.inetAToN(nic.addressIPv4().netmask());
-            long netAddr = IP.inetAToN(nic.addressIPv4().address()) & netMask;
+            long netMask = IP.inetAToN(nic.getSubnetzMaske());
+            long netAddr = IP.inetAToN(nic.getIp()) & netMask;
 
             if ((ip & netMask) == netAddr) {
-                return nic.addressIPv4().address();
+                return nic.getIp();
             }
         }
         return null;

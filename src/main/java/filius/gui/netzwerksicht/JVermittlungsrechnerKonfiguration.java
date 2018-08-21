@@ -346,7 +346,7 @@ public class JVermittlungsrechnerKonfiguration extends JKonfiguration implements
             tempLabel.setPreferredSize(new Dimension(120, 10));
             boxIpAdresse.add(tempLabel);
 
-            ipAdressen[i] = new ValidateableTextField(tempNic.addressIPv4().address());
+            ipAdressen[i] = new ValidateableTextField(tempNic.getIp());
             boxIpAdresse.add(ipAdressen[i]);
 
             // show netmask (editable)
@@ -356,7 +356,7 @@ public class JVermittlungsrechnerKonfiguration extends JKonfiguration implements
             tempLabel.setPreferredSize(new Dimension(120, 10));
             boxSubnetz.add(tempLabel);
 
-            netzmasken[i] = new ValidateableTextField(tempNic.addressIPv4().netmask());
+            netzmasken[i] = new ValidateableTextField(tempNic.getSubnetzMaske());
             boxSubnetz.add(netzmasken[i]);
 
             // show MAC address (not editable)
@@ -562,8 +562,8 @@ public class JVermittlungsrechnerKonfiguration extends JKonfiguration implements
         it = vRechner.getNetzwerkInterfaces().listIterator();
         for (int i = 0; it.hasNext() && i < ipAdressen.length; i++) {
             nic = (NetzwerkInterface) it.next();
-            ipAdressen[i].setText(nic.addressIPv4().address());
-            netzmasken[i].setText(nic.addressIPv4().netmask());
+            ipAdressen[i].setText(nic.getIp());
+            netzmasken[i].setText(nic.getSubnetzMaske());
 
             tempKnoten = holeVerbundeneKomponente(nic);
             if (tempKnoten == null)
@@ -587,7 +587,7 @@ public class JVermittlungsrechnerKonfiguration extends JKonfiguration implements
             }
             String tabtitle;
             if (StringUtils.isNoneBlank(tempNic.getIp())) {
-                tabtitle = tempNic.addressIPv4().address();
+                tabtitle = tempNic.getIp();
             } else {
                 tabtitle = messages.getString("jvermittlungsrechnerkonfiguration_msg10") + (i + 1);
             }

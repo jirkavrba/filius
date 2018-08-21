@@ -7,7 +7,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import filius.exception.InvalidParameterException;
-import filius.rahmenprogramm.SzenarioVerwaltung;
 
 /** This class represents an IP address alternatively with or without netmask. */
 public class IPAddress {
@@ -356,19 +355,20 @@ public class IPAddress {
     }
 
     public static boolean verifyAddress(String ipAddress) {
-        return verifyAddress(ipAddress, SzenarioVerwaltung.getInstance().ipVersion());
+        return verifyAddress(ipAddress, IPVersion.IPv4) || verifyAddress(ipAddress, IPVersion.IPv6);
     }
 
-    static boolean verifyAddress(String ipAddress, IPVersion ipVersion) {
+    public static boolean verifyAddress(String ipAddress, IPVersion ipVersion) {
         return IPVersion.IPv4 == ipVersion && IP_V4_NO_NETMASK_VALIDATION_PATTERN.matcher(ipAddress).matches()
                 || IPVersion.IPv6 == ipVersion && IP_V6_NO_NETMASK_VALIDATION_PATTERN.matcher(ipAddress).matches();
     }
 
     public static boolean verifyNetmaskDefinition(String netmaskDefinition) {
-        return verifyNetmaskDefinition(netmaskDefinition, SzenarioVerwaltung.getInstance().ipVersion());
+        return verifyNetmaskDefinition(netmaskDefinition, IPVersion.IPv4)
+                || verifyNetmaskDefinition(netmaskDefinition, IPVersion.IPv6);
     }
 
-    static boolean verifyNetmaskDefinition(String netmaskDefinition, IPVersion ipVersion) {
+    public static boolean verifyNetmaskDefinition(String netmaskDefinition, IPVersion ipVersion) {
         boolean verified = false;
         Matcher ipv4Matcher = IP_V4_NO_NETMASK_VALIDATION_PATTERN.matcher(netmaskDefinition);
         if (IPVersion.IPv4 == ipVersion && ipv4Matcher.matches()) {
@@ -447,13 +447,17 @@ public class IPAddress {
         return asString(addressBytes, true, true, ipv6WithDecimalNotation);
     }
 
+    public String normalizedAddress() {
+        return asString(addressBytes, false, true, ipv6WithDecimalNotation);
+    }
+
     public static IPAddress defaultAddress(IPVersion ipVersion) {
         IPAddress defaultAddress = null;
         try {
             if (IPVersion.IPv4 == ipVersion) {
-                defaultAddress = new IPAddress("0.0.0.0", "255.255.255.0");
+                defaultAddress = new IPAddress("192.168.0.1", "255.255.255.0");
             } else {
-                defaultAddress = new IPAddress("::", "128");
+                defaultAddress = new IPAddress("fe80::192.168.0.1", "120");
             }
         } catch (InvalidParameterException e) {}
         return defaultAddress;
