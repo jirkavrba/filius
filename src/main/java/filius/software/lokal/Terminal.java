@@ -27,7 +27,6 @@ package filius.software.lokal;
 
 import java.util.Enumeration;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -36,11 +35,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 import filius.Main;
 import filius.exception.SocketException;
-import filius.hardware.NetzwerkInterface;
-import filius.hardware.knoten.InternetKnoten;
 import filius.rahmenprogramm.I18n;
 import filius.rahmenprogramm.Information;
-import filius.rahmenprogramm.SzenarioVerwaltung;
 import filius.software.clientserver.ClientAnwendung;
 import filius.software.dns.Resolver;
 import filius.software.system.Betriebssystem;
@@ -51,8 +47,7 @@ import filius.software.transportschicht.ServerSocket;
 import filius.software.transportschicht.Socket;
 import filius.software.transportschicht.SocketSchnittstelle;
 import filius.software.transportschicht.TransportProtokoll;
-import filius.software.vermittlungsschicht.IPAddress;
-import filius.software.vermittlungsschicht.IPVersion;
+import filius.software.vermittlungsschicht.IP;
 import filius.software.vermittlungsschicht.IcmpPaket;
 import filius.software.vermittlungsschicht.Route;
 import filius.software.vermittlungsschicht.RouteNotFoundException;
@@ -215,7 +210,10 @@ public class Terminal extends ClientAnwendung implements I18n {
         Main.debug.println(")");
         if (!numParams(args, 2)) {
             benachrichtigeBeobachter(messages.getString("sw_terminal_msg32") + messages.getString("sw_terminal_msg40"));
-            return messages.getString("sw_terminal_msg32") + messages.getString("sw_terminal_msg40");
+            return messages.getString("sw_terminal_msg32") + messages.getString("sw_terminal_msg40"); // wrong
+                                                                                                      // number
+                                                                                                      // of
+                                                                                                      // parameters
         }
         if (pureCopy(args)) {
             benachrichtigeBeobachter(messages.getString("sw_terminal_msg33"));
@@ -237,37 +235,22 @@ public class Terminal extends ClientAnwendung implements I18n {
         Main.debug.println(")");
         if (!numParams(args, 0)) {
             benachrichtigeBeobachter(messages.getString("sw_terminal_msg32") + messages.getString("sw_terminal_msg42"));
-            return messages.getString("sw_terminal_msg32") + messages.getString("sw_terminal_msg42");
+            return messages.getString("sw_terminal_msg32") + messages.getString("sw_terminal_msg42"); // wrong
+                                                                                                      // number
+                                                                                                      // of
+                                                                                                      // parameters
         }
-        List<NetzwerkInterface> nicList = ((InternetKnoten) getSystemSoftware().getKnoten()).getNetzwerkInterfaces();
-        StringBuffer ausgabe = new StringBuffer();
+        Betriebssystem bs = (Betriebssystem) getSystemSoftware();
+        String ausgabe = "";
 
-        boolean first = true;
-        for (NetzwerkInterface nic : nicList) {
-            if (!first) {
-                ausgabe.append("\n");
-            }
-            if (SzenarioVerwaltung.getInstance().ipVersion().equals(IPVersion.IPv4)) {
-                ausgabe.append(messages.getString("sw_terminal_msg4")).append(" ").append(nic.getIp()).append("\n");
-                ausgabe.append(messages.getString("sw_terminal_msg5")).append(" ").append(nic.getSubnetzMaske())
-                        .append("\n");
-                ausgabe.append(messages.getString("sw_terminal_msg26")).append(" ").append(nic.getMac()).append("\n");
-                ausgabe.append(messages.getString("sw_terminal_msg6")).append(" ").append(nic.getGateway())
-                        .append("\n");
-                ausgabe.append(messages.getString("sw_terminal_msg27")).append(" ").append(nic.getDns()).append("\n");
-            } else {
-                ausgabe.append(messages.getString("sw_terminal_msg60")).append(" ").append(nic.getIPv6()).append("/")
-                        .append(nic.getIPv6SubnetzMaske()).append("\n");
-                ausgabe.append(messages.getString("sw_terminal_msg26")).append(" ").append(nic.getMac()).append("\n");
-                ausgabe.append(messages.getString("sw_terminal_msg6")).append(" ").append(nic.getIPv6Gateway())
-                        .append("\n");
-                ausgabe.append(messages.getString("sw_terminal_msg27")).append(" ").append(nic.getIPv6Dns())
-                        .append("\n");
-            }
-            first = false;
-        }
+        ausgabe += messages.getString("sw_terminal_msg4") + " " + bs.holeIPAdresse() + "\n";
+        ausgabe += messages.getString("sw_terminal_msg5") + " " + bs.holeNetzmaske() + "\n";
+        ausgabe += messages.getString("sw_terminal_msg26") + " " + bs.holeMACAdresse() + "\n";
+        ausgabe += messages.getString("sw_terminal_msg6") + " " + bs.getStandardGateway() + "\n";
+        ausgabe += messages.getString("sw_terminal_msg27") + " " + bs.getDNSServer() + "\n";
+
         benachrichtigeBeobachter(ausgabe);
-        return ausgabe.toString();
+        return ausgabe;
     }
 
     /* Entspricht route print unter windows */
@@ -740,12 +723,10 @@ public class Terminal extends ClientAnwendung implements I18n {
         }
 
         // first: resolve host name
-        String destIp = null;
+        String destIp;
         try {
-            boolean validIPAddress = IPAddress.verifyAddress(args[0]);
-            if (!validIPAddress) {
-                destIp = args[0];
-            } else { // args[0] is not an IP address
+            destIp = IP.ipCheck(args[0]);
+            if (destIp == null) { // args[0] is not an IP address
                 destIp = res.holeIPAdresse(args[0]);
             }
             if (destIp == null) { // args[0] could also not be resolved
@@ -766,10 +747,6 @@ public class Terminal extends ClientAnwendung implements I18n {
             if (VermittlungsProtokoll.isBroadcast(destIp, route.getInterfaceIpAddress(), route.getNetMask())) {
                 benachrichtigeBeobachter(messages.getString("sw_terminal_msg53"));
                 return messages.getString("sw_terminal_msg53");
-            } else if (VermittlungsProtokoll
-                    .isNetworkAddress(destIp, route.getInterfaceIpAddress(), route.getNetMask())) {
-                benachrichtigeBeobachter(messages.getString("sw_terminal_msg54"));
-                return messages.getString("sw_terminal_msg54");
             }
         } catch (RouteNotFoundException e1) {
             benachrichtigeBeobachter(messages.getString("sw_terminal_msg52"));
@@ -838,11 +815,10 @@ public class Terminal extends ClientAnwendung implements I18n {
         int maxHops = 20;
 
         // 1.: Hostnamen auflösen
-        String destIP;
-        if (IPAddress.verifyAddress(args[0])) {
-            destIP = args[0];
-        } else {
+        String destIP = IP.ipCheck(args[0]);
+        if (destIP == null) {
             filius.software.dns.Resolver res = getSystemSoftware().holeDNSClient();
+
             try {
                 destIP = res.holeIPAdresse(args[0]);
             } catch (TimeoutException e) {

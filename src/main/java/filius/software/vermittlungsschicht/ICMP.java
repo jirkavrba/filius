@@ -154,7 +154,7 @@ public class ICMP extends VermittlungsProtokoll implements I18n {
     private void dispatch(IcmpPaket paket, String zielIp, Route route) throws RouteNotFoundException {
         NetzwerkInterface nic = ((InternetKnoten) holeSystemSoftware().getKnoten()).getNetzwerkInterfaceByIp(route
                 .getInterfaceIpAddress());
-
+        
         if (isBroadcast(zielIp, route.getInterfaceIpAddress(), nic.getSubnetzMaske())) {
             sendBroadcast(paket, zielIp, nic.getMac());
         } else if (gleichesRechnernetz(zielIp, route.getInterfaceIpAddress(), nic.getSubnetzMaske())) {

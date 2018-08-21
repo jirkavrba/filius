@@ -44,28 +44,20 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import filius.Main;
-import filius.exception.InvalidParameterException;
 import filius.gui.GUIErrorHandler;
 import filius.gui.netzwerksicht.GUIDocuItem;
 import filius.gui.netzwerksicht.GUIKabelItem;
 import filius.gui.netzwerksicht.GUIKnotenItem;
 import filius.gui.netzwerksicht.JSidebarButton;
-import filius.software.vermittlungsschicht.IPVersion;
 
 public class SzenarioVerwaltung extends Observable implements I18n {
-    private static final Logger LOG = LoggerFactory.getLogger(SzenarioVerwaltung.class);
 
+    private boolean geaendert = false;
+    private String pfad = null;
     private static SzenarioVerwaltung verwaltung = null;
-    private Scenario activeScenario;
-    private String pfad;
 
-    private SzenarioVerwaltung() {
-        activeScenario = Scenario.createNew();
-    }
+    private SzenarioVerwaltung() {}
 
     public static SzenarioVerwaltung getInstance() {
         Main.debug.println("INVOKED (static) filius.rahmenprogramm.SzenarioVerwaltung, getInstance()");
@@ -77,8 +69,8 @@ public class SzenarioVerwaltung extends Observable implements I18n {
 
     public void reset() {
         Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + ", reset()");
-        activeScenario = Scenario.createNew();
         pfad = null;
+        geaendert = false;
 
         setChanged();
         notifyObservers();
@@ -86,29 +78,18 @@ public class SzenarioVerwaltung extends Observable implements I18n {
 
     public void setzeGeaendert() {
         Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + ", setzeGeaendert()");
-        activeScenario.setGeaendert(true);
+        geaendert = true;
 
         this.setChanged();
         this.notifyObservers();
     }
 
     public boolean istGeaendert() {
-        return activeScenario.isGeaendert();
+        return geaendert;
     }
 
     public String holePfad() {
         return pfad;
-    }
-
-    public IPVersion ipVersion() {
-        IPVersion version;
-        try {
-            version = IPVersion.fromString(activeScenario.getIpVersion());
-        } catch (InvalidParameterException e) {
-            version = Information.getDefaultIPVersion();
-            LOG.warn("Could not determine IP version. Use default: " + version, e);
-        }
-        return version;
     }
 
     /**
@@ -131,28 +112,23 @@ public class SzenarioVerwaltung extends Observable implements I18n {
         (new File(tmpDir)).mkdirs();
 
         if (!kopiereVerzeichnis(Information.getInformation().getAnwendungenPfad(), tmpDir + "anwendungen")) {
-            LOG.warn("Speicherung der eigenen Anwendungen fehlgeschlagen!");
+            Main.debug.println("ERROR (" + this.hashCode() + "): Speicherung der eigenen Anwendungen fehlgeschlagen!");
             erfolg = false;
         }
 
         if (!netzwerkSpeichern(tmpDir + "konfiguration.xml", hardwareItems, kabelItems, docuItems)) {
-            LOG.warn("Speicherung des Netzwerks fehlgeschlagen!");
+            Main.debug.println("ERROR (" + this.hashCode() + "): Speicherung des Netzwerks fehlgeschlagen!");
             erfolg = false;
         }
 
-        if (!metadataSpeichern(tmpDir + "metadata.xml", activeScenario)) {
-            LOG.warn("Speicherung der Metadaten fehlgeschlagen!");
-            erfolg = false;
-        }
-
-        if (erfolg && !erzeugeZipArchiv(tmpDir, datei)) {
-            LOG.warn("Speicherung der Projektdatei fehlgeschlagen!");
+        if (!erzeugeZipArchiv(tmpDir, datei)) {
+            Main.debug.println("ERROR (" + this.hashCode() + "): Speicherung der Projektdatei fehlgeschlagen!");
             erfolg = false;
         }
 
         if (erfolg) {
             pfad = datei;
-            activeScenario.setGeaendert(false);
+            geaendert = false;
 
             this.setChanged();
             this.notifyObservers();
@@ -161,19 +137,6 @@ public class SzenarioVerwaltung extends Observable implements I18n {
         loescheDateien(tmpDir);
 
         return erfolg;
-    }
-
-    private static boolean metadataSpeichern(String filepath, Scenario scenario) {
-        boolean success = false;
-        try (XMLEncoder mx = new XMLEncoder(new FileOutputStream(filepath))) {
-            mx.writeObject(scenario);
-            success = true;
-        } catch (IOException e) {
-            LOG.warn("Project metadata could not be written to temporary file " + filepath, e);
-        } catch (RuntimeException e) {
-            LOG.warn("Unexpected error while writing project metadata.", e);
-        }
-        return success;
     }
 
     private static boolean netzwerkSpeichern(String datei, List<GUIKnotenItem> hardwareItems,
@@ -203,7 +166,7 @@ public class SzenarioVerwaltung extends Observable implements I18n {
             mx.writeObject(docuItems);
 
             return true;
-        } catch (RuntimeException e) {
+        } catch (java.lang.RuntimeException e) {
             Main.debug
                     .println("EXCEPTION: java.lang.RuntimeException raised; Java internal problem, not Filius related!");
             return false;
@@ -258,33 +221,15 @@ public class SzenarioVerwaltung extends Observable implements I18n {
             erfolg = false;
         }
 
-        if (erfolg && !metadataLaden(tmpDir + "projekt/metadata.xml")) {
-            Main.debug.println("ERROR (" + this.hashCode() + "): Laden der Projektmetadaten fehlgeschlagen");
-            erfolg = false;
-        }
-
         if (erfolg) {
             pfad = datei;
+            geaendert = false;
 
             this.setChanged();
             this.notifyObservers();
         }
-        return erfolg;
-    }
 
-    private boolean metadataLaden(String filepath) {
-        boolean success = true;
-        try (XMLDecoder xmldec = new XMLDecoder(new FileInputStream(filepath))) {
-            Object tmp = xmldec.readObject();
-            if (tmp instanceof Scenario) {
-                activeScenario = (Scenario) tmp;
-            } else {
-                success = false;
-            }
-        } catch (FileNotFoundException e) {
-            LOG.debug("Could not read project metadata from file " + filepath, e);
-        }
-        return success;
+        return erfolg;
     }
 
     private static boolean netzwerkLaden(String datei, List<GUIKnotenItem> hardwareItems,

@@ -237,9 +237,6 @@ public class WebBrowser extends ClientAnwendung implements I18n {
 
         Parser parser = Parser.createParser(quelltext, null);
         TagFindingVisitor nodeVisitor = new TagFindingVisitor(new String[] { "img" });
-        synchronized (bilddateien) {
-            bilddateien.clear();
-        }
         try {
             parser.visitAllNodesWith(nodeVisitor);
             Node[] nodes = nodeVisitor.getTags(0);

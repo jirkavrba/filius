@@ -50,38 +50,36 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
 import filius.Main;
-import filius.gui.ValidateableTextField;
 import filius.gui.anwendungssicht.JTableEditable;
 import filius.rahmenprogramm.EingabenUeberpruefung;
 import filius.rahmenprogramm.I18n;
 import filius.software.dhcp.DHCPAddressAssignment;
 import filius.software.dhcp.DHCPServer;
 import filius.software.system.Betriebssystem;
-import filius.software.vermittlungsschicht.IPAddress;
-import filius.software.vermittlungsschicht.IPVersion;
 
 public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
 
     private static final long serialVersionUID = 1L;
     private DHCPServer server;
-    private ValidateableTextField tfObergrenze;
-    private ValidateableTextField tfUntergrenze;
-    private ValidateableTextField tfNetzmaske;
-    private ValidateableTextField tfGateway;
-    private ValidateableTextField tfDNSServer;
+    private JTextField tfObergrenze;
+    private JTextField tfUntergrenze;
+    private JTextField tfNetzmaske;
+    private JTextField tfGateway;
+    private JTextField tfDNSServer;
     private JCheckBox cbAktiv;
     private JCheckBox cbUseInternal;
     private JTabbedPane tabbedPane;
     protected JTable staticAddressTable;
 
-    public JDHCPKonfiguration(JFrame owner, String titel, Betriebssystem bs, IPVersion ipVersion) {
+    public JDHCPKonfiguration(JFrame owner, String titel, Betriebssystem bs) {
         super(owner, titel, true);
-        this.server = IPVersion.IPv4 == ipVersion ? bs.getDHCPServer() : bs.getDhcpServerIPv6();
+        this.server = bs.getDHCPServer();
 
         this.setSize(380, 380);
         this.setResizable(false);
@@ -90,10 +88,10 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         Point location = new Point((screen.width / 2) - 190, (screen.height / 2) - 140);
         this.setLocation(location);
 
-        initComponents(ipVersion);
+        initComponents();
     }
 
-    private void initComponents(IPVersion ipVersion) {
+    private void initComponents() {
         JPanel jpDhcp;
         JLabel lbObergrenze;
         JLabel lbUntergrenze;
@@ -110,44 +108,44 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         jpDhcp = new JPanel(layout);
 
         lbUntergrenze = new JLabel(messages.getString("jdhcpkonfiguration_msg1"));
-        tfUntergrenze = new ValidateableTextField(server.getUntergrenze());
+        tfUntergrenze = new JTextField(server.getUntergrenze());
         tfUntergrenze.setPreferredSize(new Dimension(150, 25));
         tfUntergrenze.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
-                tfUntergrenze.setValid(IPAddress.verifyAddress(tfUntergrenze.getText(), ipVersion));
+                ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfUntergrenze);
             }
         });
 
         lbObergrenze = new JLabel(messages.getString("jdhcpkonfiguration_msg2"));
-        tfObergrenze = new ValidateableTextField(server.getObergrenze());
+        tfObergrenze = new JTextField(server.getObergrenze());
         tfObergrenze.setPreferredSize(new Dimension(150, 25));
         tfObergrenze.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
-                tfObergrenze.setValid(IPAddress.verifyAddress(tfObergrenze.getText(), ipVersion));
+                ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfObergrenze);
             }
         });
 
         lbNetzmaske = new JLabel(messages.getString("jdhcpkonfiguration_msg3"));
-        tfNetzmaske = new ValidateableTextField(server.getSubnetzmaske());
+        tfNetzmaske = new JTextField(server.getSubnetzmaske());
         tfNetzmaske.setPreferredSize(new Dimension(150, 25));
         tfNetzmaske.setEditable(false);
 
         lbGateway = new JLabel(messages.getString("jdhcpkonfiguration_msg4"));
-        tfGateway = new ValidateableTextField(server.getGatewayip());
+        tfGateway = new JTextField(server.getGatewayip());
         tfGateway.setPreferredSize(new Dimension(150, 25));
         tfGateway.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
-                tfGateway.setValid(IPAddress.verifyAddress(tfGateway.getText(), ipVersion));
+                ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfGateway);
             }
         });
         tfGateway.setEditable(server.isOwnSettings());
 
         lbDNSServer = new JLabel(messages.getString("jdhcpkonfiguration_msg5"));
-        tfDNSServer = new ValidateableTextField(server.getDnsserverip());
+        tfDNSServer = new JTextField(server.getDnsserverip());
         tfDNSServer.setPreferredSize(new Dimension(150, 25));
         tfDNSServer.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
-                tfDNSServer.setValid(IPAddress.verifyAddress(tfDNSServer.getText(), ipVersion));
+                ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfDNSServer);
             }
         });
         tfDNSServer.setEditable(server.isOwnSettings());
@@ -283,7 +281,7 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         hBox.add(macAddressLabel);
         hBox.add(Box.createHorizontalStrut(5));
 
-        ValidateableTextField macAddressTextField = new ValidateableTextField();
+        JTextField macAddressTextField = new JTextField();
         macAddressTextField.setPreferredSize(new Dimension(275, 25));
         macAddressTextField.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
@@ -303,11 +301,11 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         hBox.add(ipAddressLabel);
         hBox.add(Box.createHorizontalStrut(5));
 
-        ValidateableTextField ipAddressTextField = new ValidateableTextField();
+        JTextField ipAddressTextField = new JTextField();
         ipAddressTextField.setPreferredSize(new Dimension(275, 25));
         ipAddressTextField.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
-                ipAddressTextField.setValid(IPAddress.verifyAddress(ipAddressTextField.getText()));
+                ueberpruefen(EingabenUeberpruefung.musterIpAdresse, ipAddressTextField);
             }
         });
         hBox.add(ipAddressTextField);
@@ -322,7 +320,7 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         addButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
                 if (ueberpruefen(EingabenUeberpruefung.musterMacAddress, macAddressTextField)
-                        && IPAddress.verifyAddress(ipAddressTextField.getText())) {
+                        && ueberpruefen(EingabenUeberpruefung.musterIpAdresse, ipAddressTextField)) {
                     ((DefaultTableModel) staticAddressTable.getModel()).addRow(new Object[] {
                             macAddressTextField.getText(), ipAddressTextField.getText() });
                     macAddressTextField.setText("");
@@ -419,33 +417,35 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         }
     }
 
-    public boolean ueberpruefen(Pattern pruefRegel, ValidateableTextField feld) {
+    public boolean ueberpruefen(Pattern pruefRegel, JTextField feld) {
         if (EingabenUeberpruefung.isGueltig(feld.getText(), pruefRegel)) {
-            feld.setValid(true);
+            feld.setForeground(EingabenUeberpruefung.farbeRichtig);
+            JTextField test = new JTextField();
+            feld.setBorder(test.getBorder());
             return true;
         } else {
-            feld.setValid(false);
+            feld.setForeground(EingabenUeberpruefung.farbeFalsch);
+
+            feld.setForeground(EingabenUeberpruefung.farbeFalsch);
+            feld.setBorder(BorderFactory.createLineBorder(EingabenUeberpruefung.farbeFalsch, 1));
             return false;
         }
+
     }
 
     private void speichern() {
-        if (IPAddress.verifyAddress(tfObergrenze.getText())) {
+        if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfObergrenze))
             server.setObergrenze(tfObergrenze.getText());
-        }
 
-        if (IPAddress.verifyAddress(tfUntergrenze.getText())) {
+        if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfUntergrenze))
             server.setUntergrenze(tfUntergrenze.getText());
-        }
 
         if (cbUseInternal.isSelected()) {
             server.setOwnSettings(true);
-            if (IPAddress.verifyAddress(tfGateway.getText())) {
+            if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfGateway))
                 server.setGatewayip(tfGateway.getText());
-            }
-            if (IPAddress.verifyAddress(tfDNSServer.getText())) {
+            if (ueberpruefen(EingabenUeberpruefung.musterIpAdresse, tfDNSServer))
                 server.setDnsserverip(tfDNSServer.getText());
-            }
         } else {
             server.setOwnSettings(false);
         }

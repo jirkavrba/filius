@@ -81,12 +81,6 @@ public abstract class VermittlungsProtokoll extends Protokoll {
         return addressAsInt;
     }
 
-    public static boolean isNetworkAddress(String zielIpAdresse, String sendeIpAdresse, String netzmaske) {
-        int addressAsInt = ipAddressToInt(zielIpAdresse);
-        int netmaskAsInt = ipAddressToInt(netzmaske);
-        return (addressAsInt & ~netmaskAsInt) == 0 && gleichesRechnernetz(zielIpAdresse, sendeIpAdresse, netzmaske);
-    }
-
     public static boolean isBroadcast(String zielIpAdresse, String sendeIpAdresse, String netzmaske) {
         int addressAsInt = ipAddressToInt(zielIpAdresse);
         int netmaskAsInt = ipAddressToInt(netzmaske);

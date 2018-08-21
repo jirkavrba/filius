@@ -45,11 +45,9 @@ import java.util.Vector;
 import javax.swing.JFileChooser;
 
 import filius.Main;
-import filius.exception.InvalidParameterException;
 import filius.gui.GUIContainer;
 import filius.gui.anwendungssicht.GUIDesktopWindow;
 import filius.hardware.Verbindung;
-import filius.software.vermittlungsschicht.IPVersion;
 
 /**
  * In dieser Klasse werden die Verwaltungs-Informationen des Rahmenprogramms verwaltet, die unabhaengig von einem
@@ -70,8 +68,6 @@ public class Information implements Serializable {
     private static boolean lowResolution = false;
 
     private static boolean posixCommandLineToolBehaviour = false;
-
-    private static IPVersion defaultIPVersion = IPVersion.IPv4;
 
     private static GUIDesktopWindow.Mode desktopWindowMode = GUIDesktopWindow.Mode.STACK;
 
@@ -666,10 +662,6 @@ public class Information implements Serializable {
                                     try {
                                         height = Integer.parseInt(configValue);
                                     } catch (NumberFormatException e) {}
-                                } else if (configKey.equalsIgnoreCase("default-ip-version")) {
-                                    try {
-                                        defaultIPVersion = IPVersion.fromString(configValue);
-                                    } catch (InvalidParameterException e) {}
                                 }
                             }
 
@@ -692,9 +684,5 @@ public class Information implements Serializable {
 
     public void setLastOpenedDirectory(String lastOpenedDirectory) {
         this.lastOpenedDirectory = lastOpenedDirectory;
-    }
-
-    public static IPVersion getDefaultIPVersion() {
-        return defaultIPVersion;
     }
 }

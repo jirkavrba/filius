@@ -4,9 +4,9 @@
 
 	<groupId>filius</groupId>
 	<artifactId>filius</artifactId>
-	<version>1.7.3</version>
+	<version>1.7.2</version>
 	<properties>
-		<buildDate>22.09.2016</buildDate>
+		<buildDate>07.02.2016</buildDate>
 		<publisher>Stefan Freischlad</publisher>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<junit.version>4.10</junit.version>
@@ -18,7 +18,7 @@
 		<java.version>1.8</java.version>
 		<execJre.version>1.8.0</execJre.version>
 		<mavenJar.version>2.4</mavenJar.version>
-		<launch4j.version>1.7.22</launch4j.version>
+		<launch4j.version>1.5.2</launch4j.version>
 		<launch4j.starterName>Filius.exe</launch4j.starterName>
 		<commons-lang3.version>3.3.2</commons-lang3.version>
 		<commons-io.version>2.4</commons-io.version>
@@ -48,13 +48,6 @@
 			<version>${fest.version}</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.hamcrest</groupId>
-			<artifactId>hamcrest-all</artifactId>
-			<version>1.3</version>
-			<scope>test</scope>
-		</dependency>
-
 
 		<dependency>
 			<groupId>org.htmlparser</groupId>
@@ -82,16 +75,6 @@
 			<groupId>commons-httpclient</groupId>
 			<artifactId>commons-httpclient</artifactId>
 			<version>3.1</version>
-		</dependency>
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>1.2.3</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.7.25</version>
 		</dependency>
 
 

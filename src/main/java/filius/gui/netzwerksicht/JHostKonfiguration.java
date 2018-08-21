@@ -41,38 +41,29 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-
-import org.apache.commons.lang3.StringUtils;
+import javax.swing.JTextField;
 
 import filius.Main;
 import filius.gui.GUIContainer;
 import filius.gui.JMainFrame;
-import filius.gui.ValidateableTextField;
 import filius.hardware.Hardware;
-import filius.hardware.NetzwerkInterface;
 import filius.hardware.knoten.Host;
+import filius.rahmenprogramm.EingabenUeberpruefung;
 import filius.rahmenprogramm.I18n;
 import filius.software.system.Betriebssystem;
-import filius.software.vermittlungsschicht.IPAddress;
-import filius.software.vermittlungsschicht.IPVersion;
 
 @SuppressWarnings("serial")
 public class JHostKonfiguration extends JKonfiguration implements I18n {
 
     private static final int LABEL_WIDTH = 160;
-    private ValidateableTextField name;
-    private ValidateableTextField macAdresse;
-    private ValidateableTextField addressIPv4;
-    private ValidateableTextField netmaskIPv4;
-    private ValidateableTextField gatewayIPv4;
-    private ValidateableTextField dnsIPv4;
-    private ValidateableTextField addressIPv6;
-    private ValidateableTextField netmaskIPv6;
-    private ValidateableTextField gatewayIPv6;
-    private ValidateableTextField dnsIPv6;
+    private JTextField name;
+    private JTextField macAdresse;
+    private JTextField ipAdresse;
+    private JTextField netzmaske;
+    private JTextField gateway;
+    private JTextField dns;
     private JCheckBox dhcp;
-    private JButton dhcpIPv4Button;
-    private JButton dhcpIPv6Button;
+    private JButton btDhcp;
     private JCheckBox useIpAsName;
 
     protected JHostKonfiguration(Hardware hardware) {
@@ -92,23 +83,22 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
     /** Diese Methode wird vom JAendernButton aufgerufen */
     @Override
     public void aenderungenAnnehmen() {
+        Host host;
+        Betriebssystem bs;
+
         if (holeHardware() != null) {
-            Host host = (Host) holeHardware();
+            host = (Host) holeHardware();
             if (!useIpAsName.isSelected()) {
                 host.setName(name.getText());
             }
-            NetzwerkInterface nic = host.getNetzwerkInterfaces().get(0);
-            nic.setIp(addressIPv4.getText());
-            nic.setSubnetzMaske(netmaskIPv4.getText());
-            nic.setGateway(gatewayIPv4.getText());
-            nic.setDns(dnsIPv4.getText());
-            nic.setIPv6(addressIPv6.getText());
-            nic.setIPv6SubnetzMaske(netmaskIPv6.getText());
-            nic.setIPv6Gateway(gatewayIPv6.getText());
-            nic.setIPv6Dns(dnsIPv6.getText());
 
-            Betriebssystem bs = (Betriebssystem) host.getSystemSoftware();
+            bs = (Betriebssystem) host.getSystemSoftware();
+            bs.setzeIPAdresse(ipAdresse.getText());
+            bs.setzeNetzmaske(netzmaske.getText());
+            bs.setStandardGateway(gateway.getText());
+            bs.setDNSServer(dns.getText());
             bs.setDHCPKonfiguration(dhcp.isSelected());
+
             if (dhcp.isSelected()) {
                 bs.getDHCPServer().setAktiv(false);
             }
@@ -116,6 +106,7 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
         } else {
             Main.debug.println("GUIRechnerKonfiguration: Aenderungen konnten nicht uebernommen werden.");
         }
+
         GUIContainer.getGUIContainer().updateViewport();
         updateAttribute();
     }
@@ -123,75 +114,168 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
     protected void initAttributEingabeBox(Box box, Box rightBox) {
         JLabel tempLabel;
         Box tempBox;
+        FocusListener focusListener;
+        ActionListener actionListener;
 
-        name = addConfigParameter(box, messages.getString("jhostkonfiguration_msg1"),
-                messages.getString("jhostkonfiguration_msg2"), true);
-        macAdresse = addConfigParameter(box, messages.getString("jhostkonfiguration_msg9"), "", false);
+        actionListener = new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                aenderungenAnnehmen();
+            }
+        };
+        focusListener = new FocusListener() {
+            public void focusGained(FocusEvent arg0) {}
 
-        Box ipConfigBox = Box.createHorizontalBox();
-        box.add(ipConfigBox);
-        Box ipv4Box = Box.createVerticalBox();
-        ipConfigBox.add(ipv4Box);
+            public void focusLost(FocusEvent arg0) {
+                aenderungenAnnehmen();
+            }
 
-        addressIPv4 = addConfigParameter(ipv4Box, messages.getString("jhostkonfiguration_msg3"), IPAddress
-                .defaultAddress(IPVersion.IPv4).normalizedAddress(), true);
-        addressIPv4.addKeyListener(new KeyAdapter() {
+        };
+
+        // =======================================================
+        // Attribut Name
+        tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg1"));
+        tempLabel.setPreferredSize(new Dimension(LABEL_WIDTH, 10));
+        tempLabel.setVisible(true);
+        tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+        name = new JTextField(messages.getString("jhostkonfiguration_msg2"));
+        name.addActionListener(actionListener);
+        name.addFocusListener(focusListener);
+
+        tempBox = Box.createHorizontalBox();
+        tempBox = Box.createHorizontalBox();
+        tempBox.setOpaque(false);
+        tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        tempBox.setMaximumSize(new Dimension(400, 40));
+        tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        tempBox.add(tempLabel);
+        tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
+        tempBox.add(name);
+        box.add(tempBox, BorderLayout.NORTH);
+
+        // =======================================================
+        // Attribut MAC-Adresse
+        tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg9"));
+        tempLabel.setPreferredSize(new Dimension(LABEL_WIDTH, 10));
+        tempLabel.setVisible(true);
+        tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+        macAdresse = new JTextField("");
+        macAdresse.setEditable(false);
+
+        tempBox = Box.createHorizontalBox();
+        tempBox.setOpaque(false);
+        tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        tempBox.setMaximumSize(new Dimension(400, 40));
+        tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        tempBox.add(tempLabel);
+        tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
+        tempBox.add(macAdresse);
+        box.add(tempBox, BorderLayout.NORTH);
+
+        // =======================================================
+        // Attribut IP-Adresse
+        tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg3"));
+        tempLabel.setPreferredSize(new Dimension(LABEL_WIDTH, 10));
+        tempLabel.setVisible(true);
+        tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+        ipAdresse = new JTextField("192.168.0.1");
+        ipAdresse.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
                 checkIpAddress();
             }
         });
-        netmaskIPv4 = addConfigParameter(ipv4Box, messages.getString("jhostkonfiguration_msg4"), IPAddress
-                .defaultAddress(IPVersion.IPv4).netmask(), true);
-        netmaskIPv4.addKeyListener(new KeyAdapter() {
-            public void keyReleased(KeyEvent e) {
-                checkNetmask();
-            }
-        });
-        gatewayIPv4 = addConfigParameter(ipv4Box, messages.getString("jhostkonfiguration_msg5"), IPAddress
-                .defaultAddress(IPVersion.IPv4).normalizedAddress(), true);
-        gatewayIPv4.addKeyListener(new KeyAdapter() {
-            public void keyReleased(KeyEvent e) {
-                checkGatewayAddress();
-            }
-        });
-        dnsIPv4 = addConfigParameter(ipv4Box, messages.getString("jhostkonfiguration_msg6"),
-                IPAddress.defaultAddress(IPVersion.IPv4).normalizedAddress(), true);
-        dnsIPv4.addKeyListener(new KeyAdapter() {
-            public void keyReleased(KeyEvent e) {
-                checkDnsAddress();
-            }
-        });
+        ipAdresse.addActionListener(actionListener);
+        ipAdresse.addFocusListener(focusListener);
 
-        Box ipv6Box = Box.createVerticalBox();
-        ipConfigBox.add(ipv6Box);
-        addressIPv6 = addConfigParameter(ipv6Box, messages.getString("jhostkonfiguration_msg3"), IPAddress
-                .defaultAddress(IPVersion.IPv6).normalizedAddress(), true);
-        addressIPv6.addKeyListener(new KeyAdapter() {
-            public void keyReleased(KeyEvent e) {
-                checkIpAddress();
-            }
-        });
-        netmaskIPv6 = addConfigParameter(ipv6Box, messages.getString("jhostkonfiguration_msg4"), IPAddress
-                .defaultAddress(IPVersion.IPv6).netmask(), true);
-        netmaskIPv6.addKeyListener(new KeyAdapter() {
+        tempBox = Box.createHorizontalBox();
+        tempBox.setOpaque(false);
+        tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        tempBox.setMaximumSize(new Dimension(400, 40));
+        tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        tempBox.add(tempLabel);
+        tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
+        tempBox.add(ipAdresse);
+        box.add(tempBox, BorderLayout.NORTH);
+
+        // =======================================================
+        // Attribut Netzmaske
+        tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg4"));
+        tempLabel.setPreferredSize(new Dimension(LABEL_WIDTH, 10));
+        tempLabel.setVisible(true);
+        tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+        netzmaske = new JTextField("255.255.255.0");
+        netzmaske.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
                 checkNetmask();
             }
         });
-        gatewayIPv6 = addConfigParameter(ipv6Box, messages.getString("jhostkonfiguration_msg5"), IPAddress
-                .defaultAddress(IPVersion.IPv6).normalizedAddress(), true);
-        gatewayIPv6.addKeyListener(new KeyAdapter() {
+        netzmaske.addActionListener(actionListener);
+        netzmaske.addFocusListener(focusListener);
+
+        tempBox = Box.createHorizontalBox();
+        tempBox.setOpaque(false);
+        tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        tempBox.setMaximumSize(new Dimension(400, 40));
+        tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        tempBox.add(tempLabel);
+        tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
+        tempBox.add(netzmaske);
+        box.add(tempBox, BorderLayout.NORTH);
+
+        // =======================================================
+        // Attribut Gateway-Adresse
+        tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg5"));
+        tempLabel.setPreferredSize(new Dimension(LABEL_WIDTH, 10));
+        tempLabel.setVisible(true);
+        tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+        gateway = new JTextField("192.168.0.1");
+        gateway.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
                 checkGatewayAddress();
             }
         });
-        dnsIPv6 = addConfigParameter(ipv6Box, messages.getString("jhostkonfiguration_msg6"),
-                IPAddress.defaultAddress(IPVersion.IPv6).normalizedAddress(), true);
-        dnsIPv6.addKeyListener(new KeyAdapter() {
+        gateway.addActionListener(actionListener);
+        gateway.addFocusListener(focusListener);
+
+        tempBox = Box.createHorizontalBox();
+        tempBox.setOpaque(false);
+        tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        tempBox.setMaximumSize(new Dimension(400, 40));
+        tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        tempBox.add(tempLabel);
+        tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
+        tempBox.add(gateway);
+        box.add(tempBox, BorderLayout.NORTH);
+
+        // =======================================================
+        // Attribut Adresse des Domain Name Server
+        tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg6"));
+        tempLabel.setPreferredSize(new Dimension(LABEL_WIDTH, 10));
+        tempLabel.setVisible(true);
+        tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+        dns = new JTextField("192.168.0.1");
+        dns.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
                 checkDnsAddress();
             }
         });
+        dns.addActionListener(actionListener);
+        dns.addFocusListener(focusListener);
+
+        tempBox = Box.createHorizontalBox();
+        tempBox.setOpaque(false);
+        tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        tempBox.setMaximumSize(new Dimension(400, 40));
+        tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        tempBox.add(tempLabel);
+        tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
+        tempBox.add(dns);
+        box.add(tempBox, BorderLayout.NORTH);
 
         tempLabel = new JLabel(messages.getString("jhostkonfiguration_msg10"));
         tempLabel.setPreferredSize(new Dimension(LABEL_WIDTH, 10));
@@ -228,11 +312,7 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
         dhcp = new JCheckBox();
         dhcp.setSelected(false);
         dhcp.setOpaque(false);
-        dhcp.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                aenderungenAnnehmen();
-            }
-        });
+        dhcp.addActionListener(actionListener);
 
         tempBox = Box.createHorizontalBox();
         tempBox.setOpaque(false);
@@ -252,19 +332,13 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
         tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
         tempBox.setOpaque(false);
 
-        dhcpIPv4Button = new JButton(messages.getString("jhostkonfiguration_msg8"));
-        dhcpIPv4Button.addActionListener(new ActionListener() {
+        btDhcp = new JButton(messages.getString("jhostkonfiguration_msg8"));
+        btDhcp.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                showDhcpConfiguration(IPVersion.IPv4);
+                showDhcpConfiguration();
             }
         });
-        dhcpIPv6Button = new JButton(messages.getString("jhostkonfiguration_msg8"));
-        dhcpIPv6Button.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                showDhcpConfiguration(IPVersion.IPv6);
-            }
-        });
-        tempBox.add(dhcpIPv4Button);
+        tempBox.add(btDhcp);
 
         rightBox.add(tempBox);
 
@@ -276,104 +350,54 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
         updateAttribute();
     }
 
-    private ValidateableTextField addConfigParameter(Box box, String label, String defaultValue, boolean editable) {
-        JLabel tempLabel = new JLabel(label);
-        tempLabel.setPreferredSize(new Dimension(LABEL_WIDTH, 10));
-        tempLabel.setVisible(true);
-        tempLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
-
-        ValidateableTextField textField = new ValidateableTextField(defaultValue);
-
-        textField.setEditable(editable);
-        if (editable) {
-            textField.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent evt) {
-                    aenderungenAnnehmen();
-                }
-            });
-            textField.addFocusListener(new FocusListener() {
-                public void focusGained(FocusEvent arg0) {}
-
-                public void focusLost(FocusEvent arg0) {
-                    aenderungenAnnehmen();
-                }
-            });
-        }
-
-        Box tempBox = Box.createHorizontalBox();
-        tempBox.setOpaque(false);
-        tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
-        tempBox.setMaximumSize(new Dimension(400, 40));
-        tempBox.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-        tempBox.add(tempLabel);
-        tempBox.add(Box.createHorizontalStrut(5)); // Platz zw. tempLabel und
-        tempBox.add(textField);
-        box.add(tempBox, BorderLayout.NORTH);
-        return textField;
-    }
-
-    private void showDhcpConfiguration(IPVersion ipVersion) {
+    private void showDhcpConfiguration() {
         JDHCPKonfiguration dhcpKonfig = new JDHCPKonfiguration(JMainFrame.getJMainFrame(),
                 messages.getString("jhostkonfiguration_msg8"),
-                (Betriebssystem) ((Host) holeHardware()).getSystemSoftware(), ipVersion);
+                (Betriebssystem) ((Host) holeHardware()).getSystemSoftware());
         dhcpKonfig.setVisible(true);
     }
 
     private void checkIpAddress() {
-        addressIPv4.setValid(IPAddress.verifyAddress(addressIPv4.getText(), IPVersion.IPv4));
-        addressIPv6.setValid(IPAddress.verifyAddress(addressIPv6.getText(), IPVersion.IPv6));
+        ueberpruefen(EingabenUeberpruefung.musterIpAdresse, ipAdresse);
     }
 
     private void checkDnsAddress() {
-        dnsIPv4.setValid(StringUtils.isBlank(dnsIPv4.getText())
-                || IPAddress.verifyAddress(dnsIPv4.getText(), IPVersion.IPv4));
-        dnsIPv6.setValid(StringUtils.isBlank(dnsIPv6.getText())
-                || IPAddress.verifyAddress(dnsIPv6.getText(), IPVersion.IPv6));
+        ueberpruefen(EingabenUeberpruefung.musterIpAdresseAuchLeer, dns);
     }
 
     private void checkGatewayAddress() {
-        gatewayIPv4.setValid(StringUtils.isBlank(gatewayIPv4.getText())
-                || IPAddress.verifyAddress(gatewayIPv4.getText(), IPVersion.IPv4));
-        gatewayIPv6.setValid(StringUtils.isBlank(gatewayIPv6.getText())
-                || IPAddress.verifyAddress(gatewayIPv6.getText(), IPVersion.IPv6));
+        ueberpruefen(EingabenUeberpruefung.musterIpAdresseAuchLeer, gateway);
     }
 
     private void checkNetmask() {
-        netmaskIPv4.setValid(IPAddress.verifyNetmaskDefinition(netmaskIPv4.getText(), IPVersion.IPv4));
-        netmaskIPv6.setValid(IPAddress.verifyNetmaskDefinition(netmaskIPv6.getText(), IPVersion.IPv6));
+        ueberpruefen(EingabenUeberpruefung.musterSubNetz, netzmaske);
     }
 
     public void updateAttribute() {
+        Betriebssystem bs;
+        Host host;
+
         if (holeHardware() != null) {
-            Host host = (Host) holeHardware();
+            host = (Host) holeHardware();
             name.setText(host.holeAnzeigeName());
             useIpAsName.setSelected(host.isUseIPAsName());
             name.setEnabled(!host.isUseIPAsName());
 
-            Betriebssystem bs = (Betriebssystem) host.getSystemSoftware();
-            NetzwerkInterface nic = host.getNetzwerkInterfaces().get(0);
-            macAdresse.setText(nic.getMac());
-            addressIPv4.setText(nic.getIp());
-            netmaskIPv4.setText(nic.getSubnetzMaske());
-            gatewayIPv4.setText(nic.getGateway());
-            dnsIPv4.setText(nic.getDns());
-            addressIPv6.setText(nic.getIPv6());
-            netmaskIPv6.setText(nic.getIPv6SubnetzMaske());
-            gatewayIPv6.setText(nic.getIPv6Gateway());
-            dnsIPv6.setText(nic.getIPv6Dns());
+            bs = (Betriebssystem) host.getSystemSoftware();
+
+            macAdresse.setText(bs.holeMACAdresse());
+            ipAdresse.setText(bs.holeIPAdresse());
+            netzmaske.setText(bs.holeNetzmaske());
+            gateway.setText(bs.getStandardGateway());
+            dns.setText(bs.getDNSServer());
 
             dhcp.setSelected(bs.isDHCPKonfiguration());
-            dhcpIPv4Button.setEnabled(!dhcp.isSelected());
-            dhcpIPv6Button.setEnabled(!dhcp.isSelected());
+            btDhcp.setEnabled(!dhcp.isSelected());
 
-            addressIPv4.setEnabled(!bs.isDHCPKonfiguration());
-            netmaskIPv4.setEnabled(!bs.isDHCPKonfiguration());
-            gatewayIPv4.setEnabled(!bs.isDHCPKonfiguration());
-            dnsIPv4.setEnabled(!bs.isDHCPKonfiguration());
-            addressIPv6.setEnabled(!bs.isDHCPKonfiguration());
-            netmaskIPv6.setEnabled(!bs.isDHCPKonfiguration());
-            gatewayIPv6.setEnabled(!bs.isDHCPKonfiguration());
-            dnsIPv6.setEnabled(!bs.isDHCPKonfiguration());
+            ipAdresse.setEnabled(!bs.isDHCPKonfiguration());
+            netzmaske.setEnabled(!bs.isDHCPKonfiguration());
+            gateway.setEnabled(!bs.isDHCPKonfiguration());
+            dns.setEnabled(!bs.isDHCPKonfiguration());
 
             checkIpAddress();
             checkDnsAddress();
@@ -383,4 +407,5 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
             Main.debug.println("GUIRechnerKonfiguration: keine Hardware-Komponente vorhanden");
         }
     }
+
 }

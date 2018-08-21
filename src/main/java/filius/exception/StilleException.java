@@ -25,13 +25,13 @@
  */
 package filius.exception;
 
-public class CreateAccountException extends Exception {
-	public CreateAccountException() {
+public class StilleException extends Exception {
+
+	public StilleException() {
 		super();
 	}
 
-	public CreateAccountException(String s) {
+	public StilleException(String s) {
 		super(s);
 	}
-
 }
