@@ -155,9 +155,9 @@ public class ICMP extends VermittlungsProtokoll implements I18n {
         NetzwerkInterface nic = ((InternetKnoten) holeSystemSoftware().getKnoten()).getNetzwerkInterfaceByIp(route
                 .getInterfaceIpAddress());
 
-        if (isBroadcast(zielIp, route.getInterfaceIpAddress(), nic.addressIPv4().netmask())) {
+        if (isBroadcast(zielIp, route.getInterfaceIpAddress(), nic.getSubnetzMaske())) {
             sendBroadcast(paket, zielIp, nic.getMac());
-        } else if (gleichesRechnernetz(zielIp, route.getInterfaceIpAddress(), nic.addressIPv4().netmask())) {
+        } else if (gleichesRechnernetz(zielIp, route.getInterfaceIpAddress(), nic.getSubnetzMaske())) {
             sendUnicastToNextHop(paket, paket.getZielIp(), nic.getMac());
         } else {
             sendUnicastToNextHop(paket, route.getGateway(), nic.getMac());

@@ -196,7 +196,7 @@ public class AggregatedExchangeDialog extends JDialog implements ExchangeDialog,
                 if (tabbedPane.getComponentAt(i).equals(openedTabs.get(identifier))) {
                     SystemSoftware system = systems.get(identifier);
                     String ipAddress = ((InternetKnoten) system.getKnoten()).getNetzwerkInterfaceByMac(identifier)
-                            .addressIPv4().address();
+                            .getIp();
                     String tabTitle;
                     if (system.getKnoten() instanceof Host && ((Host) system.getKnoten()).isUseIPAsName()) {
                         tabTitle = ipAddress;

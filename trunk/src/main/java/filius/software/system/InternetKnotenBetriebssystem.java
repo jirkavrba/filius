@@ -577,7 +577,7 @@ public abstract class InternetKnotenBetriebssystem extends SystemSoftware {
         String ip = null;
         List<NetzwerkInterface> netzwerkInterfaces = ((InternetKnoten) getKnoten()).getNetzwerkInterfaces();
         if (netzwerkInterfaces.size() >= 1) {
-            ip = netzwerkInterfaces.get(0).addressIPv4().address();
+            ip = netzwerkInterfaces.get(0).getIp();
         }
         return ip;
     }
@@ -667,7 +667,7 @@ public abstract class InternetKnotenBetriebssystem extends SystemSoftware {
 
         if (getKnoten() instanceof InternetKnoten) {
             knoten = (InternetKnoten) getKnoten();
-            return ((NetzwerkInterface) knoten.getNetzwerkInterfaces().get(0)).addressIPv4().netmask();
+            return ((NetzwerkInterface) knoten.getNetzwerkInterfaces().get(0)).getSubnetzMaske();
         }
         return null;
 

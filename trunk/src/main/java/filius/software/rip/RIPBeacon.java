@@ -86,15 +86,15 @@ public class RIPBeacon extends ClientAnwendung {
         RIPMessage msg;
 
         for (NetzwerkInterface nic : knoten.getNetzwerkInterfaces()) {
-            msg = new RIPMessage(nic.addressIPv4().address(), bs.holeIPAdresse(), RIPTable.INFINITY, RIPTable.TIMEOUT);
+            msg = new RIPMessage(nic.getIp(), bs.holeIPAdresse(), RIPTable.INFINITY, RIPTable.TIMEOUT);
             for (RIPRoute route : table.routes) {
                 // split horizon:
-                if (nic.addressIPv4().address().equals(route.getInterfaceIpAddress())) {
+                if (nic.getIp().equals(route.getInterfaceIpAddress())) {
                     continue;
                 }
                 msg.addRoute(new RIPMessageRoute(route.getNetAddress(), route.getNetMask(), route.hops));
             }
-            sock.bind(nic.addressIPv4().address());
+            sock.bind(nic.getIp());
             sock.senden(msg.toString());
         }
     }

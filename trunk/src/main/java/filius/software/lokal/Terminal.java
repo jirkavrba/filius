@@ -248,17 +248,16 @@ public class Terminal extends ClientAnwendung implements I18n {
                 ausgabe.append("\n");
             }
             if (SzenarioVerwaltung.getInstance().ipVersion().equals(IPVersion.IPv4)) {
-                ausgabe.append(messages.getString("sw_terminal_msg4")).append(" ").append(nic.addressIPv4().address())
-                        .append("\n");
-                ausgabe.append(messages.getString("sw_terminal_msg5")).append(" ").append(nic.addressIPv4().netmask())
+                ausgabe.append(messages.getString("sw_terminal_msg4")).append(" ").append(nic.getIp()).append("\n");
+                ausgabe.append(messages.getString("sw_terminal_msg5")).append(" ").append(nic.getSubnetzMaske())
                         .append("\n");
                 ausgabe.append(messages.getString("sw_terminal_msg26")).append(" ").append(nic.getMac()).append("\n");
                 ausgabe.append(messages.getString("sw_terminal_msg6")).append(" ").append(nic.getGateway())
                         .append("\n");
                 ausgabe.append(messages.getString("sw_terminal_msg27")).append(" ").append(nic.getDns()).append("\n");
             } else {
-                ausgabe.append(messages.getString("sw_terminal_msg60")).append(" ")
-                        .append(nic.addressIPv6().toString()).append("\n");
+                ausgabe.append(messages.getString("sw_terminal_msg60")).append(" ").append(nic.getIPv6()).append("/")
+                        .append(nic.getIPv6SubnetzMaske()).append("\n");
                 ausgabe.append(messages.getString("sw_terminal_msg26")).append(" ").append(nic.getMac()).append("\n");
                 ausgabe.append(messages.getString("sw_terminal_msg6")).append(" ").append(nic.getIPv6Gateway())
                         .append("\n");

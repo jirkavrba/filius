@@ -63,6 +63,7 @@ import filius.software.dhcp.DHCPAddressAssignment;
 import filius.software.dhcp.DHCPServer;
 import filius.software.system.Betriebssystem;
 import filius.software.vermittlungsschicht.IPAddress;
+import filius.software.vermittlungsschicht.IPVersion;
 
 public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
 
@@ -78,9 +79,9 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
     private JTabbedPane tabbedPane;
     protected JTable staticAddressTable;
 
-    public JDHCPKonfiguration(JFrame owner, String titel, Betriebssystem bs) {
+    public JDHCPKonfiguration(JFrame owner, String titel, Betriebssystem bs, IPVersion ipVersion) {
         super(owner, titel, true);
-        this.server = bs.getDHCPServer();
+        this.server = IPVersion.IPv4 == ipVersion ? bs.getDHCPServer() : bs.getDhcpServerIPv6();
 
         this.setSize(380, 380);
         this.setResizable(false);
@@ -89,10 +90,10 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         Point location = new Point((screen.width / 2) - 190, (screen.height / 2) - 140);
         this.setLocation(location);
 
-        initComponents();
+        initComponents(ipVersion);
     }
 
-    private void initComponents() {
+    private void initComponents(IPVersion ipVersion) {
         JPanel jpDhcp;
         JLabel lbObergrenze;
         JLabel lbUntergrenze;
@@ -113,7 +114,7 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         tfUntergrenze.setPreferredSize(new Dimension(150, 25));
         tfUntergrenze.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
-                tfUntergrenze.setValid(IPAddress.verifyAddress(tfUntergrenze.getText()));
+                tfUntergrenze.setValid(IPAddress.verifyAddress(tfUntergrenze.getText(), ipVersion));
             }
         });
 
@@ -122,7 +123,7 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         tfObergrenze.setPreferredSize(new Dimension(150, 25));
         tfObergrenze.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
-                tfObergrenze.setValid(IPAddress.verifyAddress(tfObergrenze.getText()));
+                tfObergrenze.setValid(IPAddress.verifyAddress(tfObergrenze.getText(), ipVersion));
             }
         });
 
@@ -136,7 +137,7 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         tfGateway.setPreferredSize(new Dimension(150, 25));
         tfGateway.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
-                tfGateway.setValid(IPAddress.verifyAddress(tfGateway.getText()));
+                tfGateway.setValid(IPAddress.verifyAddress(tfGateway.getText(), ipVersion));
             }
         });
         tfGateway.setEditable(server.isOwnSettings());
@@ -146,7 +147,7 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         tfDNSServer.setPreferredSize(new Dimension(150, 25));
         tfDNSServer.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
-                tfDNSServer.setValid(IPAddress.verifyAddress(tfDNSServer.getText()));
+                tfDNSServer.setValid(IPAddress.verifyAddress(tfDNSServer.getText(), ipVersion));
             }
         });
         tfDNSServer.setEditable(server.isOwnSettings());

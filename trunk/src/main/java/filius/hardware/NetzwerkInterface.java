@@ -27,25 +27,22 @@ package filius.hardware;
 
 import java.io.Serializable;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import filius.exception.InvalidParameterException;
 import filius.rahmenprogramm.Information;
 import filius.software.vermittlungsschicht.IPAddress;
 import filius.software.vermittlungsschicht.IPVersion;
 
+@SuppressWarnings("serial")
 public class NetzwerkInterface implements Serializable {
-    private static final Logger LOG = LoggerFactory.getLogger(NetzwerkInterface.class);
-
-    private static final long serialVersionUID = 1L;
     private String mac;
-    private IPAddress addressIPv4 = IPAddress.defaultAddress(IPVersion.IPv4);
-    private IPAddress gatewayIPv4;
-    private IPAddress dnsIPv4;
-    private IPAddress addressIPv6 = IPAddress.defaultAddress(IPVersion.IPv6);
-    private IPAddress gatewayIPv6;
-    private IPAddress dnsIPv6;
+    private String addressIPv4 = IPAddress.defaultAddress(IPVersion.IPv4).address();
+    private String netmaskIPv4 = IPAddress.defaultAddress(IPVersion.IPv4).netmask();
+    private String gatewayIPv4;
+    private String dnsIPv4;
+    private String addressIPv6 = IPAddress.defaultAddress(IPVersion.IPv6).address();
+    private String netmaskIPv6 = IPAddress.defaultAddress(IPVersion.IPv6).netmask();
+    private String gatewayIPv6;
+    private String dnsIPv6;
     private Port anschluss;
 
     public NetzwerkInterface() {
@@ -67,77 +64,56 @@ public class NetzwerkInterface implements Serializable {
      * IPv4-Adresse des DNS-Servers, der zur Aufloesung von Domainnamen verwendet wird.
      */
     public String getDns() {
-        return dnsIPv4 == null ? "" : dnsIPv4.address();
+        return dnsIPv4 == null ? "" : dnsIPv4;
     }
 
     /**
      * IPv4-Adresse des DNS-Servers, der zur Aufloesung von Domainnamen verwendet wird.
      */
     public void setDns(String dns) {
-        try {
-            this.dnsIPv4 = new IPAddress(dns);
-        } catch (InvalidParameterException e) {
-            LOG.info("Could not set invalid IPv4 DNS server address " + dns, e);
-        }
+        this.dnsIPv4 = dns;
     }
 
     /**
      * IPv6-Adresse des DNS-Servers, der zur Aufloesung von Domainnamen verwendet wird.
      */
     public String getIPv6Dns() {
-        return dnsIPv6 == null ? "" : dnsIPv6.address();
+        return dnsIPv6 == null ? "" : dnsIPv6;
     }
 
     /**
      * IPv6-Adresse des DNS-Servers, der zur Aufloesung von Domainnamen verwendet wird.
      */
     public void setIPv6Dns(String dns) {
-        try {
-            this.dnsIPv6 = new IPAddress(dns);
-        } catch (InvalidParameterException e) {
-            LOG.info("Could not set invalid IPv6 DNS server address " + dns, e);
-        }
+        this.dnsIPv6 = dns;
     }
 
     /** IPv4-Adresse der Netzwerkschnittstelle */
     public String getIp() {
-        return addressIPv4.toString();
+        return addressIPv4;
     }
 
-    public IPAddress addressIPv4() {
-        return addressIPv4;
+    public IPAddress addressIPv4() throws InvalidParameterException {
+        return new IPAddress(addressIPv4, netmaskIPv4);
     }
 
     /** IPv4-Adresse der Netzwerkschnittstelle */
     public void setIp(String ip) {
-        try {
-            // In order to be compliant with older project files where IP address and netmask are stored separately
-            this.addressIPv4 = new IPAddress(ip, addressIPv4.netmask());
-        } catch (InvalidParameterException e1) {
-            try {
-                this.addressIPv4 = new IPAddress(ip);
-            } catch (InvalidParameterException e) {
-                LOG.info("Could not set invalid IPv4 address " + ip, e);
-            }
-        }
+        this.addressIPv4 = ip;
     }
 
     /** IPv6-Adresse der Netzwerkschnittstelle */
     public String getIPv6() {
-        return addressIPv6.toString();
+        return addressIPv6;
     }
 
-    public IPAddress addressIPv6() {
-        return addressIPv6;
+    public IPAddress addressIPv6() throws InvalidParameterException {
+        return new IPAddress(addressIPv6, netmaskIPv6);
     }
 
     /** IPv6-Adresse der Netzwerkschnittstelle */
     public void setIPv6(String ip) {
-        try {
-            this.addressIPv6 = new IPAddress(ip);
-        } catch (InvalidParameterException e) {
-            LOG.info("Could not set invalid IPv6 address " + ip, e);
-        }
+        this.addressIPv6 = ip;
     }
 
     public String getMac() {
@@ -151,18 +127,20 @@ public class NetzwerkInterface implements Serializable {
         }
     }
 
-    /**
-     * This method is used to read old project files with separated attributes for IPv4 address and netmask!
-     * 
-     * @deprecated Use {@link setIp()} instead.
-     */
-    @Deprecated
     public void setSubnetzMaske(String subnetzMaske) {
-        try {
-            this.addressIPv4 = new IPAddress(addressIPv4.address(), subnetzMaske);
-        } catch (InvalidParameterException e) {
-            LOG.info("Could not set invalid IPv4 netmask" + subnetzMaske, e);
-        }
+        this.netmaskIPv4 = subnetzMaske;
+    }
+
+    public String getSubnetzMaske() {
+        return netmaskIPv4;
+    }
+
+    public void setIPv6SubnetzMaske(String subnetzMaske) {
+        this.netmaskIPv6 = subnetzMaske;
+    }
+
+    public String getIPv6SubnetzMaske() {
+        return netmaskIPv6;
     }
 
     /**
@@ -170,7 +148,7 @@ public class NetzwerkInterface implements Serializable {
      * Eintrag in der Weiterleitungstabelle vorhanden ist.
      */
     public String getGateway() {
-        return gatewayIPv4 == null ? "" : gatewayIPv4.address();
+        return gatewayIPv4 == null ? "" : gatewayIPv4;
     }
 
     /**
@@ -178,11 +156,7 @@ public class NetzwerkInterface implements Serializable {
      * Eintrag in der Weiterleitungstabelle vorhanden ist.
      */
     public void setGateway(String gateway) {
-        try {
-            this.gatewayIPv4 = new IPAddress(gateway);
-        } catch (InvalidParameterException e) {
-            LOG.info("Could not set invalid IPv4 default gateway" + gateway, e);
-        }
+        this.gatewayIPv4 = gateway;
     }
 
     /**
@@ -190,7 +164,7 @@ public class NetzwerkInterface implements Serializable {
      * Eintrag in der Weiterleitungstabelle vorhanden ist.
      */
     public String getIPv6Gateway() {
-        return gatewayIPv6 == null ? "" : gatewayIPv6.address();
+        return gatewayIPv6 == null ? "" : gatewayIPv6;
     }
 
     /**
@@ -198,10 +172,6 @@ public class NetzwerkInterface implements Serializable {
      * Eintrag in der Weiterleitungstabelle vorhanden ist.
      */
     public void setIPv6Gateway(String gateway) {
-        try {
-            this.gatewayIPv6 = new IPAddress(gateway);
-        } catch (InvalidParameterException e) {
-            LOG.info("Could not set invalid IPv6 default gateway" + gateway, e);
-        }
+        this.gatewayIPv6 = gateway;
     }
 }
