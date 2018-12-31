@@ -52,6 +52,7 @@ import filius.hardware.Hardware;
 import filius.hardware.NetzwerkInterface;
 import filius.hardware.knoten.Host;
 import filius.rahmenprogramm.I18n;
+import filius.rahmenprogramm.SzenarioVerwaltung;
 import filius.software.system.Betriebssystem;
 import filius.software.vermittlungsschicht.IPAddress;
 import filius.software.vermittlungsschicht.IPVersion;
@@ -62,17 +63,12 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
     private static final int LABEL_WIDTH = 160;
     private ValidateableTextField name;
     private ValidateableTextField macAdresse;
-    private ValidateableTextField addressIPv4;
-    private ValidateableTextField netmaskIPv4;
-    private ValidateableTextField gatewayIPv4;
-    private ValidateableTextField dnsIPv4;
-    private ValidateableTextField addressIPv6;
-    private ValidateableTextField netmaskIPv6;
-    private ValidateableTextField gatewayIPv6;
-    private ValidateableTextField dnsIPv6;
+    private ValidateableTextField addressIP;
+    private ValidateableTextField netmaskIP;
+    private ValidateableTextField gatewayIP;
+    private ValidateableTextField dnsIP;
     private JCheckBox dhcp;
-    private JButton dhcpIPv4Button;
-    private JButton dhcpIPv6Button;
+    private JButton dhcpButton;
     private JCheckBox useIpAsName;
 
     protected JHostKonfiguration(Hardware hardware) {
@@ -98,14 +94,14 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
                 host.setName(name.getText());
             }
             NetzwerkInterface nic = host.getNetzwerkInterfaces().get(0);
-            nic.setIp(addressIPv4.getText());
-            nic.setSubnetzMaske(netmaskIPv4.getText());
-            nic.setGateway(gatewayIPv4.getText());
-            nic.setDns(dnsIPv4.getText());
-            nic.setIPv6(addressIPv6.getText());
-            nic.setIPv6SubnetzMaske(netmaskIPv6.getText());
-            nic.setIPv6Gateway(gatewayIPv6.getText());
-            nic.setIPv6Dns(dnsIPv6.getText());
+            nic.setIp(addressIP.getText());
+            nic.setSubnetzMaske(netmaskIP.getText());
+            nic.setGateway(gatewayIP.getText());
+            nic.setDns(dnsIP.getText());
+            nic.setIp(addressIP.getText());
+            nic.setSubnetzMaske(netmaskIP.getText());
+            nic.setGateway(gatewayIP.getText());
+            nic.setDns(dnsIP.getText());
 
             Betriebssystem bs = (Betriebssystem) host.getSystemSoftware();
             bs.setDHCPKonfiguration(dhcp.isSelected());
@@ -128,66 +124,30 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
                 messages.getString("jhostkonfiguration_msg2"), true);
         macAdresse = addConfigParameter(box, messages.getString("jhostkonfiguration_msg9"), "", false);
 
-        Box ipConfigBox = Box.createHorizontalBox();
-        box.add(ipConfigBox);
-        Box ipv4Box = Box.createVerticalBox();
-        ipConfigBox.add(ipv4Box);
-
-        addressIPv4 = addConfigParameter(ipv4Box, messages.getString("jhostkonfiguration_msg3"), IPAddress
-                .defaultAddress(IPVersion.IPv4).normalizedAddress(), true);
-        addressIPv4.addKeyListener(new KeyAdapter() {
+        addressIP = addConfigParameter(box, messages.getString("jhostkonfiguration_msg3"),
+                IPAddress.defaultAddress(SzenarioVerwaltung.getInstance().ipVersion()).normalizedAddress(), true);
+        addressIP.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
                 checkIpAddress();
             }
         });
-        netmaskIPv4 = addConfigParameter(ipv4Box, messages.getString("jhostkonfiguration_msg4"), IPAddress
-                .defaultAddress(IPVersion.IPv4).netmask(), true);
-        netmaskIPv4.addKeyListener(new KeyAdapter() {
+        netmaskIP = addConfigParameter(box, messages.getString("jhostkonfiguration_msg4"),
+                IPAddress.defaultAddress(SzenarioVerwaltung.getInstance().ipVersion()).netmask(), true);
+        netmaskIP.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
                 checkNetmask();
             }
         });
-        gatewayIPv4 = addConfigParameter(ipv4Box, messages.getString("jhostkonfiguration_msg5"), IPAddress
-                .defaultAddress(IPVersion.IPv4).normalizedAddress(), true);
-        gatewayIPv4.addKeyListener(new KeyAdapter() {
+        gatewayIP = addConfigParameter(box, messages.getString("jhostkonfiguration_msg5"),
+                IPAddress.defaultAddress(SzenarioVerwaltung.getInstance().ipVersion()).normalizedAddress(), true);
+        gatewayIP.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
                 checkGatewayAddress();
             }
         });
-        dnsIPv4 = addConfigParameter(ipv4Box, messages.getString("jhostkonfiguration_msg6"),
-                IPAddress.defaultAddress(IPVersion.IPv4).normalizedAddress(), true);
-        dnsIPv4.addKeyListener(new KeyAdapter() {
-            public void keyReleased(KeyEvent e) {
-                checkDnsAddress();
-            }
-        });
-
-        Box ipv6Box = Box.createVerticalBox();
-        ipConfigBox.add(ipv6Box);
-        addressIPv6 = addConfigParameter(ipv6Box, messages.getString("jhostkonfiguration_msg3"), IPAddress
-                .defaultAddress(IPVersion.IPv6).normalizedAddress(), true);
-        addressIPv6.addKeyListener(new KeyAdapter() {
-            public void keyReleased(KeyEvent e) {
-                checkIpAddress();
-            }
-        });
-        netmaskIPv6 = addConfigParameter(ipv6Box, messages.getString("jhostkonfiguration_msg4"), IPAddress
-                .defaultAddress(IPVersion.IPv6).netmask(), true);
-        netmaskIPv6.addKeyListener(new KeyAdapter() {
-            public void keyReleased(KeyEvent e) {
-                checkNetmask();
-            }
-        });
-        gatewayIPv6 = addConfigParameter(ipv6Box, messages.getString("jhostkonfiguration_msg5"), IPAddress
-                .defaultAddress(IPVersion.IPv6).normalizedAddress(), true);
-        gatewayIPv6.addKeyListener(new KeyAdapter() {
-            public void keyReleased(KeyEvent e) {
-                checkGatewayAddress();
-            }
-        });
-        dnsIPv6 = addConfigParameter(ipv6Box, messages.getString("jhostkonfiguration_msg6"),
-                IPAddress.defaultAddress(IPVersion.IPv6).normalizedAddress(), true);
-        dnsIPv6.addKeyListener(new KeyAdapter() {
+        dnsIP = addConfigParameter(box, messages.getString("jhostkonfiguration_msg6"),
+                IPAddress.defaultAddress(SzenarioVerwaltung.getInstance().ipVersion()).normalizedAddress(), true);
+        dnsIP.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
                 checkDnsAddress();
             }
@@ -252,19 +212,13 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
         tempBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
         tempBox.setOpaque(false);
 
-        dhcpIPv4Button = new JButton(messages.getString("jhostkonfiguration_msg8"));
-        dhcpIPv4Button.addActionListener(new ActionListener() {
+        dhcpButton = new JButton(messages.getString("jhostkonfiguration_msg8"));
+        dhcpButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                showDhcpConfiguration(IPVersion.IPv4);
+                showDhcpConfiguration(SzenarioVerwaltung.getInstance().ipVersion());
             }
         });
-        dhcpIPv6Button = new JButton(messages.getString("jhostkonfiguration_msg8"));
-        dhcpIPv6Button.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                showDhcpConfiguration(IPVersion.IPv6);
-            }
-        });
-        tempBox.add(dhcpIPv4Button);
+        tempBox.add(dhcpButton);
 
         rightBox.add(tempBox);
 
@@ -320,27 +274,22 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
     }
 
     private void checkIpAddress() {
-        addressIPv4.setValid(IPAddress.verifyAddress(addressIPv4.getText(), IPVersion.IPv4));
-        addressIPv6.setValid(IPAddress.verifyAddress(addressIPv6.getText(), IPVersion.IPv6));
+        addressIP.setValid(IPAddress.verifyAddress(addressIP.getText(), SzenarioVerwaltung.getInstance().ipVersion()));
     }
 
     private void checkDnsAddress() {
-        dnsIPv4.setValid(StringUtils.isBlank(dnsIPv4.getText())
-                || IPAddress.verifyAddress(dnsIPv4.getText(), IPVersion.IPv4));
-        dnsIPv6.setValid(StringUtils.isBlank(dnsIPv6.getText())
-                || IPAddress.verifyAddress(dnsIPv6.getText(), IPVersion.IPv6));
+        dnsIP.setValid(StringUtils.isBlank(dnsIP.getText())
+                || IPAddress.verifyAddress(dnsIP.getText(), SzenarioVerwaltung.getInstance().ipVersion()));
     }
 
     private void checkGatewayAddress() {
-        gatewayIPv4.setValid(StringUtils.isBlank(gatewayIPv4.getText())
-                || IPAddress.verifyAddress(gatewayIPv4.getText(), IPVersion.IPv4));
-        gatewayIPv6.setValid(StringUtils.isBlank(gatewayIPv6.getText())
-                || IPAddress.verifyAddress(gatewayIPv6.getText(), IPVersion.IPv6));
+        gatewayIP.setValid(StringUtils.isBlank(gatewayIP.getText())
+                || IPAddress.verifyAddress(gatewayIP.getText(), SzenarioVerwaltung.getInstance().ipVersion()));
     }
 
     private void checkNetmask() {
-        netmaskIPv4.setValid(IPAddress.verifyNetmaskDefinition(netmaskIPv4.getText(), IPVersion.IPv4));
-        netmaskIPv6.setValid(IPAddress.verifyNetmaskDefinition(netmaskIPv6.getText(), IPVersion.IPv6));
+        netmaskIP.setValid(
+                IPAddress.verifyNetmaskDefinition(netmaskIP.getText(), SzenarioVerwaltung.getInstance().ipVersion()));
     }
 
     public void updateAttribute() {
@@ -353,27 +302,18 @@ public class JHostKonfiguration extends JKonfiguration implements I18n {
             Betriebssystem bs = (Betriebssystem) host.getSystemSoftware();
             NetzwerkInterface nic = host.getNetzwerkInterfaces().get(0);
             macAdresse.setText(nic.getMac());
-            addressIPv4.setText(nic.getIp());
-            netmaskIPv4.setText(nic.getSubnetzMaske());
-            gatewayIPv4.setText(nic.getGateway());
-            dnsIPv4.setText(nic.getDns());
-            addressIPv6.setText(nic.getIPv6());
-            netmaskIPv6.setText(nic.getIPv6SubnetzMaske());
-            gatewayIPv6.setText(nic.getIPv6Gateway());
-            dnsIPv6.setText(nic.getIPv6Dns());
+            addressIP.setText(nic.getIp());
+            netmaskIP.setText(nic.getSubnetzMaske());
+            gatewayIP.setText(nic.getGateway());
+            dnsIP.setText(nic.getDns());
 
             dhcp.setSelected(bs.isDHCPKonfiguration());
-            dhcpIPv4Button.setEnabled(!dhcp.isSelected());
-            dhcpIPv6Button.setEnabled(!dhcp.isSelected());
+            dhcpButton.setEnabled(!dhcp.isSelected());
 
-            addressIPv4.setEnabled(!bs.isDHCPKonfiguration());
-            netmaskIPv4.setEnabled(!bs.isDHCPKonfiguration());
-            gatewayIPv4.setEnabled(!bs.isDHCPKonfiguration());
-            dnsIPv4.setEnabled(!bs.isDHCPKonfiguration());
-            addressIPv6.setEnabled(!bs.isDHCPKonfiguration());
-            netmaskIPv6.setEnabled(!bs.isDHCPKonfiguration());
-            gatewayIPv6.setEnabled(!bs.isDHCPKonfiguration());
-            dnsIPv6.setEnabled(!bs.isDHCPKonfiguration());
+            addressIP.setEnabled(!bs.isDHCPKonfiguration());
+            netmaskIP.setEnabled(!bs.isDHCPKonfiguration());
+            gatewayIP.setEnabled(!bs.isDHCPKonfiguration());
+            dnsIP.setEnabled(!bs.isDHCPKonfiguration());
 
             checkIpAddress();
             checkDnsAddress();

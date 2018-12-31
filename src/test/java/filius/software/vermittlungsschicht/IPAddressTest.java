@@ -381,4 +381,53 @@ public class IPAddressTest {
         assertFalse(IPAddress.verifyNetmaskDefinition("255.253.0.0", IPVersion.IPv4));
         assertFalse(IPAddress.verifyNetmaskDefinition("16", IPVersion.IPv4));
     }
+
+    @Test
+    public void testEqualNetwork_Success() throws InvalidParameterException {
+        IPAddress ipAddress = new IPAddress("192.168.0.10", "255.255.255.0");
+
+        assertTrue(ipAddress.equalNetwork("192.168.0.11"));
+    }
+
+    @Test
+    public void testEqualNetwork_Failure() throws InvalidParameterException {
+        IPAddress ipAddress = new IPAddress("192.168.0.10", "255.255.255.0");
+
+        assertFalse(ipAddress.equalNetwork("192.168.1.10"));
+    }
+
+    @Test
+    public void testIsGlobalBroadcast_IPv4() throws InvalidParameterException {
+        IPAddress ipAddress = new IPAddress("255.255.255.255", "255.255.255.0");
+
+        assertTrue(ipAddress.isGlobalBroadcast());
+    }
+
+    @Test
+    public void testIsGlobalBroadcast_IPv6() throws InvalidParameterException {
+        IPAddress ipAddress = new IPAddress("FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF", "17");
+
+        assertTrue(ipAddress.isGlobalBroadcast());
+    }
+
+    @Test
+    public void testIsLocalBroadcast_IPv4With8BitNetmask() throws InvalidParameterException {
+        IPAddress ipAddress = new IPAddress("192.255.255.255", "255.0.0.0");
+
+        assertTrue(ipAddress.isLocalBroadcast());
+    }
+
+    @Test
+    public void testIsLocalBroadcast_IPv4With12BitNetmask() throws InvalidParameterException {
+        IPAddress ipAddress = new IPAddress("192.15.255.255", "255.240.0.0");
+
+        assertTrue(ipAddress.isLocalBroadcast());
+    }
+
+    @Test
+    public void testIsLocalBroadcast_IPv4With12BitNetmask_Failure() throws InvalidParameterException {
+        IPAddress ipAddress = new IPAddress("192.0.255.255", "255.240.0.0");
+
+        assertFalse(ipAddress.isLocalBroadcast());
+    }
 }

@@ -2,21 +2,25 @@ package filius.rahmenprogramm;
 
 import java.time.LocalDateTime;
 
+import filius.software.vermittlungsschicht.IPVersion;
+
 public class Scenario {
     private Boolean geaendert = Boolean.FALSE;
-    private String ipVersion;
+    private String ipVersion = Information.getDefaultIPVersion().toString();
     private String created;
     private String lastChanged;
     private String author;
 
-    public Scenario() {}
+    public Scenario() {
+        ipVersion = IPVersion.IPv4.toString();
+    }
 
     public static Scenario createNew() {
         Scenario scenario = new Scenario();
         scenario.setAuthor(System.getProperty("user.name"));
-        scenario.setIpVersion(Information.getDefaultIPVersion().toString());
         scenario.setCreated(LocalDateTime.now().toString());
         scenario.setLastChanged(scenario.getCreated());
+        scenario.setIpVersion(Information.getDefaultIPVersion().toString());
         return scenario;
     }
 

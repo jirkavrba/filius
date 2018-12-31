@@ -65,15 +65,15 @@ public class IPAddress {
     private static final String IPV6_NETMASK_SUFFIX_REGEX = "(?<" + GROUP_NETMASK
             + ">1([0-1][0-9]|2[0-8])|[1-9]?[0-9])";
 
-    private static final Pattern IP_V4_OPTIONAL_NETMASK_VALIDATION_PATTERN = Pattern.compile(IP_V4_REGEX + "(/"
-            + IPV4_NETMASK_SUFFIX_REGEX + ")?");
+    private static final Pattern IP_V4_OPTIONAL_NETMASK_VALIDATION_PATTERN = Pattern
+            .compile(IP_V4_REGEX + "(/" + IPV4_NETMASK_SUFFIX_REGEX + ")?");
     private static final Pattern IP_V4_NO_NETMASK_VALIDATION_PATTERN = Pattern.compile(IP_V4_REGEX);
-    private static final Pattern IP_V6_SEGMENT_PATTERN = Pattern.compile(IP_V6_START_SEG_REGEX
-            + IP_V6_END_SEG_PART_REGEX);
+    private static final Pattern IP_V6_SEGMENT_PATTERN = Pattern
+            .compile(IP_V6_START_SEG_REGEX + IP_V6_END_SEG_PART_REGEX);
     private static final Pattern IP_V6_WITH_DEC_NOTATION_SEGMENT_PATTERN = Pattern
             .compile(IP_V6_START_SEG_WITH_DEC_NOTATION_REGEX + IP_V6_END_SEG_PART_WITH_DEC_NOTATION_REGEX);
-    private static final Pattern IP_V6_OPTIONAL_NETMASK_VALIDATION_PATTERN = Pattern.compile(IP_V6_REGEX + "(/"
-            + IPV6_NETMASK_SUFFIX_REGEX + ")?");
+    private static final Pattern IP_V6_OPTIONAL_NETMASK_VALIDATION_PATTERN = Pattern
+            .compile(IP_V6_REGEX + "(/" + IPV6_NETMASK_SUFFIX_REGEX + ")?");
     private static final Pattern IP_V6_NO_NETMASK_VALIDATION_PATTERN = Pattern.compile(IP_V6_REGEX);
 
     private final IPVersion version;
@@ -387,7 +387,7 @@ public class IPAddress {
 
     /** Retrieve IP address without netmask as string. */
     public String address() {
-        return asString(addressBytes, false, false, ipv6WithDecimalNotation);
+        return asString(addressBytes, false, true, ipv6WithDecimalNotation);
     }
 
     /** Retrieve network part of IP address (without netmask) as String */
@@ -451,15 +451,143 @@ public class IPAddress {
         return asString(addressBytes, false, true, ipv6WithDecimalNotation);
     }
 
+    /**
+     * Returns the standard representation of the address:
+     * <ul>
+     * <li>IPv4: four segments, e.g. 10.0.49.3</li>
+     * <li>IPv6: address with 0-sequence, e.g. 1:0:0:0:0:0:44:33</li>
+     * </ul>
+     * 
+     * @return
+     */
+    public String standardAddress() {
+        return asString(addressBytes, false, false, false);
+    }
+
     public static IPAddress defaultAddress(IPVersion ipVersion) {
         IPAddress defaultAddress = null;
         try {
             if (IPVersion.IPv4 == ipVersion) {
                 defaultAddress = new IPAddress("192.168.0.1", "255.255.255.0");
             } else {
-                defaultAddress = new IPAddress("fe80::192.168.0.1", "120");
+                defaultAddress = new IPAddress("::192.168.0.1", "120");
             }
         } catch (InvalidParameterException e) {}
         return defaultAddress;
+    }
+
+    public static IPAddress unspecifiedAddress(IPVersion ipVersion) {
+        IPAddress unspecifiedAddress = null;
+        try {
+            if (IPVersion.IPv4 == ipVersion) {
+                unspecifiedAddress = new IPAddress("0.0.0.0", "255.255.255.255");
+            } else {
+                unspecifiedAddress = new IPAddress("::", "128");
+            }
+        } catch (InvalidParameterException e) {}
+        return unspecifiedAddress;
+    }
+
+    public static IPAddress globalBroadcast(IPVersion ipVersion) {
+        IPAddress globalBroadcast = null;
+        try {
+            if (IPVersion.IPv4 == ipVersion) {
+                globalBroadcast = new IPAddress("255.255.255.255", "0.0.0.0");
+            } else {
+                globalBroadcast = new IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff", "8");
+            }
+        } catch (InvalidParameterException e) {}
+        return globalBroadcast;
+    }
+
+    public static IPAddress defaultRoute(IPVersion ipVersion) {
+        IPAddress unspecifiedAddress = null;
+        try {
+            if (IPVersion.IPv4 == ipVersion) {
+                unspecifiedAddress = new IPAddress("0.0.0.0", "0.0.0.0");
+            } else {
+                unspecifiedAddress = new IPAddress("::", "0");
+            }
+        } catch (InvalidParameterException e) {}
+        return unspecifiedAddress;
+    }
+
+    public static IPAddress localhost(IPVersion ipVersion) {
+        IPAddress unspecifiedAddress = null;
+        try {
+            if (IPVersion.IPv4 == ipVersion) {
+                unspecifiedAddress = new IPAddress("127.0.0.1", "255.0.0.0");
+            } else {
+                unspecifiedAddress = new IPAddress("::1", "128");
+            }
+        } catch (InvalidParameterException e) {}
+        return unspecifiedAddress;
+    }
+
+    public static IPAddress localhostNetwork(IPVersion ipVersion) {
+        IPAddress unspecifiedAddress = null;
+        try {
+            if (IPVersion.IPv4 == ipVersion) {
+                unspecifiedAddress = new IPAddress("127.0.0.0", "255.0.0.0");
+            } else {
+                unspecifiedAddress = new IPAddress("::1", "128");
+            }
+        } catch (InvalidParameterException e) {}
+        return unspecifiedAddress;
+    }
+
+    public boolean equalNetwork(String address) {
+        IPAddress other = null;
+        try {
+            other = new IPAddress(address, this.netmask());
+        } catch (InvalidParameterException e) {}
+        return other != null && this.networkAddress().equals(other.networkAddress());
+    }
+
+    public boolean equalAddress(String address) {
+        IPAddress other = null;
+        try {
+            other = new IPAddress(address, this.netmask());
+        } catch (InvalidParameterException e) {}
+        return other != null && this.standardAddress().equalsIgnoreCase(other.standardAddress());
+    }
+
+    public boolean isGlobalBroadcast() {
+        boolean isGlobalBroadcast = false;
+        try {
+            IPAddress globalBroadcast;
+            if (IPVersion.IPv4 == version) {
+                globalBroadcast = new IPAddress("255.255.255.255", "0.0.0.0");
+            } else {
+                globalBroadcast = new IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff", "8");
+            }
+            isGlobalBroadcast = normalizedAddress().equalsIgnoreCase(globalBroadcast.normalizedAddress());
+        } catch (InvalidParameterException e) {}
+        return isGlobalBroadcast;
+    }
+
+    public boolean isLocalBroadcast() {
+        boolean isLocalBroadcast = true;
+        int numberOfBitsToCompare;
+        if (IPVersion.IPv4 == version) {
+            numberOfBitsToCompare = 32 - netmaskLength();
+        } else {
+            numberOfBitsToCompare = 128 - netmaskLength();
+        }
+        for (int currentByteIdx = 1; numberOfBitsToCompare > 0
+                && isLocalBroadcast; currentByteIdx++, numberOfBitsToCompare -= 8) {
+            int currentByte = addressBytes[addressBytes.length - currentByteIdx];
+            if (numberOfBitsToCompare >= 8) {
+                if (currentByte != 255) {
+                    isLocalBroadcast = false;
+                }
+            } else {
+                int byteMask = (int) Math.pow(2, numberOfBitsToCompare) - 1;
+                if ((currentByte & byteMask) != (255 & byteMask)) {
+                    isLocalBroadcast = false;
+                }
+            }
+        }
+        return isLocalBroadcast;
     }
 }

@@ -28,9 +28,11 @@ package filius.software.vermittlungsschicht;
 import java.util.LinkedList;
 
 import filius.Main;
+import filius.exception.InvalidParameterException;
 import filius.hardware.NetzwerkInterface;
 import filius.hardware.knoten.InternetKnoten;
 import filius.rahmenprogramm.I18n;
+import filius.rahmenprogramm.SzenarioVerwaltung;
 import filius.software.rip.RIPRoute;
 import filius.software.rip.RIPTable;
 import filius.software.system.InternetKnotenBetriebssystem;
@@ -111,9 +113,9 @@ public class Weiterleitungstabelle implements I18n {
      * @param schnittstelle
      */
     public void addManuellenEintrag(String netzwerkziel, String netzwerkmaske, String gateway, String schnittstelle) {
-        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
-                + " (Weiterleitungstabelle), addManuellenEintrag(" + netzwerkziel + "," + netzwerkmaske + "," + gateway
-                + "," + schnittstelle + ")");
+        Main.debug.println(
+                "INVOKED (" + this.hashCode() + ") " + getClass() + " (Weiterleitungstabelle), addManuellenEintrag("
+                        + netzwerkziel + "," + netzwerkmaske + "," + gateway + "," + schnittstelle + ")");
         manuelleEintraege = null;
 
         if (netzwerkziel != null && netzwerkmaske != null && gateway != null && schnittstelle != null) {
@@ -154,10 +156,12 @@ public class Weiterleitungstabelle implements I18n {
     /**
      * Methode fuer den Zugriff auf die Weiterleitungstabelle bestehend aus automatisch erzeugten und manuellen
      * Eintraegen
+     * 
+     * @throws InvalidParameterException
      */
     public LinkedList<String[]> holeTabelle() {
-        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
-                + " (Weiterleitungstabelle), holeTabelle()");
+        Main.debug
+                .println("INVOKED (" + this.hashCode() + ") " + getClass() + " (Weiterleitungstabelle), holeTabelle()");
         InternetKnoten knoten;
         String gateway;
         LinkedList<String[]> tabelle;
@@ -165,18 +169,21 @@ public class Weiterleitungstabelle implements I18n {
 
         tabelle = new LinkedList<String[]>(manuelleTabelle);
         manuelleEintraege = new LinkedList<Boolean>();
-        for (int i = 0; i < tabelle.size(); i++)
-            manuelleEintraege.add(new Boolean(true));
+        for (int i = 0; i < tabelle.size(); i++) {
+            manuelleEintraege.add(Boolean.TRUE);
+        }
 
         if (firmware != null) {
             // Eintrag fuer 'localhost'
             tmp = new String[4];
-            tmp[0] = "127.0.0.0";
-            tmp[1] = "255.0.0.0";
-            tmp[2] = "127.0.0.1";
-            tmp[3] = "127.0.0.1";
+            IPAddress localhostNetwork = IPAddress.localhostNetwork(SzenarioVerwaltung.getInstance().ipVersion());
+            IPAddress localhost = IPAddress.localhost(SzenarioVerwaltung.getInstance().ipVersion());
+            tmp[0] = localhostNetwork.address();
+            tmp[1] = localhostNetwork.netmask();
+            tmp[2] = localhost.address();
+            tmp[3] = localhost.address();
             tabelle.addFirst(tmp);
-            manuelleEintraege.addFirst(new Boolean(false));
+            manuelleEintraege.addFirst(Boolean.FALSE);
 
             knoten = (InternetKnoten) firmware.getKnoten();
 
@@ -184,25 +191,29 @@ public class Weiterleitungstabelle implements I18n {
             for (NetzwerkInterface nic : knoten.getNetzwerkInterfaces()) {
                 tmp = new String[4];
                 // tmp[0] = nic.getIp();
-                tmp[0] = berechneNetzkennung(nic.getIp(), nic.getSubnetzMaske());
+                try {
+                    tmp[0] = nic.addressIP().networkAddress();
+                } catch (InvalidParameterException e) {}
                 tmp[1] = nic.getSubnetzMaske();
                 tmp[2] = nic.getIp();
                 tmp[3] = nic.getIp();
                 tabelle.addFirst(tmp);
-                manuelleEintraege.addFirst(new Boolean(false));
+                manuelleEintraege.addFirst(Boolean.FALSE);
             }
 
+            IPAddress unspecifiedAddress = IPAddress.unspecifiedAddress(SzenarioVerwaltung.getInstance().ipVersion());
             // Eintrag fuer eigene IP-Adresse
             for (NetzwerkInterface nic : knoten.getNetzwerkInterfaces()) {
                 tmp = new String[4];
                 tmp[0] = nic.getIp();
-                tmp[1] = "255.255.255.255";
-                tmp[2] = "127.0.0.1";
-                tmp[3] = "127.0.0.1";
+                tmp[1] = unspecifiedAddress.netmask();
+                tmp[2] = localhost.address();
+                tmp[3] = localhost.address();
                 tabelle.addFirst(tmp);
-                manuelleEintraege.addFirst(new Boolean(false));
+                manuelleEintraege.addFirst(Boolean.FALSE);
             }
 
+            IPAddress defaultRoute = IPAddress.defaultRoute(SzenarioVerwaltung.getInstance().ipVersion());
             // Eintrag fuer Standardgateway, wenn es konfiguriert wurde
             gateway = firmware.getStandardGateway();
             if (gateway != null && !gateway.trim().equals("")) {
@@ -210,59 +221,26 @@ public class Weiterleitungstabelle implements I18n {
                 tmp = null;
                 for (NetzwerkInterface nic : knoten.getNetzwerkInterfaces()) {
                     if (nic != null
-                            && VermittlungsProtokoll.gleichesRechnernetz(gateway, nic.getIp(), nic
-                                    .getSubnetzMaske())) {
+                            && VermittlungsProtokoll.gleichesRechnernetz(gateway, nic.getIp(), nic.getSubnetzMaske())) {
                         tmp = new String[4];
-                        tmp[0] = "0.0.0.0";
-                        tmp[1] = "0.0.0.0";
+                        tmp[0] = defaultRoute.address();
+                        tmp[1] = defaultRoute.netmask();
                         tmp[2] = gateway;
                         tmp[3] = nic.getIp();
                     }
                 }
                 if (tmp == null) {
                     tmp = new String[4];
-                    tmp[0] = "0.0.0.0";
-                    tmp[1] = "0.0.0.0";
+                    tmp[0] = defaultRoute.address();
+                    tmp[1] = defaultRoute.netmask();
                     tmp[2] = gateway;
                     tmp[3] = firmware.holeIPAdresse();
                 }
                 tabelle.addLast(tmp);
-                manuelleEintraege.addLast(new Boolean(false));
+                manuelleEintraege.addLast(Boolean.FALSE);
             }
         }
-
         return tabelle;
-    }
-
-    /**
-     * Methode, um aus einer IP-Adresse und einer Subnetzmaske eine Netzwerkkennung als String zu erzeugen. Bsp.:
-     * 192.168.2.6 und 255.255.255.0 wird zu 192.168.2.0
-     */
-    private String berechneNetzkennung(String ipStr, String maskStr) {
-        long ipAddr = IP.inetAToN(ipStr);
-        long maskAddr = IP.inetAToN(maskStr);
-        long netAddr = ipAddr & maskAddr;
-        return IP.inetNtoa(netAddr);
-    }
-
-    /**
-     * Tabelle zur Abfrage der Weiterleitungstabelle nach einem passenden Eintrag fuer eine Ziel-IP-Adresse
-     * 
-     * @param zielIP
-     *            die Ziel-IP-Adresse
-     * @return das Ergebnis als String-Array bestehend aus der IP-Adresse des naechsten Gateways und der fuer den
-     *         Versand zu verwendenden Schnittstelle
-     * @throws RouteNotFoundException
-     */
-    @Deprecated
-    public String[] holeWeiterleitungsZiele(String zielIpAdresse) throws RouteNotFoundException {
-        Route bestRoute = null;
-        if (firmware.isRipEnabled()) {
-            bestRoute = determineRouteFromDynamicRoutingTable(zielIpAdresse);
-        } else {
-            bestRoute = determineRouteFromStaticRoutingTable(zielIpAdresse);
-        }
-        return new String[] { bestRoute.getGateway(), bestRoute.getInterfaceIpAddress() };
     }
 
     public Route holeWeiterleitungsEintrag(String zielIpAdresse) throws RouteNotFoundException {
@@ -276,22 +254,20 @@ public class Weiterleitungstabelle implements I18n {
     }
 
     public Route determineRouteFromStaticRoutingTable(String targetIPAddress) throws RouteNotFoundException {
-        long netAddr, maskAddr, zielAddr = IP.inetAToN(targetIPAddress);
-
-        long bestMask = -1;
+        long bestMaskLength = -1;
         Route bestRoute = null;
-
-        for (String[] route : holeTabelle()) {
-            maskAddr = IP.inetAToN(route[1]);
-            if (maskAddr <= bestMask) {
-                continue;
+        try {
+            for (String[] route : holeTabelle()) {
+                IPAddress routeTarget = new IPAddress(route[0], route[1]);
+                if (routeTarget.netmaskLength() <= bestMaskLength) {
+                    continue;
+                }
+                if (routeTarget.equalNetwork(targetIPAddress)) {
+                    bestMaskLength = routeTarget.netmaskLength();
+                    bestRoute = new Route(route);
+                }
             }
-            netAddr = IP.inetAToN(route[0]);
-            if (netAddr == (maskAddr & zielAddr)) {
-                bestMask = maskAddr;
-                bestRoute = new Route(route);
-            }
-        }
+        } catch (InvalidParameterException e) {}
         if (bestRoute != null) {
             return bestRoute;
         } else {
@@ -304,19 +280,22 @@ public class Weiterleitungstabelle implements I18n {
         Route bestRoute = null;
         synchronized (table) {
             int bestHops = RIPTable.INFINITY - 1;
-            long bestMask = -1;
+            long bestMaskLength = -1;
 
             for (RIPRoute route : table.routes) {
-                if (route.getNetAddress().equals(berechneNetzkennung(ip, route.getNetMask()))) {
-                    if (bestHops < route.hops) {
-                        continue;
+                try {
+                    IPAddress ipAddress = new IPAddress(ip, route.getNetMask());
+                    if (route.getNetAddress().equals(ipAddress.networkAddress())) {
+                        if (bestHops < route.hops) {
+                            continue;
+                        }
+                        if (bestHops > route.hops || bestMaskLength < ipAddress.netmaskLength()) {
+                            bestRoute = route;
+                            bestHops = route.hops;
+                            bestMaskLength = ipAddress.netmaskLength();
+                        }
                     }
-                    if (bestHops > route.hops || bestMask < IP.inetAToN(route.getNetMask())) {
-                        bestRoute = route;
-                        bestHops = route.hops;
-                        bestMask = IP.inetAToN(route.getNetMask());
-                    }
-                }
+                } catch (InvalidParameterException e) {}
             }
         }
         if (bestRoute != null) {

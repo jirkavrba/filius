@@ -178,19 +178,17 @@ public class SzenarioVerwaltung extends Observable implements I18n {
 
     private static boolean netzwerkSpeichern(String datei, List<GUIKnotenItem> hardwareItems,
             List<GUIKabelItem> kabelItems, List<GUIDocuItem> docuItems) {
-        Main.debug.println("INVOKED (static) filius.rahmenprogramm.SzenarioVerwaltung, netzwerkSpeichern(" + datei
-                + "," + hardwareItems + "," + kabelItems + ")");
-        XMLEncoder mx = null;
-        FileOutputStream fos = null;
+        Main.debug.println("INVOKED (static) filius.rahmenprogramm.SzenarioVerwaltung, netzwerkSpeichern(" + datei + ","
+                + hardwareItems + "," + kabelItems + ")");
 
-        if (Thread.currentThread().getContextClassLoader() != FiliusClassLoader.getInstance(Thread.currentThread()
-                .getContextClassLoader()))
+        if (Thread.currentThread().getContextClassLoader() != FiliusClassLoader
+                .getInstance(Thread.currentThread().getContextClassLoader())) {
             Thread.currentThread().setContextClassLoader(
                     FiliusClassLoader.getInstance(Thread.currentThread().getContextClassLoader()));
+        }
 
-        try {
-            fos = new FileOutputStream(datei);
-            mx = new XMLEncoder(new BufferedOutputStream(fos));
+        try (FileOutputStream fos = new FileOutputStream(datei);
+                XMLEncoder mx = new XMLEncoder(new BufferedOutputStream(fos))) {
             mx.setExceptionListener(new ExceptionListener() {
                 public void exceptionThrown(Exception arg0) {
                     arg0.printStackTrace(Main.debug);
@@ -204,24 +202,14 @@ public class SzenarioVerwaltung extends Observable implements I18n {
 
             return true;
         } catch (RuntimeException e) {
-            Main.debug
-                    .println("EXCEPTION: java.lang.RuntimeException raised; Java internal problem, not Filius related!");
+            Main.debug.println(
+                    "EXCEPTION: java.lang.RuntimeException raised; Java internal problem, not Filius related!");
             return false;
         } catch (FileNotFoundException e2) {
             e2.printStackTrace(Main.debug);
-
             return false;
         } catch (Exception e) {
             return false;
-        } finally {
-
-            if (mx != null)
-                mx.close();
-            if (fos != null) {
-                try {
-                    fos.close();
-                } catch (IOException e) {}
-            }
         }
     }
 
@@ -247,19 +235,18 @@ public class SzenarioVerwaltung extends Observable implements I18n {
             erfolg = false;
         }
 
-        if (erfolg
-                && !kopiereVerzeichnis(tmpDir + "projekt/anwendungen", Information.getInformation()
-                        .getAnwendungenPfad())) {
+        if (erfolg && !kopiereVerzeichnis(tmpDir + "projekt/anwendungen",
+                Information.getInformation().getAnwendungenPfad())) {
             Main.debug.println("ERROR (" + this.hashCode() + "): Kopieren der Anwendungen fehlgeschlagen");
-        }
-
-        if (erfolg && !netzwerkLaden(tmpDir + "projekt/konfiguration.xml", hardwareItems, kabelItems, docuItems)) {
-            Main.debug.println("ERROR (" + this.hashCode() + "): Laden der Netzwerkkonfiguration fehlgeschlagen");
-            erfolg = false;
         }
 
         if (erfolg && !metadataLaden(tmpDir + "projekt/metadata.xml")) {
             Main.debug.println("ERROR (" + this.hashCode() + "): Laden der Projektmetadaten fehlgeschlagen");
+            erfolg = false;
+        }
+
+        if (erfolg && !netzwerkLaden(tmpDir + "projekt/konfiguration.xml", hardwareItems, kabelItems, docuItems)) {
+            Main.debug.println("ERROR (" + this.hashCode() + "): Laden der Netzwerkkonfiguration fehlgeschlagen");
             erfolg = false;
         }
 
@@ -287,16 +274,17 @@ public class SzenarioVerwaltung extends Observable implements I18n {
         return success;
     }
 
-    private static boolean netzwerkLaden(String datei, List<GUIKnotenItem> hardwareItems,
-            List<GUIKabelItem> kabelItems, List<GUIDocuItem> docuItems) {
+    private static boolean netzwerkLaden(String datei, List<GUIKnotenItem> hardwareItems, List<GUIKabelItem> kabelItems,
+            List<GUIDocuItem> docuItems) {
         Main.debug.println("INVOKED (static) filius.rahmenprogramm.SzenarioVerwaltung, netzwerkLaden(" + datei + ","
                 + hardwareItems + "," + kabelItems + ")");
         Object tmpObject = null;
 
-        if (Thread.currentThread().getContextClassLoader() != FiliusClassLoader.getInstance(Thread.currentThread()
-                .getContextClassLoader()))
+        if (Thread.currentThread().getContextClassLoader() != FiliusClassLoader
+                .getInstance(Thread.currentThread().getContextClassLoader())) {
             Thread.currentThread().setContextClassLoader(
                     FiliusClassLoader.getInstance(Thread.currentThread().getContextClassLoader()));
+        }
 
         boolean success = false;
         try (XMLDecoder xmldec = new XMLDecoder(new BufferedInputStream(new FileInputStream(datei)))) {
@@ -317,26 +305,24 @@ public class SzenarioVerwaltung extends Observable implements I18n {
                 String versionInfo = (String) tmpObject;
                 Main.debug.println("File saved by Filius in version '"
                         + versionInfo.substring(versionInfo.indexOf(":") + 2) + "'");
-                if (versionInfo.substring(versionInfo.indexOf(":") + 2).compareTo(
-                        filius.rahmenprogramm.Information.getVersion()) < 0) {
-                    Main.debug
-                            .println("WARNING: current Filius version is newer ("
-                                    + filius.rahmenprogramm.Information.getVersion()
-                                    + ") than version of scenario file, such that certain elements might not be rendered correctly any more!");
-                } else if (versionInfo.substring(versionInfo.indexOf(":") + 2).compareTo(
-                        filius.rahmenprogramm.Information.getVersion()) > 0) {
-                    Main.debug
-                            .println("WARNING: current Filius version is older ("
-                                    + filius.rahmenprogramm.Information.getVersion()
-                                    + ") than version of scenario file, such that certain elements might not be rendered correctly!");
+                if (versionInfo.substring(versionInfo.indexOf(":") + 2)
+                        .compareTo(filius.rahmenprogramm.Information.getVersion()) < 0) {
+                    Main.debug.println("WARNING: current Filius version is newer ("
+                            + filius.rahmenprogramm.Information.getVersion()
+                            + ") than version of scenario file, such that certain elements might not be rendered correctly any more!");
+                } else if (versionInfo.substring(versionInfo.indexOf(":") + 2)
+                        .compareTo(filius.rahmenprogramm.Information.getVersion()) > 0) {
+                    Main.debug.println("WARNING: current Filius version is older ("
+                            + filius.rahmenprogramm.Information.getVersion()
+                            + ") than version of scenario file, such that certain elements might not be rendered correctly!");
                 } else {
                     Main.debug.println("\t...good, current version of Filius is equal to version of scenario file");
                 }
                 tmpObject = null;
             } else {
                 Main.debug.println("WARNING: Version information of Filius scenario file could not be determined!");
-                Main.debug
-                        .println("WARNING: This usually means, the scenario file was created with Filius before version 1.3.0.");
+                Main.debug.println(
+                        "WARNING: This usually means, the scenario file was created with Filius before version 1.3.0.");
                 Main.debug.println("WARNING: Certain elements might not be rendered correctly any more!");
             }
 
@@ -482,8 +468,8 @@ public class SzenarioVerwaltung extends Observable implements I18n {
     }
 
     public static boolean entpackeZipArchiv(String archivDatei, String zielOrdner) {
-        Main.debug.println("INVOKED (static) filius.rahmenprogramm.SzenarioVerwaltung, entpackeZipArchiv("
-                + archivDatei + "," + zielOrdner + ")");
+        Main.debug.println("INVOKED (static) filius.rahmenprogramm.SzenarioVerwaltung, entpackeZipArchiv(" + archivDatei
+                + "," + zielOrdner + ")");
         ZipFile zf;
         File file;
         InputStream is;
@@ -549,7 +535,8 @@ public class SzenarioVerwaltung extends Observable implements I18n {
     }
 
     public static boolean loescheVerzeichnisInhalt(String verzeichnis) {
-        // Main.debug.println("INVOKED (static) filius.rahmenprogramm.SzenarioVerwaltung, loescheVerzeichnisInhalt("+verzeichnis+")");
+        // Main.debug.println("INVOKED (static) filius.rahmenprogramm.SzenarioVerwaltung,
+        // loescheVerzeichnisInhalt("+verzeichnis+")");
         File path;
         File file;
         File[] fileListe;
@@ -562,13 +549,13 @@ public class SzenarioVerwaltung extends Observable implements I18n {
                 file = fileListe[i];
                 if (file.isDirectory()) {
                     if (!loescheDateien(file.getAbsolutePath())) {
-                        Main.debug.println("ERROR (static): Ordner " + file.getAbsolutePath()
-                                + " konnte nicht geloescht werden.");
+                        Main.debug.println(
+                                "ERROR (static): Ordner " + file.getAbsolutePath() + " konnte nicht geloescht werden.");
                         return false;
                     }
                 } else if (!file.delete()) {
-                    Main.debug.println("ERROR (static): Datei " + file.getAbsolutePath()
-                            + " konnte nicht geloescht werden.");
+                    Main.debug.println(
+                            "ERROR (static): Datei " + file.getAbsolutePath() + " konnte nicht geloescht werden.");
                     return false;
                 } else {
 
@@ -656,8 +643,8 @@ public class SzenarioVerwaltung extends Observable implements I18n {
     }
 
     public static boolean kopiereDatei(String quelldatei, String zieldatei) {
-        Main.debug.println("INVOKED (static) filius.rahmenprogramm.SzenarioVerwaltung, kopiereDatei(" + quelldatei
-                + "," + zieldatei + ")");
+        Main.debug.println("INVOKED (static) filius.rahmenprogramm.SzenarioVerwaltung, kopiereDatei(" + quelldatei + ","
+                + zieldatei + ")");
         File srcfile, destfile;
         FileInputStream fis = null;
         FileOutputStream fos = null;

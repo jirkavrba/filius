@@ -59,6 +59,7 @@ import filius.gui.ValidateableTextField;
 import filius.gui.anwendungssicht.JTableEditable;
 import filius.rahmenprogramm.EingabenUeberpruefung;
 import filius.rahmenprogramm.I18n;
+import filius.rahmenprogramm.SzenarioVerwaltung;
 import filius.software.dhcp.DHCPAddressAssignment;
 import filius.software.dhcp.DHCPServer;
 import filius.software.system.Betriebssystem;
@@ -307,7 +308,8 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
         ipAddressTextField.setPreferredSize(new Dimension(275, 25));
         ipAddressTextField.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
-                ipAddressTextField.setValid(IPAddress.verifyAddress(ipAddressTextField.getText()));
+                ipAddressTextField.setValid(IPAddress.verifyAddress(ipAddressTextField.getText(),
+                        SzenarioVerwaltung.getInstance().ipVersion()));
             }
         });
         hBox.add(ipAddressTextField);
@@ -323,8 +325,8 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
             public void actionPerformed(ActionEvent arg0) {
                 if (ueberpruefen(EingabenUeberpruefung.musterMacAddress, macAddressTextField)
                         && IPAddress.verifyAddress(ipAddressTextField.getText())) {
-                    ((DefaultTableModel) staticAddressTable.getModel()).addRow(new Object[] {
-                            macAddressTextField.getText(), ipAddressTextField.getText() });
+                    ((DefaultTableModel) staticAddressTable.getModel())
+                            .addRow(new Object[] { macAddressTextField.getText(), ipAddressTextField.getText() });
                     macAddressTextField.setText("");
                     ipAddressTextField.setText("");
                 }
@@ -348,8 +350,8 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
                     }
                     ((DefaultTableModel) staticAddressTable.getModel()).setRowCount(0);
                     for (int i = 0; i < macAddresses.size() && i < ipAddresses.size(); i++) {
-                        ((DefaultTableModel) staticAddressTable.getModel()).addRow(new Object[] { macAddresses.get(i),
-                                ipAddresses.get(i) });
+                        ((DefaultTableModel) staticAddressTable.getModel())
+                                .addRow(new Object[] { macAddresses.get(i), ipAddresses.get(i) });
                     }
                 }
             }
@@ -380,8 +382,8 @@ public class JDHCPKonfiguration extends JDialog implements I18n, ItemListener {
 
     /** Listens to the check boxes. */
     public void itemStateChanged(java.awt.event.ItemEvent e) {
-        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
-                + " (JDHCPKonfiguration) itemStateChanged(" + e + "); source=" + e.getItemSelectable());
+        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (JDHCPKonfiguration) itemStateChanged("
+                + e + "); source=" + e.getItemSelectable());
         Object source = e.getItemSelectable();
 
         if (source == cbUseInternal) {

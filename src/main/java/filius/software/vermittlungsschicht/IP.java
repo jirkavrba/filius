@@ -32,6 +32,7 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
 import filius.Main;
+import filius.exception.InvalidParameterException;
 import filius.exception.VerbindungsException;
 import filius.hardware.NetzwerkInterface;
 import filius.hardware.knoten.InternetKnoten;
@@ -46,11 +47,6 @@ import filius.software.transportschicht.UdpSegment;
  * weitergeleitet werden und eingehende Segmente an die Transportschicht weitergeleitet werden.
  */
 public class IP extends VermittlungsProtokoll implements I18n {
-
-    private static final String CURRENT_NETWORK = "0.0.0.0";
-
-    /** String-Konstante fuer die IP-Adresse Localhost (127.0.0.1) */
-    public static final String LOCALHOST = "127.0.0.1";
 
     /** Puffer fuer eingehende IP-Pakete fuer TCP */
     private LinkedList<IpPaket> ipPaketListeTCP = new LinkedList<IpPaket>();
@@ -70,8 +66,8 @@ public class IP extends VermittlungsProtokoll implements I18n {
      */
     public IP(InternetKnotenBetriebssystem systemsoftware) {
         super(systemsoftware);
-        Main.debug.println("INVOKED-2 (" + this.hashCode() + ") " + getClass() + " (IP), constr: IP(" + systemsoftware
-                + ")");
+        Main.debug.println(
+                "INVOKED-2 (" + this.hashCode() + ") " + getClass() + " (IP), constr: IP(" + systemsoftware + ")");
     }
 
     public static long inetAToN(String ipStr) {
@@ -137,10 +133,13 @@ public class IP extends VermittlungsProtokoll implements I18n {
         ipPaket.setTtl(1);
 
         InternetKnotenBetriebssystem bs = (InternetKnotenBetriebssystem) holeSystemSoftware();
-        if (CURRENT_NETWORK.equals(ipPaket.getSender())
-                || gleichesRechnernetz(ipPaket.getSender(), nic.getIp(), nic.getSubnetzMaske())) {
-            bs.holeEthernet().senden(ipPaket, nic.getMac(), ETHERNET_BROADCAST, EthernetFrame.IP);
-        }
+        try {
+            IPAddress sender = new IPAddress(ipPaket.getSender());
+            if (sender.isUnspecifiedAddress()
+                    || gleichesRechnernetz(ipPaket.getSender(), nic.getIp(), nic.getSubnetzMaske())) {
+                bs.holeEthernet().senden(ipPaket, nic.getMac(), ETHERNET_BROADCAST, EthernetFrame.IP);
+            }
+        } catch (InvalidParameterException e) {}
     }
 
     /**
@@ -174,8 +173,8 @@ public class IP extends VermittlungsProtokoll implements I18n {
      * @throws RouteNotFoundException
      */
     private void sendeUnicast(IpPaket paket, Route route) throws RouteNotFoundException {
-        NetzwerkInterface nic = ((InternetKnoten) holeSystemSoftware().getKnoten()).getNetzwerkInterfaceByIp(route
-                .getInterfaceIpAddress());
+        NetzwerkInterface nic = ((InternetKnoten) holeSystemSoftware().getKnoten())
+                .getNetzwerkInterfaceByIp(route.getInterfaceIpAddress());
         String netzmaske = nic.getSubnetzMaske();
 
         if (gleichesRechnernetz(paket.getEmpfaenger(), route.getInterfaceIpAddress(), netzmaske)) {
@@ -225,11 +224,11 @@ public class IP extends VermittlungsProtokoll implements I18n {
         paket.setTtl(ttl);
         paket.setSegment(segment);
 
-        if (this.isLocalAddress(zielIp)) {
+        if (isLocalAddress(zielIp)) {
             // Paket ist an diesen Rechner gerichtet
-            paket.setSender(LOCALHOST);
+            paket.setSender(quellIp);
             benachrichtigeTransportschicht(paket);
-        } else if (zielIp.equals("255.255.255.255")) {
+        } else if (isGlobalBroadcast(zielIp)) {
             if (quellIp == null) {
                 quellIp = ((InternetKnotenBetriebssystem) holeSystemSoftware()).holeIPAdresse();
             }
@@ -243,6 +242,15 @@ public class IP extends VermittlungsProtokoll implements I18n {
                 sendeUnicast(paket, route);
             } catch (RouteNotFoundException e) {}
         }
+    }
+
+    private boolean isGlobalBroadcast(String zielIpAdresse) {
+        boolean isBroadcast = false;
+        try {
+            IPAddress tmp = new IPAddress(zielIpAdresse);
+            isBroadcast = tmp.isGlobalBroadcast();
+        } catch (InvalidParameterException e) {}
+        return isBroadcast;
     }
 
     /**
@@ -265,8 +273,8 @@ public class IP extends VermittlungsProtokoll implements I18n {
             } catch (RouteNotFoundException e) {
                 bs.holeICMP().sendeICMP(ICMP.TYPE_DESTINATION_UNREACHABLE, ICMP.CODE_DEST_NETWORK_UNREACHABLE,
                         paket.getSender());
-                bs.benachrichtigeBeobacher(messages.getString("sw_ip_msg4") + " \"" + bs.getKnoten().getName()
-                        + "\"!\n" + messages.getString("sw_ip_msg5") + " " + paket.getEmpfaenger() + " "
+                bs.benachrichtigeBeobacher(messages.getString("sw_ip_msg4") + " \"" + bs.getKnoten().getName() + "\"!\n"
+                        + messages.getString("sw_ip_msg5") + " " + paket.getEmpfaenger() + " "
                         + messages.getString("sw_ip_msg6"));
             }
         }
@@ -280,8 +288,8 @@ public class IP extends VermittlungsProtokoll implements I18n {
      * @return die Liste mit Segmenten fuer UDP- oder TCP-Segmente
      */
     public LinkedList<IpPaket> holePaketListe(int protokollTyp) {
-        Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + " (IP), holePaketListe(" + protokollTyp
-                + ")");
+        Main.debug.println(
+                "INVOKED (" + this.hashCode() + ") " + getClass() + " (IP), holePaketListe(" + protokollTyp + ")");
         if (protokollTyp == IpPaket.TCP)
             return ipPaketListeTCP;
         else if (protokollTyp == IpPaket.UDP)
