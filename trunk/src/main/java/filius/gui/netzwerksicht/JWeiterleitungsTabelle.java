@@ -51,6 +51,7 @@ import filius.software.system.InternetKnotenBetriebssystem;
 import filius.software.vermittlungsschicht.IPAddress;
 import filius.software.vermittlungsschicht.Weiterleitungstabelle;
 
+@SuppressWarnings("serial")
 public class JWeiterleitungsTabelle extends JTable implements I18n {
 
     private LinkedList<Boolean> editableRows = null;
@@ -65,7 +66,6 @@ public class JWeiterleitungsTabelle extends JTable implements I18n {
         this.konfig = konfig;
 
         TableColumnModel tcm;
-        Vector tempVector;
 
         this.setRowHeight(20);
         this.setRowMargin(2);
@@ -114,7 +114,6 @@ public class JWeiterleitungsTabelle extends JTable implements I18n {
 
     public void aenderungenAnnehmen() {
         Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + ", aenderungenAnnehmen()");
-        Vector<Object> tableData, rowData;
         Weiterleitungstabelle tabelle;
         String[] routingEintrag;
         String tmpString;
@@ -123,13 +122,13 @@ public class JWeiterleitungsTabelle extends JTable implements I18n {
             getCellEditor().stopCellEditing();
         }
 
-        tableData = ((DefaultTableModel) getModel()).getDataVector();
+        Vector<Vector> tableData = ((DefaultTableModel) getModel()).getDataVector();
         tabelle = ((InternetKnotenBetriebssystem) ((Knoten) konfig.holeHardware()).getSystemSoftware())
                 .getWeiterleitungstabelle();
         tabelle.reset();
         for (int i = 0; i < tableData.size(); i++) {
             if (isCellEditable(i, 1)) {
-                rowData = (Vector) tableData.elementAt(i);
+                Vector rowData = (Vector) tableData.elementAt(i);
                 routingEintrag = new String[rowData.size()];
                 for (int j = 0; j < routingEintrag.length; j++) {
                     tmpString = (String) rowData.elementAt(j);

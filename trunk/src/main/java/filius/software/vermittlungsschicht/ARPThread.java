@@ -28,6 +28,7 @@ package filius.software.vermittlungsschicht;
 import filius.Main;
 import filius.exception.InvalidParameterException;
 import filius.hardware.NetzwerkInterface;
+import filius.rahmenprogramm.SzenarioVerwaltung;
 import filius.software.ProtokollThread;
 import filius.software.netzzugangsschicht.EthernetFrame;
 import filius.software.system.InternetKnotenBetriebssystem;
@@ -69,36 +70,39 @@ public class ARPThread extends ProtokollThread {
         try {
             nic = vermittlung.getBroadcastNic(arpPaket.getQuellIp());
         } catch (InvalidParameterException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
         // Aus jedem ARP-Paket wird ein neuer ARP-Eintrag erzeugt
-        if (ARP.isValidArpEntry(arpPaket.getQuellIp(), nic.getSubnetzMaske())) {
-            vermittlung.hinzuARPTabellenEintrag(arpPaket.getQuellIp(), arpPaket.getQuellMacAdresse());
-        }
-
-        // wenn die Anfrage eine Anfrage fuer eine eigene
-        // IP-Adresse ist, wird eine Antwort verschickt
-        if (nic != null
-                && arpPaket.getZielMacAdresse().equalsIgnoreCase("ff:ff:ff:ff:ff:ff")
-                && arpPaket.getZielIp().equalsIgnoreCase(nic.getIp())
-                && !VermittlungsProtokoll.isBroadcast(arpPaket.getQuellIp(), nic.getIp(), nic
-                        .getSubnetzMaske())) {
-            antwortArp = new ArpPaket();
-            antwortArp.setProtokollTyp(arpPaket.getProtokollTyp());
-            antwortArp.setQuellIp(nic.getIp());
-            antwortArp.setQuellMacAdresse(nic.getMac());
-
-            if (arpPaket.getQuellIp().equalsIgnoreCase("0.0.0.0")) {
-                antwortArp.setZielIp("255.255.255.255");
-                antwortArp.setZielMacAdresse("ff:ff:ff:ff:ff:ff");
-            } else {
-                antwortArp.setZielIp(arpPaket.getQuellIp());
-                antwortArp.setZielMacAdresse(arpPaket.getQuellMacAdresse());
+        try {
+            IPAddress ipAddress = new IPAddress(arpPaket.getQuellIp());
+            if (ARP.isValidArpEntry(arpPaket.getQuellIp(), nic.getSubnetzMaske())) {
+                vermittlung.hinzuARPTabellenEintrag(ipAddress, arpPaket.getQuellMacAdresse());
             }
 
-            bs.holeEthernet().senden(antwortArp, nic.getMac(), antwortArp.getZielMacAdresse(), EthernetFrame.ARP);
+            // wenn die Anfrage eine Anfrage fuer eine eigene
+            // IP-Adresse ist, wird eine Antwort verschickt
+            if (nic != null && arpPaket.getZielMacAdresse().equalsIgnoreCase("ff:ff:ff:ff:ff:ff")
+                    && nic.addressIP().equalAddress(arpPaket.getZielIp())
+                    && !VermittlungsProtokoll.isBroadcast(arpPaket.getQuellIp(), nic.getIp(), nic.getSubnetzMaske())) {
+                antwortArp = new ArpPaket();
+                antwortArp.setProtokollTyp(arpPaket.getProtokollTyp());
+                antwortArp.setQuellIp(nic.getIp());
+                antwortArp.setQuellMacAdresse(nic.getMac());
+
+                if (ipAddress.isUnspecifiedAddress()) {
+                    antwortArp.setZielIp(
+                            IPAddress.globalBroadcast(SzenarioVerwaltung.getInstance().ipVersion()).standardAddress());
+                    antwortArp.setZielMacAdresse("ff:ff:ff:ff:ff:ff");
+                } else {
+                    antwortArp.setZielIp(arpPaket.getQuellIp());
+                    antwortArp.setZielMacAdresse(arpPaket.getQuellMacAdresse());
+                }
+
+                bs.holeEthernet().senden(antwortArp, nic.getMac(), antwortArp.getZielMacAdresse(), EthernetFrame.ARP);
+            }
+        } catch (InvalidParameterException e) {
+            e.printStackTrace();
         }
     }
 }

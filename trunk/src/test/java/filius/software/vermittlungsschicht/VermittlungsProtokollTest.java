@@ -107,41 +107,6 @@ public class VermittlungsProtokollTest {
         assertThat(isBroadcast, is(true));
     }
 
-    @Test
-    public void testIpAddressToInt_FourthPartSet() throws Exception {
-        int addressAsInt = VermittlungsProtokoll.ipAddressToInt("0.0.0.12");
-
-        assertThat(addressAsInt, is(12));
-    }
-
-    @Test
-    public void testIpAddressToInt_ThirdPartSet() throws Exception {
-        int addressAsInt = VermittlungsProtokoll.ipAddressToInt("0.0.1.0");
-
-        assertThat(addressAsInt, is(0x100));
-    }
-
-    @Test
-    public void testIpAddressToInt_SecondPartSet() throws Exception {
-        int addressAsInt = VermittlungsProtokoll.ipAddressToInt("0.1.0.0");
-
-        assertThat(addressAsInt, is(0x10000));
-    }
-
-    @Test
-    public void testIpAddressToInt_AllPartsSet() throws Exception {
-        int addressAsInt = VermittlungsProtokoll.ipAddressToInt("1.1.1.1");
-
-        assertThat(addressAsInt, is(0x1010101));
-    }
-
-    @Test
-    public void testIpAddressToInt_Complex() throws Exception {
-        int addressAsInt = VermittlungsProtokoll.ipAddressToInt("11.12.13.14");
-
-        assertThat(addressAsInt, is(0xb0c0d0e));
-    }
-
     private class VermittlungsProtokollTestable extends VermittlungsProtokoll {
         public VermittlungsProtokollTestable(SystemSoftware systemSoftware) {
             super(systemSoftware);

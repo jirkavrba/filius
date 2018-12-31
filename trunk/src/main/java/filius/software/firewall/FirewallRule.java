@@ -28,9 +28,10 @@ package filius.software.firewall;
 import java.util.List;
 import java.util.Vector;
 
+import filius.exception.InvalidParameterException;
 import filius.hardware.NetzwerkInterface;
 import filius.rahmenprogramm.I18n;
-import filius.software.vermittlungsschicht.VermittlungsProtokoll;
+import filius.software.vermittlungsschicht.IPAddress;
 
 public class FirewallRule implements I18n {
 
@@ -138,44 +139,57 @@ public class FirewallRule implements I18n {
                 sameNet = true;
         }
 
-        if (srcIP.isEmpty())
+        if (srcIP.isEmpty()) {
             result += "*/";
-        else if (sameNet)
-            result += VermittlungsProtokoll.getSubnetForIp(ip, mask) + "/" + mask + " -> ";
-        else
+        } else if (sameNet) {
+            IPAddress tmp;
+            try {
+                tmp = new IPAddress(ip, mask);
+                result += tmp.networkAddress() + "/" + mask + " -> ";
+            } catch (InvalidParameterException e) {}
+        } else {
             result += srcIP + "/";
-        if (sameNet) {} else if (srcMask.isEmpty())
+        }
+        if (sameNet) {} else if (srcMask.isEmpty()) {
             result += "* -> ";
-        else
+        } else {
             result += srcMask + " -> ";
-        if (destIP.isEmpty())
+        }
+        if (destIP.isEmpty()) {
             result += "*/";
-        else
+        } else {
             result += destIP + "/";
-        if (destMask.isEmpty())
+        }
+        if (destMask.isEmpty()) {
             result += "*; ";
-        else
+        } else {
             result += destMask + "; ";
+        }
         if (protocol >= 0) {
-            if (protocol == FirewallRule.TCP)
-                result += "TCP:";
-            else if (protocol == FirewallRule.UDP)
-                result += "UDP:";
-            else
-                result += "?:";
+            {
+                if (protocol == FirewallRule.TCP) {
+                    result += "TCP:";
+                } else if (protocol == FirewallRule.UDP) {
+                    result += "UDP:";
+                } else {
+                    result += "?:";
+                }
+            }
         } else {
             result += "*:";
         }
-        if (port >= 0)
+        if (port >= 0) {
             result += port + "  => ";
-        else
+        } else {
             result += "*  => ";
-        if (action == FirewallRule.ACCEPT)
+        }
+        if (action == FirewallRule.ACCEPT) {
             result += "ACCEPT";
-        else if (action == FirewallRule.DROP)
+        } else if (action == FirewallRule.DROP) {
             result += "DROP";
-        else
+        } else {
             result += action;
+        }
         return result;
     }
 }
