@@ -29,7 +29,6 @@ import filius.Main;
 import filius.software.dhcp.DHCPClient;
 import filius.software.dhcp.DHCPServer;
 import filius.software.rip.RIPTable;
-import filius.software.vermittlungsschicht.IPVersion;
 
 /**
  * Diese Klasse stellt die Funktionalitaet eines Betriebssystems fuer Hosts (d. h. Rechner und Notebooks) zur
@@ -46,10 +45,8 @@ public class Betriebssystem extends InternetKnotenBetriebssystem {
      * ob die Konfiguration der Netzwerkkarte mit DHCP erfolgt
      */
     private boolean dhcpKonfiguration;
-    /** der DHCP-Server fuer IPv4, der aktiviert und deaktiviert werden kann */
+    /** der DHCP-Server, der aktiviert und deaktiviert werden kann */
     private DHCPServer dhcpServer;
-    /** der DHCP-Server fuer IPv6, der aktiviert und deaktiviert werden kann */
-    private DHCPServer dhcpServerIPv6;
     /**
      * der DHCP-Client, der zur Konfiguration der Netzwerkkarte genutzt wird, wenn die Konfiguration mit DHCP erfolgen
      * soll
@@ -66,8 +63,8 @@ public class Betriebssystem extends InternetKnotenBetriebssystem {
         Main.debug.println("INVOKED-2 (" + this.hashCode() + ") " + getClass()
                 + " (Betriebssystem), constr: Betriebssystem()");
 
-        dhcpServer = new DHCPServer(IPVersion.IPv4, this);
-        dhcpServerIPv6 = new DHCPServer(IPVersion.IPv6, this);
+        dhcpServer = new DHCPServer();
+        dhcpServer.setSystemSoftware(this);
     }
 
     @Override
@@ -130,13 +127,5 @@ public class Betriebssystem extends InternetKnotenBetriebssystem {
     /** Ob die Konfiguration der Netzwerkkarte mit DHCP erfolgt */
     public void setDHCPKonfiguration(boolean dhcp) {
         this.dhcpKonfiguration = dhcp;
-    }
-
-    public DHCPServer getDhcpServerIPv6() {
-        return dhcpServerIPv6;
-    }
-
-    public void setDhcpServerIPv6(DHCPServer dhcpServerIPv6) {
-        this.dhcpServerIPv6 = dhcpServerIPv6;
     }
 }

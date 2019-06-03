@@ -25,15 +25,13 @@
  */
 package filius.exception;
 
-@SuppressWarnings("serial")
 public class DeleteAccountException extends Exception {
+	public DeleteAccountException() {
+		super();
+	}
 
-    public DeleteAccountException() {
-        super();
-    }
-
-    public DeleteAccountException(String s) {
-        super(s);
-    }
+	public DeleteAccountException(String s) {
+		super(s);
+	}
 
 }

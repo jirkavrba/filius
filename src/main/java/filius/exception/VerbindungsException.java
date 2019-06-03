@@ -25,14 +25,13 @@
  */
 package filius.exception;
 
-@SuppressWarnings("serial")
-public class VerbindungsException extends Exception {
+public class VerbindungsException extends StilleException {
 
-    public VerbindungsException() {
-        super();
-    }
+	public VerbindungsException() {
+		super();
+	}
 
-    public VerbindungsException(String s) {
-        super(s);
-    }
+	public VerbindungsException(String s) {
+		super(s);
+	}
 }

@@ -27,8 +27,6 @@ package filius.software.vermittlungsschicht;
 
 import java.io.Serializable;
 
-import filius.exception.InvalidParameterException;
-
 /**
  * Diese Klasse umfasst die Attribute bzw. Felder eines IP-Pakets
  */
@@ -89,9 +87,7 @@ public class IpPaket implements Serializable, Cloneable {
     }
 
     public void setEmpfaenger(String empfaenger) {
-        try {
-            this.empfaenger = new IPAddress(empfaenger).standardAddress();
-        } catch (InvalidParameterException e) {}
+        this.empfaenger = empfaenger;
     }
 
     public String getSender() {
@@ -99,9 +95,7 @@ public class IpPaket implements Serializable, Cloneable {
     }
 
     public void setSender(String sender) {
-        try {
-            this.sender = new IPAddress(sender).standardAddress();
-        } catch (InvalidParameterException e) {}
+        this.sender = sender;
     }
 
     public boolean isDf() {

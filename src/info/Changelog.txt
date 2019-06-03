@@ -1,6 +1,6 @@
 filius (1.7.3) unstable; urgency=low
-  * Verhalten von ARP und ICMP im Umgang mit Broadcast-/Netzwerkadressen geaendert
- -- Stefan Freischlad <kontakt@lernsoftware-filius.de>  Wed, 07 Feb 2016 00:00:00 +0000
+  * Abhängigkeit zu Java 8 in Windows-Version korrigiert
+ -- Stefan Freischlad <kontakt@lernsoftware-filius.de>  Tue, 21 Aug 2018 00:00:00 +0000
 
 filius (1.7.2) unstable; urgency=low
   * Konfigurierbare Groesse der Arbeitsflaeche zum Aufbau der Rechnernetze (konfigurierbar in filius.ini)

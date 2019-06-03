@@ -25,13 +25,14 @@
  */
 package filius.exception;
 
-public class CreateAccountException extends Exception {
-	public CreateAccountException() {
+
+public abstract class HauptException extends Exception {
+
+	public HauptException() {
 		super();
 	}
 
-	public CreateAccountException(String s) {
+	public HauptException(String s) {
 		super(s);
 	}
-
 }

@@ -23,47 +23,36 @@
  ** You should have received a copy of the GNU General Public License
  ** along with Filius.  If not, see <http://www.gnu.org/licenses/>.
  */
-package filius.software.www;
+package filius.rahmenprogramm;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.beans.DefaultPersistenceDelegate;
+import java.beans.Encoder;
 
 import filius.Main;
+import filius.hardware.knoten.Host;
+import filius.hardware.knoten.Modem;
+import filius.hardware.knoten.Switch;
+import filius.hardware.knoten.Vermittlungsrechner;
 
-/**
- * 
- * @author Michell wird vom den Klassen FirewallWebKonfig und FirewallWebLog
- *         benutzt
- */
-public abstract class WebServerPlugIn {
+public class KnotenPersistenceDelegate extends DefaultPersistenceDelegate {
 
-	private String pfad;
-
-	public String getPfad() {
-		return pfad;
-	}
-
-	public void setPfad(String pfad) {
-		this.pfad = pfad;
-	}
-
-	public abstract String holeHtmlSeite(String postDaten);
-
-	/**
-	 * liest eine reale Textdatei vom Format .txt ein. Diese befinden sich im
-	 * Ordner /config
-	 */
-	protected String textDateiEinlesen(String datei) throws FileNotFoundException, IOException {
-		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass()
-		        + " (FirewallWebKonfig), textDateiEinlesen(" + datei + ")");
-		BufferedReader test = new BufferedReader(new FileReader(datei));
-		String fullFile = "";
-		String input = "";
-		while ((input = test.readLine()) != null) {
-			fullFile += input + "\n";
+	public void writeObject(Object oldInstance, Encoder out) {
+		Main.debug.println("INVOKED (" + this.hashCode() + ") " + getClass() + ", writeObject()");
+		if (oldInstance instanceof Host) {
+			// Main.debug.println("\tObjekt der Klasse Host");
+			super.writeObject((Host) oldInstance, out);
+		} else if (oldInstance instanceof Vermittlungsrechner) {
+			// Main.debug.println("\tObjekt der Klasse Vermittlungsrechner");
+			super.writeObject((Vermittlungsrechner) oldInstance, out);
+		} else if (oldInstance instanceof Modem) {
+			// Main.debug.println("\tObjekt der Klasse Modem");
+			super.writeObject((Modem) oldInstance, out);
+		} else if (oldInstance instanceof Switch) {
+			// Main.debug.println("\tObjekt der Klasse Switch");
+			super.writeObject((Switch) oldInstance, out);
+		} else {
+			// Main.debug.println("\tObjekt der Klasse 'unbekannt'");
+			super.writeObject(oldInstance, out);
 		}
-		return fullFile;
 	}
 }

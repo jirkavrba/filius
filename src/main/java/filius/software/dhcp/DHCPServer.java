@@ -38,34 +38,30 @@ import filius.exception.AddressRequestNotAcceptedException;
 import filius.exception.NoAvailableAddressException;
 import filius.hardware.Verbindung;
 import filius.rahmenprogramm.EingabenUeberpruefung;
-import filius.rahmenprogramm.SzenarioVerwaltung;
 import filius.software.clientserver.UDPServerAnwendung;
-import filius.software.system.InternetKnotenBetriebssystem;
 import filius.software.transportschicht.Socket;
-import filius.software.vermittlungsschicht.IPAddress;
-import filius.software.vermittlungsschicht.IPVersion;
 
 /**
- * In dieser Klasse und in DHCPServerMitarbeiter wird ein Sever fuer Dynamic Host Configuration Protocol implementiert.
- * <br />
+ * In dieser Klasse und in DHCPServerMitarbeiter wird ein Sever fuer Dynamic Host Configuration Protocol implementiert. <br />
  * In dieser Klasse werden die Einstellungen des Server verwaltet. Das Protokoll zur Vereinbarung einer IP-Adresse wird
  * durch DHCPServerMitarbeiter realisiert. D. h. zu jeder eingehenden Anfrage wird ein neuer Mitarbeiter erzeugt.
  */
 
 public class DHCPServer extends UDPServerAnwendung {
 
+    private static final String DEFAULT_IP_ADDRESS = "0.0.0.0";
     /** wie lange ein DHCP-Eintrag gueltig sein soll bzw. die IP-Adresse einer MAC zugewiesen bleibt (Standardwert) */
     private static final long DEFAULT_LEASE_TIME_MILLIS = 24 * 60 * 60 * 1000;
     private static final int DHCP_SERVER_PORT = 67;
 
     /** niedrigste IP-Adresse, die durch diesen DHCP-Server vergeben wird */
-    private String untergrenze;
+    private String untergrenze = DEFAULT_IP_ADDRESS;
     /** hoechste IP-Adresse, die durch diesen DHCP-Server vergeben wird */
-    private String obergrenze;
+    private String obergrenze = DEFAULT_IP_ADDRESS;
     /** setting of DHCP server for the router/gateway (not necessarily equal to operating system settings) */
-    private String dhcpGateway;
+    private String dhcpGateway = DEFAULT_IP_ADDRESS;
     /** setting of DHCP server for the DNS server (not necessarily equal to operating system settings) */
-    private String dhcpDNS;
+    private String dhcpDNS = DEFAULT_IP_ADDRESS;
     /** whether to use the operating system or the dhcp settings for the attributes router/gateway and DND server */
     private boolean useDhcpSettings = false;
 
@@ -82,17 +78,8 @@ public class DHCPServer extends UDPServerAnwendung {
 
     /** Konstruktor, in dem der UDP-Port 67 gesetzt wird. */
     public DHCPServer() {
-        this(IPVersion.IPv4, null);
-    }
-
-    public DHCPServer(IPVersion ipVersion, InternetKnotenBetriebssystem systemSoftware) {
         super();
-        untergrenze = IPAddress.defaultAddress(ipVersion).address();
-        obergrenze = IPAddress.defaultAddress(ipVersion).address();
-        dhcpGateway = IPAddress.defaultAddress(ipVersion).address();
-        dhcpDNS = IPAddress.defaultAddress(ipVersion).address();
         port = DHCP_SERVER_PORT;
-        setSystemSoftware(systemSoftware);
     }
 
     String nextAddress() {
@@ -182,8 +169,11 @@ public class DHCPServer extends UDPServerAnwendung {
                 if (StringUtils.equalsIgnoreCase(mac, assignment.getMAC())) {
                     success = true;
                     offeredAddresses.remove(assignment);
+                    break;
+                } else {
+                    success = false;
+                    break;
                 }
-                break;
             }
         }
         if (!success && checkAddressAvailable(ip)) {
@@ -263,8 +253,8 @@ public class DHCPServer extends UDPServerAnwendung {
     }
 
     public void starten() {
-        Main.debug.println(
-                "INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass() + " (DHCPServer), starten()");
+        Main.debug.println("INVOKED (" + this.hashCode() + ", T" + this.getId() + ") " + getClass()
+                + " (DHCPServer), starten()");
         dynamicAssignedAddresses.clear();
         lastOfferedAddress = null;
         super.starten();
@@ -296,7 +286,7 @@ public class DHCPServer extends UDPServerAnwendung {
     }
 
     static int[] ipToIntArray(String ipAddress) {
-        if (!IPAddress.verifyAddress(ipAddress)) {
+        if (!EingabenUeberpruefung.isGueltig(ipAddress, EingabenUeberpruefung.musterIpAdresse)) {
             throw new NumberFormatException("Not a valid IP address");
         }
         int[] ipAsArray = new int[4];
@@ -347,7 +337,7 @@ public class DHCPServer extends UDPServerAnwendung {
         } else {
             dns = getSystemSoftware().getDNSServer();
             if (StringUtils.isEmpty(dns)) {
-                dns = IPAddress.unspecifiedAddress(SzenarioVerwaltung.getInstance().ipVersion()).address();
+                dns = DEFAULT_IP_ADDRESS;
             }
         }
         return dns;
@@ -364,7 +354,7 @@ public class DHCPServer extends UDPServerAnwendung {
         } else {
             gateway = getSystemSoftware().getStandardGateway();
             if (StringUtils.isEmpty(gateway)) {
-                gateway = IPAddress.unspecifiedAddress(SzenarioVerwaltung.getInstance().ipVersion()).address();
+                gateway = DEFAULT_IP_ADDRESS;
             }
         }
         return gateway;
@@ -407,7 +397,7 @@ public class DHCPServer extends UDPServerAnwendung {
             }
         }
         if (!alreadyExisting && EingabenUeberpruefung.isGueltig(mac, EingabenUeberpruefung.musterMacAddress)
-                && IPAddress.verifyAddress(ip)) {
+                && EingabenUeberpruefung.isGueltig(ip, EingabenUeberpruefung.musterIpAdresse)) {
             staticAssignedAddresses.add(new DHCPAddressAssignment(mac, ip, 0));
         }
     }
