@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuite tests="27" failures="0" name="filius.software.dhcp.DHCPServerTest" time="0.252" errors="0" skipped="0">
+  <properties>
+    <property name="idea.version" value="2020.2.3"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="java.vm.version" value="15.0.1+9-18"/>
+    <property name="sun.boot.library.path" value="/home/jirka/.jdks/openjdk-15.0.1/lib"/>
+    <property name="maven.multiModuleProjectDirectory" value="/home/jirka/code/filius"/>
+    <property name="java.vm.vendor" value="Oracle Corporation"/>
+    <property name="java.vendor.url" value="https://java.oracle.com/"/>
+    <property name="guice.disable.misplaced.annotation.check" value="true"/>
+    <property name="path.separator" value=":"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="user.country" value="US"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="user.dir" value="/home/jirka/code/filius"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="java.runtime.version" value="15.0.1+9-18"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.io.tmpdir" value="/tmp"/>
+    <property name="line.separator" value="
+"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="os.name" value="Linux"/>
+    <property name="maven.ext.class.path" value="/home/jirka/Downloads/idea-IC-202.7660.26/plugins/maven/lib/maven-event-listener.jar"/>
+    <property name="classworlds.conf" value="/home/jirka/Downloads/idea-IC-202.7660.26/plugins/maven/lib/maven3/bin/m2.conf"/>
+    <property name="sun.jnu.encoding" value="UTF-8"/>
+    <property name="java.library.path" value="/usr/java/packages/lib:/usr/lib64:/lib64:/lib:/usr/lib"/>
+    <property name="maven.conf" value="/home/jirka/Downloads/idea-IC-202.7660.26/plugins/maven/lib/maven3/conf"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="java.class.version" value="59.0"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="os.version" value="5.8.0-25-generic"/>
+    <property name="user.home" value="/home/jirka"/>
+    <property name="user.timezone" value="Europe/Prague"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.specification.version" value="15"/>
+    <property name="user.name" value="jirka"/>
+    <property name="java.class.path" value="/home/jirka/Downloads/idea-IC-202.7660.26/plugins/maven/lib/maven3/boot/plexus-classworlds-2.6.0.jar:/home/jirka/Downloads/idea-IC-202.7660.26/plugins/maven/lib/maven3/boot/plexus-classworlds.license"/>
+    <property name="java.vm.specification.version" value="15"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="sun.java.command" value="org.codehaus.classworlds.Launcher -Didea.version=2020.2.3 package"/>
+    <property name="java.home" value="/home/jirka/.jdks/openjdk-15.0.1"/>
+    <property name="user.language" value="en"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="java.version" value="15.0.1"/>
+    <property name="securerandom.source" value="file:/dev/./urandom"/>
+    <property name="java.vendor" value="Oracle Corporation"/>
+    <property name="maven.home" value="/home/jirka/Downloads/idea-IC-202.7660.26/plugins/maven/lib/maven3"/>
+    <property name="file.separator" value="/"/>
+    <property name="java.version.date" value="2020-10-20"/>
+    <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="sun.cpu.endian" value="little"/>
+  </properties>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testInRange" time="0.085"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testInRange_ComplexRange" time="0.004"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testInRange_OverUpperLimit" time="0.005"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testInRange_BelowLowerLimit" time="0.004"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testInRange_BelowLowerLimitInFirstPart" time="0.005"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testIpToIntArray" time="0"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testIpToIntArray_InvalidNumberInAddress" time="0"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testIpToIntArray_NotAnIpAddress" time="0"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testIpToIntArray_TooManyParts" time="0"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testIpToLong" time="0"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testLongToIp" time="0"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testCleanUpAssignments_doNotRemoveNeverExpiringEntries" time="0.004"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testCleanUpAssignments_RemoveExpiredEntries" time="0.006"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testCleanUpAssignments_DoNotRemoveStillValidEntries" time="0.004"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testNextAddress_Sequence" time="0.004"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testNextAddress_RepeatInterval" time="0.004"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testAddressAvailable_NoAssignedAddresses" time="0.004"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testAddressAvailable_AlreadyDynamicallyAssigned" time="0.011"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testAddressAvailable_AlreadyStaticallyAssigned" time="0.003"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testAddressAvailable_AlreadyOffered" time="0.008"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testAddressAvailable_NoApplicableAssignment" time="0.013"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testOfferAddress_SkipAssigned" time="0.04"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testOfferAddress_NoAddressAvailable" time="0.021"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testOfferAddress_AddressMayBeOfferedJustOnce" time="0.01"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testRequestAddress_AddressOfferedToClient" time="0.006"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testRequestAddress_AddressOfferedToOTHERClient" time="0.007"/>
+  <testcase classname="filius.software.dhcp.DHCPServerTest" name="testRequestAddress_AddressOfferedToNoOneButStillAvailable" time="0.004"/>
+</testsuite>

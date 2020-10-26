@@ -42,6 +42,8 @@ import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import com.github.weisj.darklaf.LafManager;
+import com.github.weisj.darklaf.theme.DarculaTheme;
 import filius.gui.GUIContainer;
 import filius.gui.GUIMainMenu;
 import filius.gui.JMainFrame;
@@ -84,6 +86,10 @@ public class Main implements I18n {
         XMLDecoder xmldec;
         String konfigPfad;
         Object[] programmKonfig;
+
+        // Enable dark theme
+        LafManager.setTheme(new DarculaTheme());
+        LafManager.install();
 
         try {
             Information.getInformation().loadIni();

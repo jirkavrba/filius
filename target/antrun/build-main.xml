@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="maven-antrun-" default="main"  >
+<target name="main">
+  <gzip destfile="/home/jirka/code/filius/target/changelog.gz" src="/home/jirka/code/filius/src/info/Changelog.txt"/>
+</target>
+</project>

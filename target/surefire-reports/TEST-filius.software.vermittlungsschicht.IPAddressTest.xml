@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuite tests="64" failures="0" name="filius.software.vermittlungsschicht.IPAddressTest" time="0.058" errors="0" skipped="0">
+  <properties>
+    <property name="idea.version" value="2020.2.3"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="java.vm.version" value="15.0.1+9-18"/>
+    <property name="sun.boot.library.path" value="/home/jirka/.jdks/openjdk-15.0.1/lib"/>
+    <property name="maven.multiModuleProjectDirectory" value="/home/jirka/code/filius"/>
+    <property name="java.vm.vendor" value="Oracle Corporation"/>
+    <property name="java.vendor.url" value="https://java.oracle.com/"/>
+    <property name="guice.disable.misplaced.annotation.check" value="true"/>
+    <property name="path.separator" value=":"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="user.country" value="US"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="user.dir" value="/home/jirka/code/filius"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="java.runtime.version" value="15.0.1+9-18"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.io.tmpdir" value="/tmp"/>
+    <property name="line.separator" value="
+"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="os.name" value="Linux"/>
+    <property name="maven.ext.class.path" value="/home/jirka/Downloads/idea-IC-202.7660.26/plugins/maven/lib/maven-event-listener.jar"/>
+    <property name="classworlds.conf" value="/home/jirka/Downloads/idea-IC-202.7660.26/plugins/maven/lib/maven3/bin/m2.conf"/>
+    <property name="sun.jnu.encoding" value="UTF-8"/>
+    <property name="java.library.path" value="/usr/java/packages/lib:/usr/lib64:/lib64:/lib:/usr/lib"/>
+    <property name="maven.conf" value="/home/jirka/Downloads/idea-IC-202.7660.26/plugins/maven/lib/maven3/conf"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="java.class.version" value="59.0"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="os.version" value="5.8.0-25-generic"/>
+    <property name="user.home" value="/home/jirka"/>
+    <property name="user.timezone" value="Europe/Prague"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.specification.version" value="15"/>
+    <property name="user.name" value="jirka"/>
+    <property name="java.class.path" value="/home/jirka/Downloads/idea-IC-202.7660.26/plugins/maven/lib/maven3/boot/plexus-classworlds-2.6.0.jar:/home/jirka/Downloads/idea-IC-202.7660.26/plugins/maven/lib/maven3/boot/plexus-classworlds.license"/>
+    <property name="java.vm.specification.version" value="15"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="sun.java.command" value="org.codehaus.classworlds.Launcher -Didea.version=2020.2.3 package"/>
+    <property name="java.home" value="/home/jirka/.jdks/openjdk-15.0.1"/>
+    <property name="user.language" value="en"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="java.version" value="15.0.1"/>
+    <property name="securerandom.source" value="file:/dev/./urandom"/>
+    <property name="java.vendor" value="Oracle Corporation"/>
+    <property name="maven.home" value="/home/jirka/Downloads/idea-IC-202.7660.26/plugins/maven/lib/maven3"/>
+    <property name="file.separator" value="/"/>
+    <property name="java.version.date" value="2020-10-20"/>
+    <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="sun.cpu.endian" value="little"/>
+  </properties>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testConstructor_IPv6_WithPENDINGZeroSequencePlaceholder" time="0.001"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testConstructor_IPv6_WithLEADINGZeroSequencePlaceholder" time="0.001"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testConstructor_IPv6_WithMIDDLEZeroSequencePlaceholder" time="0.001"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testConstructor_IPv6_WithIPv4Notation" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testConstructor_IPv6_WithHexadecimalDigits" time="0.01"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testConstructor_IPv6_WithNetmask" time="0.002"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testConstructor_IPv6_NetmaskToHigh" time="0.002"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testConstructor_IPv4_NetmaskToHigh" time="0.001"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testConstructor_IPv6_InvalidSyntax" time="0.002"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testConstructor2_ValidIPv4" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testConstructor2_IPv4_MaxNetmask" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testConstructor2_IPv4_InvalidNetmask" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testConstructor2_IPv4_InvalidNetmaskAddress" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testConstructor2_ValidIPv6" time="0.001"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testEquals_DifferentNotations" time="0.002"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testConstructor_IPv4" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testConstructor_IPv4_WithNetmask" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testConstructor_IPv4_InvalidSyntax" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testConstructor_IPv6" time="0.001"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testNormalizedString_IPv6_WithTWOZeroSequences_ReplaceSecondAsLongest" time="0.002"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testEquals_DifferentNetworkMask" time="0.002"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testIsLoopbackAddress_IPv4_Yes" time="0.001"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testIsLoopbackAddress_IPv4_No" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testIsLoopbackAddress_IPv6_Yes" time="0.004"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testIsLoopbackAddress_IPv6_No" time="0.006"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testDefineVersion_WithoutNetmask_ValidIPv4Address" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testDefineVersion_WithNetmask_ValidIPv6Address" time="0.001"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testDefineVersion_WithoutNetmask_ValidIPv6Address" time="0.003"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testDefineVersion_InvalidAddress" time="0.001"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testIsUnspecifiedAddress_IPv4" time="0.001"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testIsUnspecifiedAddress_IPv4_False" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testIsUnspecifiedAddress_IPv6" time="0.001"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testIsUnspecifiedAddress_IPv6_False" time="0.003"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testNetworkAddress_IPv4" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testNetworkAddress_IPv4_13Bit" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testNetworkAddress_IPv6" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testNetworkAddress_IPv6_23Bit" time="0.001"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testNetmask_IPv6_23Bit" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testNetmask_IPv4_13Bit" time="0.001"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testNormalizedString_IPv6_WithZeroSequence" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testNormalizedString_IPv6_WithZeroSequenceAndIPv4Notation" time="0.001"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testNormalizedString_IPv6_WithZeroSequenceAtBeginning" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testNormalizedString_IPv6_WithZeroSequenceAtEnd" time="0.001"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testNormalizedString_IPv6_WithTWOZeroSequences_ReplaceFirstAsLongest" time="0.001"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testVerify_IPv4WithNetmask_Failure" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testVerify_IPv4WithoutNetmask_Success" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testVerify_IPv4AsIPv6_Failure" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testVerify_IPv6WithNetmask_Failure" time="0.001"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testVerify_IPv6Incomplete_Failure" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testVerify_IPv6WithoutNetmask_Success" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testVerify_IPv6AsIPv4_Failure" time="0.001"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testVerifyNetmaskDefinition_IPv6_True" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testVerifyNetmaskDefinition_IPv6_False" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testVerifyNetmaskDefinition_IPv6_Hexadecimal" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testVerifyNetmaskDefinition_IPv4_True" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testVerifyNetmaskDefinition_IPv4WithPartlyByte_True" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testVerifyNetmaskDefinition_IPv4_InvalidNetmaskString" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testEqualNetwork_Success" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testEqualNetwork_Failure" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testIsGlobalBroadcast_IPv4" time="0.001"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testIsGlobalBroadcast_IPv6" time="0.001"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testIsLocalBroadcast_IPv4With8BitNetmask" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testIsLocalBroadcast_IPv4With12BitNetmask" time="0"/>
+  <testcase classname="filius.software.vermittlungsschicht.IPAddressTest" name="testIsLocalBroadcast_IPv4With12BitNetmask_Failure" time="0"/>
+</testsuite>
