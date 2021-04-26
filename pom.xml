@@ -20,7 +20,7 @@
 		<launch4j.version>1.7.22</launch4j.version>
 		<launch4j.starterName>Filius.exe</launch4j.starterName>
 		<commons-lang3.version>3.3.2</commons-lang3.version>
-		<commons-io.version>2.4</commons-io.version>
+		<commons-io.version>2.7</commons-io.version>
 	</properties>
 	<packaging>jar</packaging>
 
